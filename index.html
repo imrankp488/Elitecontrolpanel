@@ -2,210 +2,134 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>TERMINAL v5.1 | IMRANPLAYZ</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Elite Terminal | ImranPlayz</title>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Courier+Prime:wght@400;700&display=swap" rel="stylesheet">
     <style>
         :root { --green: #00ff41; --red: #ff3333; --bg: #000000; }
-        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-        body {
-            background-color: var(--bg); color: var(--green);
-            font-family: 'Courier Prime', monospace; margin: 0;
-            display: flex; justify-content: center; align-items: center;
-            min-height: 100vh; overflow: hidden;
-        }
-
-        /* Scanline Overlay */
-        body::after {
-            content: " "; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.1) 50%);
-            z-index: 999; pointer-events: none; background-size: 100% 3px;
-        }
-
-        .terminal-container {
-            width: 90%; max-width: 400px; border: 2px solid var(--green);
-            border-radius: 10px; padding: 25px; background: rgba(0, 10, 0, 0.95);
-            box-shadow: 0 0 15px rgba(0, 255, 65, 0.2);
-        }
-
-        h2 { text-align: center; letter-spacing: 2px; font-size: 18px; margin-bottom: 20px; }
-
-        input {
-            width: 100%; padding: 12px; background: #000;
-            border: 1px solid var(--green); color: var(--green);
-            margin-bottom: 15px; border-radius: 4px; outline: none;
-            font-size: 16px; font-family: inherit;
-        }
-
-        .btn-box { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-        
-        button {
-            padding: 12px; background: transparent; border: 1px solid var(--green);
-            color: var(--green); font-weight: bold; cursor: pointer;
-            font-size: 12px; text-transform: uppercase;
-        }
+        body { background: var(--bg); color: var(--green); font-family: 'Courier Prime', monospace; margin: 0; padding: 20px; display: flex; justify-content: center; min-height: 100vh; }
+        .terminal { width: 100%; max-width: 450px; border: 2px solid var(--green); border-radius: 12px; padding: 25px; background: rgba(0, 15, 0, 0.95); box-shadow: 0 0 20px rgba(0,255,65,0.2); }
+        h1 { text-align: center; font-size: 20px; letter-spacing: 2px; text-shadow: 0 0 8px var(--green); }
+        input { width: 100%; padding: 12px; background: #000; border: 1px solid var(--green); color: var(--green); border-radius: 5px; margin-bottom: 15px; outline: none; }
+        .btn-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        button { padding: 12px; background: transparent; border: 1px solid var(--green); color: var(--green); font-weight: bold; cursor: pointer; text-transform: uppercase; }
         button:active { background: var(--green); color: #000; }
-
-        .btn-full { width: 100%; }
-        .btn-red { border-color: var(--red); color: var(--red); margin-top: 15px; }
-
-        /* Progress Bar */
-        .loader-box { display: none; text-align: center; }
-        .progress-track { width: 100%; height: 10px; border: 1px solid var(--green); margin: 15px 0; }
-        .progress-fill { width: 0%; height: 100%; background: var(--green); box-shadow: 0 0 8px var(--green); }
-
-        /* Results */
-        .data-card { 
-            background: rgba(0, 40, 0, 0.3); border: 1px dashed var(--green); 
-            padding: 12px; margin-top: 15px; font-size: 13px; 
-            max-height: 200px; overflow-y: auto; text-align: left;
-        }
-        .data-item { margin-bottom: 6px; border-bottom: 1px solid rgba(0,255,0,0.1); padding-bottom: 4px; }
-        .key { color: #fff; }
-
-        .footer { margin-top: 20px; font-size: 9px; color: #008800; text-align: center; }
-
-        /* Page Handling */
-        .page { display: none; }
-        .active-page { display: block !important; }
+        .btn-red { border-color: var(--red); color: var(--red); width: 100%; margin-top: 15px; }
+        .loader { display: none; margin: 20px 0; }
+        .progress { width: 100%; height: 10px; border: 1px solid var(--green); margin-top: 10px; }
+        .bar { width: 0%; height: 100%; background: var(--green); transition: 0.1s linear; }
+        #result { display: none; margin-top: 20px; border: 1px dashed var(--green); padding: 10px; font-size: 13px; max-height: 250px; overflow-y: auto; }
+        .row { border-bottom: 1px solid rgba(0,255,0,0.1); padding: 5px 0; }
+        #login-scr { display: block; }
+        #app-scr { display: none; }
     </style>
 </head>
 <body>
 
-<div class="terminal-container">
-    
-    <div id="page-login" class="page active-page">
-        <h2>LOGIN REQUIRED</h2>
-        <input type="text" id="user" placeholder="USERNAME" autocomplete="off">
-        <input type="password" id="pass" placeholder="PASSWORD">
-        <button class="btn-full" onclick="handleAuth()">AUTHORIZE ACCESS</button>
-        <p id="err" style="color:var(--red); font-size:10px; text-align:center; margin-top:10px; display:none;">[!] INVALID CREDENTIALS</p>
+<div class="terminal">
+    <div id="login-scr">
+        <h1>SECURE ACCESS</h1>
+        <input type="text" id="user" placeholder="OPERATOR ID">
+        <input type="password" id="pass" placeholder="ACCESS KEY">
+        <button style="width:100%" onclick="auth()">AUTHORIZE</button>
     </div>
 
-    <div id="page-main" class="page">
-        <h2>SYSTEM MAIN</h2>
-        <p style="font-size: 10px; text-align: center;">STATUS: ONLINE | OP: <span id="op-id"></span></p>
-        <input type="text" id="target" placeholder="MOBILE / VEHICLE NUMBER">
-        <div class="btn-box">
-            <button onclick="execute('mobile')">TRACE NO.</button>
-            <button onclick="execute('vehicle')">TRACE RC</button>
+    <div id="app-scr">
+        <h1>SYSTEM MAIN</h1>
+        <p style="text-align:center; font-size:10px;">OPERATOR: <span id="op-id"></span></p>
+        <input type="text" id="target" placeholder="987654XXXX / DL10CXXXX">
+        <div class="btn-grid">
+            <button onclick="fetchInfo('mobile')">Number Info</button>
+            <button onclick="fetchInfo('vehicle')">Vehicle Info</button>
         </div>
-        <button class="btn-full btn-red" onclick="location.reload()">LOGOUT</button>
-    </div>
-
-    <div id="page-load" class="page">
-        <h2 id="load-status">BYPASSING...</h2>
-        <div class="progress-track"><div id="bar" class="progress-fill"></div></div>
-        <div style="font-size: 10px; color: #00aa66;">> Initializing proxy tunnel...</div>
-    </div>
-
-    <div id="page-res" class="page">
-        <h2>DECRYPTED DATA</h2>
-        <div id="res-output" class="data-card"></div>
-        <button class="btn-full" style="margin-top:15px;" onclick="showPage('page-main')">NEW QUERY</button>
-    </div>
-
-    <div class="footer">
-        DEVELOPED BY IMRANPLAYZ | @_imranplayz_
+        <div class="loader" id="loader">
+            <div id="l-text">BYPASSING...</div>
+            <div class="progress"><div class="bar" id="bar"></div></div>
+        </div>
+        <div id="result"></div>
+        <button class="btn-red" onclick="location.reload()">TERMINATE</button>
     </div>
 </div>
 
 <script>
-    // --- Configuration ---
-    const DB_USERS = { 
-        "user123": "password18", 
-        "admin": "imran786" 
+    // --- FIREBASE CONFIG (APNA DATA YAHA DALO) ---
+    const firebaseConfig = {
+        apiKey: "YOUR_API_KEY",
+        authDomain: "YOUR_PROJECT.firebaseapp.com",
+        databaseURL: "https://YOUR_PROJECT.firebaseio.com",
+        projectId: "YOUR_PROJECT",
+        appId: "YOUR_APP_ID"
     };
-    
-    // In keywords ko result me nahi dikhayenge
-    const FILTER = ["branding", "developer", "processed_by", "owner_contact", "yash", "flix", "telegram", "http"];
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
 
-    // --- Page Switcher ---
-    function showPage(pageId) {
-        document.querySelectorAll('.page').forEach(p => p.classList.remove('active-page'));
-        document.getElementById(pageId).classList.add('active-page');
-    }
+    const USERS = { "user123": "password18", "imran": "admin786" };
 
-    // --- Auth Logic ---
-    function handleAuth() {
-        const u = document.getElementById('user').value.trim().toLowerCase();
+    function auth() {
+        const u = document.getElementById('user').value.trim();
         const p = document.getElementById('pass').value.trim();
-        
-        if (DB_USERS[u] && DB_USERS[u] === p) {
+        if(USERS[u] && USERS[u] === p) {
             document.getElementById('op-id').innerText = u.toUpperCase();
-            showPage('page-main');
-        } else {
-            const err = document.getElementById('err');
-            err.style.display = 'block';
-            setTimeout(() => err.style.display = 'none', 3000);
-        }
+            document.getElementById('login-scr').style.display = 'none';
+            document.getElementById('app-scr').style.display = 'block';
+            db.ref('logs/' + Date.now()).set({ user: u, action: "LOGIN", time: new Date().toLocaleString() });
+        } else { alert("ACCESS DENIED"); }
     }
 
-    // --- Data Fetching ---
-    async function execute(type) {
-        const target = document.getElementById('target').value.trim();
-        if(!target) return alert("Enter Target!");
+    async function fetchInfo(type) {
+        const val = document.getElementById('target').value.trim();
+        if(!val) return;
+        const u = document.getElementById('op-id').innerText;
 
-        showPage('page-load');
+        document.getElementById('result').style.display = 'none';
+        document.getElementById('loader').style.display = 'block';
         
-        // Progress Bar Animation
-        let width = 0;
-        const bar = document.getElementById('bar');
-        const status = document.getElementById('load-status');
-        
-        const anim = setInterval(() => {
-            width += Math.random() * 10;
-            if(width >= 95) { width = 95; clearInterval(anim); }
-            bar.style.width = width + "%";
-            if(width > 40) status.innerText = "EXTRACTING...";
-            if(width > 75) status.innerText = "DECRYPTING...";
-        }, 150);
+        let p = 0;
+        const interval = setInterval(() => {
+            p += 5; document.getElementById('bar').style.width = p + "%";
+            if(p >= 95) clearInterval(interval);
+        }, 100);
 
         try {
-            const url = (type === 'mobile') 
-                ? `https://yash-code-with-ai.alphamovies.workers.dev/?num=${target}&key=7189814021`
-                : `https://vehicle-eight-vert.vercel.app/api?rc=${target}`;
+            const api = (type === 'mobile') 
+                ? `https://yash-code-with-ai.alphamovies.workers.dev/?num=${val}&key=7189814021`
+                : `https://vehicle-eight-vert.vercel.app/api?rc=${val}`;
             
-            const res = await fetch(url);
+            const res = await fetch(api);
             const data = await res.json();
             
-            clearInterval(anim);
-            bar.style.width = "100%";
-            setTimeout(() => displayResult(data), 500);
+            // Log search to Admin Panel
+            db.ref('logs/' + Date.now()).set({ user: u, action: type, target: val, time: new Date().toLocaleString() });
 
-        } catch(e) {
-            alert("API Error!");
-            showPage('page-main');
-        }
+            document.getElementById('bar').style.width = "100%";
+            setTimeout(() => {
+                document.getElementById('loader').style.display = 'none';
+                showData(data);
+            }, 500);
+        } catch(e) { alert("API Error"); }
     }
 
-    function displayResult(data) {
-        showPage('page-res');
-        const out = document.getElementById('res-output');
-        out.innerHTML = "";
-        let hasData = false;
+    function showData(data) {
+        const resDiv = document.getElementById('result');
+        resDiv.style.display = 'block';
+        resDiv.innerHTML = "<strong>DATA FOUND:</strong><br><br>";
+        const BLACKLIST = ["branding", "developer", "telegram", "yash", "flix", "http", "@"];
 
-        function filterRender(obj) {
-            for(let key in obj) {
-                if(typeof obj[key] === 'object' && obj[key] !== null) {
-                    filterRender(obj[key]);
-                } else {
-                    const keyLower = key.toLowerCase();
-                    const valLower = String(obj[key]).toLowerCase();
-                    
-                    // Filter Check
-                    const isBad = FILTER.some(word => keyLower.includes(word) || valLower.includes(word));
-                    
-                    if(!isBad) {
-                        out.innerHTML += `<div class="data-item"><span class="key">${key.toUpperCase()}:</span> ${obj[key]}</div>`;
-                        hasData = true;
+        function render(obj) {
+            for(let k in obj) {
+                if(typeof obj[k] === 'object' && obj[k] !== null) render(obj[k]);
+                else {
+                    let kL = k.toLowerCase();
+                    let vL = String(obj[k]).toLowerCase();
+                    if(!BLACKLIST.some(b => kL.includes(b) || vL.includes(b))) {
+                        resDiv.innerHTML += `<div class="row"><strong>${k.toUpperCase()}:</strong> ${obj[k]}</div>`;
                     }
                 }
             }
         }
-
-        filterRender(data);
-        if(!hasData) out.innerHTML = "No secure records found.";
+        render(data);
     }
 </script>
 </body>

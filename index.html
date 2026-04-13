@@ -2,28 +2,20 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TERMINAL v5.0 | IMRANPLAYZ</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>TERMINAL v5.1 | IMRANPLAYZ</title>
     <link href="https://fonts.googleapis.com/css2?family=Courier+Prime:wght@400;700&display=swap" rel="stylesheet">
     <style>
-        :root {
-            --green: #00ff41;
-            --red: #ff3333;
-            --bg: #000000;
-            --panel: rgba(0, 20, 0, 0.9);
-        }
-
+        :root { --green: #00ff41; --red: #ff3333; --bg: #000000; }
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         body {
-            background-color: var(--bg);
-            color: var(--green);
-            font-family: 'Courier Prime', monospace;
-            margin: 0; padding: 0;
+            background-color: var(--bg); color: var(--green);
+            font-family: 'Courier Prime', monospace; margin: 0;
             display: flex; justify-content: center; align-items: center;
-            min-height: 100vh; overflow-x: hidden;
+            min-height: 100vh; overflow: hidden;
         }
 
-        /* CRT Scanline Effect */
+        /* Scanline Overlay */
         body::after {
             content: " "; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.1) 50%);
@@ -31,19 +23,17 @@
         }
 
         .terminal-container {
-            width: 95%; max-width: 450px;
-            border: 2px solid var(--green);
-            border-radius: 12px; padding: 25px;
-            background: var(--panel);
-            box-shadow: 0 0 20px rgba(0, 255, 65, 0.15);
+            width: 90%; max-width: 400px; border: 2px solid var(--green);
+            border-radius: 10px; padding: 25px; background: rgba(0, 10, 0, 0.95);
+            box-shadow: 0 0 15px rgba(0, 255, 65, 0.2);
         }
 
-        h2 { text-align: center; letter-spacing: 3px; font-size: 20px; text-shadow: 0 0 8px var(--green); }
+        h2 { text-align: center; letter-spacing: 2px; font-size: 18px; margin-bottom: 20px; }
 
         input {
             width: 100%; padding: 12px; background: #000;
             border: 1px solid var(--green); color: var(--green);
-            margin-bottom: 15px; border-radius: 5px; outline: none;
+            margin-bottom: 15px; border-radius: 4px; outline: none;
             font-size: 16px; font-family: inherit;
         }
 
@@ -52,167 +42,171 @@
         button {
             padding: 12px; background: transparent; border: 1px solid var(--green);
             color: var(--green); font-weight: bold; cursor: pointer;
-            transition: 0.3s; font-size: 13px; text-transform: uppercase;
+            font-size: 12px; text-transform: uppercase;
         }
         button:active { background: var(--green); color: #000; }
 
-        .btn-red { border-color: var(--red); color: var(--red); margin-top: 15px; width: 100%; }
-        .btn-red:active { background: var(--red); color: #000; }
+        .btn-full { width: 100%; }
+        .btn-red { border-color: var(--red); color: var(--red); margin-top: 15px; }
 
         /* Progress Bar */
-        .loader-box { display: none; text-align: center; margin: 20px 0; }
-        .progress-track { width: 100%; height: 12px; border: 1px solid var(--green); margin-top: 10px; }
-        .progress-fill { width: 0%; height: 100%; background: var(--green); transition: width 0.1s linear; box-shadow: 0 0 10px var(--green); }
+        .loader-box { display: none; text-align: center; }
+        .progress-track { width: 100%; height: 10px; border: 1px solid var(--green); margin: 15px 0; }
+        .progress-fill { width: 0%; height: 100%; background: var(--green); box-shadow: 0 0 8px var(--green); }
 
-        /* Results Display */
-        #result-screen { display: none; }
-        .data-card { background: rgba(0, 255, 0, 0.05); border: 1px dashed var(--green); padding: 15px; margin-top: 15px; font-size: 14px; max-height: 250px; overflow-y: auto; }
-        .data-item { margin-bottom: 8px; line-height: 1.4; border-bottom: 1px solid rgba(0,255,0,0.1); padding-bottom: 4px; }
-        .key { color: #fff; font-weight: bold; }
+        /* Results */
+        .data-card { 
+            background: rgba(0, 40, 0, 0.3); border: 1px dashed var(--green); 
+            padding: 12px; margin-top: 15px; font-size: 13px; 
+            max-height: 200px; overflow-y: auto; text-align: left;
+        }
+        .data-item { margin-bottom: 6px; border-bottom: 1px solid rgba(0,255,0,0.1); padding-bottom: 4px; }
+        .key { color: #fff; }
 
-        .footer { margin-top: 25px; font-size: 10px; color: #00aa66; text-align: center; border-top: 1px solid #004400; padding-top: 10px; }
+        .footer { margin-top: 20px; font-size: 9px; color: #008800; text-align: center; }
 
-        #login-screen, #main-screen { display: none; }
-        .visible { display: block !important; }
+        /* Page Handling */
+        .page { display: none; }
+        .active-page { display: block !important; }
     </style>
 </head>
 <body>
 
 <div class="terminal-container">
     
-    <div id="login-screen" class="visible">
-        <h2>SECURE LOGIN</h2>
+    <div id="page-login" class="page active-page">
+        <h2>LOGIN REQUIRED</h2>
         <input type="text" id="user" placeholder="USERNAME" autocomplete="off">
-        <input type="password" id="pass" placeholder="ACCESS KEY">
-        <button onclick="login()" style="width: 100%;">AUTHORIZE ACCESS</button>
-        <p id="login-error" style="color: var(--red); font-size: 11px; text-align: center; margin-top: 10px; display: none;">[!] INVALID CREDENTIALS</p>
+        <input type="password" id="pass" placeholder="PASSWORD">
+        <button class="btn-full" onclick="handleAuth()">AUTHORIZE ACCESS</button>
+        <p id="err" style="color:var(--red); font-size:10px; text-align:center; margin-top:10px; display:none;">[!] INVALID CREDENTIALS</p>
     </div>
 
-    <div id="main-screen">
-        <h2>ELITE TERMINAL</h2>
-        <p style="font-size: 10px; text-align: center; margin-bottom: 20px;">SYSTEM STATUS: <span style="color: #00ff00;">ONLINE</span></p>
-        
-        <input type="text" id="target" placeholder="NUMBER / VEHICLE RC">
-        
+    <div id="page-main" class="page">
+        <h2>SYSTEM MAIN</h2>
+        <p style="font-size: 10px; text-align: center;">STATUS: ONLINE | OP: <span id="op-id"></span></p>
+        <input type="text" id="target" placeholder="MOBILE / VEHICLE NUMBER">
         <div class="btn-box">
-            <button onclick="startHack('mobile')">NUMBER TRACE</button>
-            <button onclick="startHack('vehicle')">VEHICLE RC</button>
+            <button onclick="execute('mobile')">TRACE NO.</button>
+            <button onclick="execute('vehicle')">TRACE RC</button>
         </div>
-        
-        <button class="btn-red" onclick="location.reload()">TERMINATE SESSION</button>
+        <button class="btn-full btn-red" onclick="location.reload()">LOGOUT</button>
     </div>
 
-    <div id="loader-screen" class="loader-box">
-        <h3 id="load-text">BYPASSING...</h3>
+    <div id="page-load" class="page">
+        <h2 id="load-status">BYPASSING...</h2>
         <div class="progress-track"><div id="bar" class="progress-fill"></div></div>
-        <div style="font-size: 10px; margin-top: 10px; color: #00aa66;" id="log-text">> Proxy initialized...</div>
+        <div style="font-size: 10px; color: #00aa66;">> Initializing proxy tunnel...</div>
     </div>
 
-    <div id="result-screen">
-        <h2 id="res-title">DECRYPTED DATA</h2>
-        <div id="res-data" class="data-card"></div>
-        <button onclick="backToMenu()" style="width: 100%; margin-top: 15px;">NEW QUERY</button>
+    <div id="page-res" class="page">
+        <h2>DECRYPTED DATA</h2>
+        <div id="res-output" class="data-card"></div>
+        <button class="btn-full" style="margin-top:15px;" onclick="showPage('page-main')">NEW QUERY</button>
     </div>
 
     <div class="footer">
-        [/>] SYSTEM BY IMRANPLAYZ<br>
-        CONTACT IG: @_imranplayz_
+        DEVELOPED BY IMRANPLAYZ | @_imranplayz_
     </div>
 </div>
 
 <script>
-    // Config
-    const USERS = { "user123": "password18", "imran": "admin786" };
-    // In fields ko result me nahi dikhayenge
-    const BLACKLIST = ["branding", "developer", "processed_by", "owner_contact", "status", "msg", "yash", "flix"];
+    // --- Configuration ---
+    const DB_USERS = { 
+        "user123": "password18", 
+        "admin": "imran786" 
+    };
+    
+    // In keywords ko result me nahi dikhayenge
+    const FILTER = ["branding", "developer", "processed_by", "owner_contact", "yash", "flix", "telegram", "http"];
 
-    function login() {
-        const u = document.getElementById('user').value.trim();
+    // --- Page Switcher ---
+    function showPage(pageId) {
+        document.querySelectorAll('.page').forEach(p => p.classList.remove('active-page'));
+        document.getElementById(pageId).classList.add('active-page');
+    }
+
+    // --- Auth Logic ---
+    function handleAuth() {
+        const u = document.getElementById('user').value.trim().toLowerCase();
         const p = document.getElementById('pass').value.trim();
-        if(USERS[u] && USERS[u] === p) {
-            switchPage('main-screen');
+        
+        if (DB_USERS[u] && DB_USERS[u] === p) {
+            document.getElementById('op-id').innerText = u.toUpperCase();
+            showPage('page-main');
         } else {
-            document.getElementById('login-error').style.display = 'block';
+            const err = document.getElementById('err');
+            err.style.display = 'block';
+            setTimeout(() => err.style.display = 'none', 3000);
         }
     }
 
-    async function startHack(type) {
-        const val = document.getElementById('target').value.trim();
-        if(!val) return alert("ENTER INPUT!");
+    // --- Data Fetching ---
+    async function execute(type) {
+        const target = document.getElementById('target').value.trim();
+        if(!target) return alert("Enter Target!");
 
-        switchPage('loader-screen');
-        let p = 0;
-        const bar = document.getElementById('bar');
-        const loadText = document.getElementById('load-text');
+        showPage('page-load');
         
-        const interval = setInterval(() => {
-            p += Math.random() * 8;
-            if(p >= 95) { p = 95; clearInterval(interval); }
-            bar.style.width = p + "%";
-            if(p > 30) loadText.innerText = "EXTRACTING DATA...";
-            if(p > 70) loadText.innerText = "DECRYPTING PACKETS...";
-        }, 120);
+        // Progress Bar Animation
+        let width = 0;
+        const bar = document.getElementById('bar');
+        const status = document.getElementById('load-status');
+        
+        const anim = setInterval(() => {
+            width += Math.random() * 10;
+            if(width >= 95) { width = 95; clearInterval(anim); }
+            bar.style.width = width + "%";
+            if(width > 40) status.innerText = "EXTRACTING...";
+            if(width > 75) status.innerText = "DECRYPTING...";
+        }, 150);
 
         try {
-            let api = (type === 'mobile') 
-                ? `https://yash-code-with-ai.alphamovies.workers.dev/?num=${val}&key=7189814021`
-                : `https://vehicle-eight-vert.vercel.app/api?rc=${val}`;
+            const url = (type === 'mobile') 
+                ? `https://yash-code-with-ai.alphamovies.workers.dev/?num=${target}&key=7189814021`
+                : `https://vehicle-eight-vert.vercel.app/api?rc=${target}`;
             
-            const res = await fetch(api);
+            const res = await fetch(url);
             const data = await res.json();
             
-            clearInterval(interval);
+            clearInterval(anim);
             bar.style.width = "100%";
-            setTimeout(() => showFinalResult(data), 600);
+            setTimeout(() => displayResult(data), 500);
+
         } catch(e) {
-            alert("API TIMEOUT!");
-            backToMenu();
+            alert("API Error!");
+            showPage('page-main');
         }
     }
 
-    function showFinalResult(data) {
-        switchPage('result-screen');
-        const box = document.getElementById('res-data');
-        box.innerHTML = "";
+    function displayResult(data) {
+        showPage('page-res');
+        const out = document.getElementById('res-output');
+        out.innerHTML = "";
+        let hasData = false;
 
-        let found = false;
-
-        function render(obj) {
+        function filterRender(obj) {
             for(let key in obj) {
                 if(typeof obj[key] === 'object' && obj[key] !== null) {
-                    render(obj[key]);
+                    filterRender(obj[key]);
                 } else {
-                    // FILTERING LOGIC
-                    let lowerKey = key.toLowerCase();
-                    let valStr = String(obj[key]).toLowerCase();
+                    const keyLower = key.toLowerCase();
+                    const valLower = String(obj[key]).toLowerCase();
                     
-                    let isBlacklisted = BLACKLIST.some(item => lowerKey.includes(item) || valStr.includes(item));
-
-                    if(!isBlacklisted) {
-                        box.innerHTML += `<div class="data-item"><span class="key">${key.toUpperCase()}:</span> ${obj[key]}</div>`;
-                        found = true;
+                    // Filter Check
+                    const isBad = FILTER.some(word => keyLower.includes(word) || valLower.includes(word));
+                    
+                    if(!isBad) {
+                        out.innerHTML += `<div class="data-item"><span class="key">${key.toUpperCase()}:</span> ${obj[key]}</div>`;
+                        hasData = true;
                     }
                 }
             }
         }
 
-        render(data);
-        if(!found) box.innerHTML = "❌ NO SECURE DATA FOUND.";
-    }
-
-    function switchPage(id) {
-        ['login-screen', 'main-screen', 'loader-screen', 'result-screen'].forEach(p => {
-            document.getElementById(p).classList.remove('visible');
-        });
-        document.getElementById(id).classList.add('visible');
-    }
-
-    function backToMenu() {
-        document.getElementById('bar').style.width = "0%";
-        document.getElementById('load-text').innerText = "BYPASSING...";
-        switchPage('main-screen');
+        filterRender(data);
+        if(!hasData) out.innerHTML = "No secure records found.";
     }
 </script>
-
 </body>
 </html>

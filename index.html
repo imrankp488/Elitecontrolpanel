@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>IMRAN PLAYZ | ELITE SYSTEM v15.0</title>
+    <title>IMRAN PLAYZ | ELITE SYSTEM v16.0</title>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
@@ -18,6 +18,12 @@
         .container { width: 100%; max-width: 450px; background: var(--panel); border: 1px solid var(--p); border-radius: 15px; padding: 25px; box-shadow: 0 0 25px rgba(0, 255, 65, 0.15); text-align: center; }
         h1 { font-family: 'Orbitron', sans-serif; font-size: 18px; color: #fff; text-shadow: 0 0 10px var(--p); margin-bottom: 20px; }
         input { width: 100%; padding: 14px; background: #050505; border: 1px solid #333; color: var(--p); border-radius: 8px; margin-bottom: 12px; outline: none; font-family: inherit; }
+        
+        /* App Selection Buttons */
+        .pay-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 15px; display: none; }
+        .app-btn { font-size: 11px; padding: 10px; border-color: #333; color: #fff; display: flex; align-items: center; justify-content: center; gap: 5px; }
+        .app-btn img { width: 15px; }
+
         .upload-box { border: 2px dashed #444; padding: 20px; border-radius: 10px; cursor: pointer; margin-bottom: 15px; position: relative; background: rgba(255,255,255,0.02); }
         input[type="file"] { position: absolute; width: 100%; height: 100%; top: 0; left: 0; opacity: 0; cursor: pointer; }
         button { width: 100%; padding: 14px; background: transparent; border: 1.5px solid var(--p); color: var(--p); font-weight: bold; cursor: pointer; border-radius: 8px; font-family: inherit; margin-bottom: 10px; }
@@ -28,15 +34,19 @@
         .credit-badge { background: rgba(255, 215, 0, 0.1); border: 1px solid var(--y); padding: 6px 15px; border-radius: 20px; font-size: 13px; margin-bottom: 20px; color: var(--y); }
         .plan-card { border: 1px solid #333; padding: 12px; border-radius: 10px; margin-bottom: 10px; text-align: left; cursor: pointer; }
         .plan-card.selected { border-color: var(--p); background: rgba(0,255,0,0.1); }
-        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 2000; align-items: center; justify-content: center; backdrop-filter: blur(8px); }
-        .modal-box { width: 85%; max-width: 380px; background: #050505; border: 2px solid var(--p); border-radius: 15px; padding: 25px; text-align: center; }
         .bar-bg { width: 100%; height: 8px; border: 1px solid var(--p); border-radius: 4px; margin: 15px 0; overflow: hidden; background: #111; }
         .bar-f { width: 0%; height: 100%; background: var(--p); transition: 0.3s; }
     </style>
 </head>
 <body>
 
-    <div id="modal" class="modal-overlay"><div class="modal-box"><h2 id="m-t"></h2><p id="m-m" style="font-size:13px; color:#ccc;"></p><button onclick="closeModal()">OKAY</button></div></div>
+    <div id="modal" class="modal-overlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.95); z-index:2000; align-items:center; justify-content:center; backdrop-filter:blur(8px);">
+        <div class="modal-box" style="width:85%; max-width:380px; background:#050505; border:2px solid var(--p); border-radius:15px; padding:25px; text-align:center;">
+            <h2 id="m-t" style="color:#fff; font-family:'Orbitron'; font-size:16px;"></h2>
+            <p id="m-m" style="font-size:13px; color:#ccc; margin-bottom:20px;"></p>
+            <button onclick="closeModal()">OKAY</button>
+        </div>
+    </div>
 
     <div id="pg-auth" class="page active">
         <div class="container">
@@ -44,8 +54,7 @@
             <input type="email" id="email" placeholder="Email Address">
             <input type="password" id="pass" placeholder="Password">
             <button onclick="handleAuth()">LOGIN</button>
-            <button style="background:#fff; color:#000; border:none;" onclick="loginGoogle()">SIGN IN WITH GOOGLE</button>
-            <p onclick="toggleMode()" style="font-size:11px; color:#444; cursor:pointer; margin-top:10px;">New User? Create Account</p>
+            <p onclick="toggleMode()" style="font-size:11px; color:#444; cursor:pointer;">New? Create Account</p>
         </div>
     </div>
 
@@ -54,39 +63,44 @@
             <h1>DASHBOARD</h1>
             <div id="admin-notif" class="msg-box"><strong>[ADMIN]:</strong> <span id="admin-txt"></span></div>
             <div class="credit-badge">CREDITS: <span id="user-credits">0</span></div>
-            <input type="text" id="target" placeholder="98765XXXXX / DL10CXXXX">
+            <input type="text" id="target" placeholder="NUMBER / VEHICLE RC">
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
                 <button onclick="runTrace('mob')">Mobile</button>
                 <button onclick="runTrace('veh')">Vehicle</button>
             </div>
-            <button class="btn-blue" style="margin-top:15px;" onclick="switchPage('pg-plans')">RECHARGE / PLANS</button>
+            <button class="btn-blue" style="margin-top:15px;" onclick="switchPage('pg-plans')">RECHARGE</button>
             <button class="btn-red" style="font-size:10px;" onclick="logout()">LOGOUT</button>
         </div>
     </div>
 
     <div id="pg-plans" class="page">
         <div class="container">
-            <h1>SELECT PLAN</h1>
+            <h1>CHOOSE PLAN</h1>
             <div id="plan-50" class="plan-card" onclick="selectPlan('50')"><span style="float:right;">₹50</span><strong>BASIC</strong><br><small>10 Searches</small></div>
             <div id="plan-100" class="plan-card" onclick="selectPlan('100')"><span style="float:right;">₹100</span><strong>PRO</strong><br><small>30 Searches</small></div>
             
-            <button class="btn-blue" id="pay-confirm-btn" style="display:none; margin-top:10px;" onclick="openUPI()">CONFIRM & PAY</button>
+            <div id="pay-grid" class="pay-grid">
+                <button class="app-btn" onclick="payWith('phonepe')">PhonePe</button>
+                <button class="app-btn" onclick="payWith('paytm')">Paytm</button>
+                <button class="app-btn" onclick="payWith('googlepay')">G-Pay</button>
+                <button class="app-btn btn-blue" onclick="copyUPI()">Copy ID</button>
+            </div>
 
             <div style="margin-top: 15px; border-top: 1px solid #333; padding-top: 15px;">
-                <p style="font-size: 11px; color: var(--blue);">UPLOAD SCREENSHOT:</p>
+                <p style="font-size: 11px; color: var(--blue);">UPLOAD PROOF:</p>
                 <div class="upload-box">
-                    <span id="fn">Select Payment Photo</span>
+                    <span id="fn">Select Screenshot</span>
                     <input type="file" id="p-img" accept="image/*" onchange="updateFN(this)">
                 </div>
                 <button class="btn-blue" id="up-btn" onclick="uploadImgBB()">SUBMIT PROOF</button>
-                <button class="btn-blue" style="font-size:11px; border-style:dashed;" onclick="contactEmail()">EMAIL ADMIN FOR HELP</button>
+                <button class="btn-blue" style="font-size:10px; border-style:dashed;" onclick="contactEmail()">EMAIL FOR HELP</button>
             </div>
             <button class="btn-red" onclick="switchPage('pg-dash')">BACK</button>
         </div>
     </div>
 
-    <div id="pg-load" class="page"><div class="container"><h1>BYPASSING...</h1><div class="bar-bg"><div id="bar" class="bar-f"></div></div></div></div>
-    <div id="pg-res" class="page"><div class="container"><h1>DECRYPTED DATA</h1><div id="data-out" style="text-align:left; font-size:11px; background:#050505; padding:15px; border:1px dashed var(--p); max-height:300px; overflow-y:auto;"></div><button onclick="switchPage('pg-dash')" style="margin-top:15px;">NEW SEARCH</button></div></div>
+    <div id="pg-load" class="page"><div class="container"><h1>TRACING...</h1><div class="bar-bg"><div id="bar" class="bar-f"></div></div></div></div>
+    <div id="pg-res" class="page"><div class="container"><h1>DATA FOUND</h1><div id="data-out" style="text-align:left; font-size:11px; background:#050505; padding:15px; border:1px dashed var(--p);"></div><button onclick="switchPage('pg-dash')" style="margin-top:15px;">NEW SEARCH</button></div></div>
 
 <script>
     const firebaseConfig = {
@@ -104,9 +118,11 @@
     const db = firebase.database();
     const IMGBB_KEY = "47d4ddf5133629b43bb606ec944137f9";
     const ADMIN_EMAIL = "ip6675696@gmail.com";
+    const MY_UPI = "imrankhan17@ptyes";
+    
     let isLogin = true, credits = 0, selectedAmt = 0;
 
-    // --- Persistence Check ---
+    // --- Persistence (Login Fix) ---
     auth.onAuthStateChanged(user => {
         if (user) sync(user);
         else switchPage('pg-auth');
@@ -123,7 +139,6 @@
         if(isLogin) auth.signInWithEmailAndPassword(e,p).catch(e=>alert(e.message));
         else auth.createUserWithEmailAndPassword(e,p).then(r=>{ db.ref('users/'+r.user.uid).set({email:e,credits:1}); });
     }
-    function loginGoogle() { auth.signInWithPopup(new firebase.auth.GoogleAuthProvider()); }
     function logout() { auth.signOut().then(() => location.reload()); }
 
     function sync(user) {
@@ -139,46 +154,83 @@
         });
     }
 
-    // --- Payment Flow ---
+    // --- UPI Payment Logic ---
     function selectPlan(amt) {
         selectedAmt = amt;
         document.querySelectorAll('.plan-card').forEach(c => c.classList.remove('selected'));
         document.getElementById('plan-' + amt).classList.add('selected');
-        document.getElementById('pay-confirm-btn').style.display = 'block';
-        document.getElementById('pay-confirm-btn').innerText = `CONFIRM & PAY ₹${amt}`;
+        document.getElementById('pay-grid').style.display = 'grid';
     }
 
-    function openUPI() {
-        // This triggers the native Android UPI intent picker
-        const upi = `upi://pay?pa=imranplayz@upi&pn=IMRAN_PLAYZ&am=${selectedAmt}&tn=Elite_Recharge&cu=INR`;
-        window.location.href = upi;
+    function payWith(app) {
+        let upiUrl = `upi://pay?pa=${MY_UPI}&pn=IMRAN_PLAYZ&am=${selectedAmt}&tn=Elite_Credits&cu=INR`;
+        
+        // Deep links for specific apps (Best for iPhone)
+        const apps = {
+            phonepe: "phonepe://pay?pa=",
+            paytm: "paytmmp://pay?pa=",
+            googlepay: "googlepay://pay?pa="
+        };
+
+        if(app !== 'generic') {
+            // Some apps need special formatting, but upi:// usually works if configured.
+            // For iPhone, we'll try the universal protocol first.
+            window.location.href = upiUrl;
+        }
     }
 
+    function copyUPI() {
+        navigator.clipboard.writeText(MY_UPI);
+        alert("UPI ID Copied: " + MY_UPI);
+    }
+
+    // --- Upload Proof ---
     async function uploadImgBB() {
-        const file = document.getElementById('p-img').files;
-        if(!file) return alert("Select screenshot!");
+        const fileInput = document.getElementById('p-img');
+        const file = fileInput.files;
+        if(!file) return alert("Please select a screenshot!");
+
         const btn = document.getElementById('up-btn');
         btn.innerText = "UPLOADING..."; btn.disabled = true;
-        const fd = new FormData(); fd.append('image', file);
+
+        const fd = new FormData();
+        fd.append('image', file);
+
         try {
-            const res = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_KEY}`, { method: 'POST', body: fd });
-            const d = await res.json();
-            await db.ref('recharge_requests/' + Date.now()).set({ user: auth.currentUser.email, uid: auth.currentUser.uid, screenshot: d.data.url, status: "pending", time: new Date().toLocaleString() });
-            await db.ref('users/' + auth.currentUser.uid).update({ admin_msg: "System: Proof Received! Verification in progress..." });
-            showModal("SUBMITTED", "Payment details sent to Admin. Verification will take 5-10 mins.");
-            switchPage('pg-dash');
-        } catch(e) { alert("Upload Failed!"); }
+            const res = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_KEY}`, {
+                method: 'POST',
+                body: fd
+            });
+            const data = await res.json();
+            
+            if(data.success) {
+                const url = data.data.url;
+                await db.ref('recharge_requests/' + Date.now()).set({
+                    user: auth.currentUser.email,
+                    uid: auth.currentUser.uid,
+                    screenshot: url,
+                    status: "pending",
+                    time: new Date().toLocaleString()
+                });
+                await db.ref('users/' + auth.currentUser.uid).update({ admin_msg: "System: Proof Received! Verifying..." });
+                showModal("SUCCESS", "Proof uploaded! Credits will be added soon.");
+                fileInput.value = "";
+                document.getElementById('fn').innerText = "Select Screenshot";
+                switchPage('pg-dash');
+            } else {
+                throw new Error("ImgBB Upload Failed");
+            }
+        } catch(e) { 
+            alert("Upload Failed! Check internet or try again."); 
+            console.error(e);
+        }
         btn.innerText = "SUBMIT PROOF"; btn.disabled = false;
     }
 
-    function contactEmail() {
-        const sub = encodeURIComponent("Support | Elite System");
-        const body = encodeURIComponent(`User: ${auth.currentUser.email}\nI need help with my recharge.`);
-        window.location.href = `mailto:${ADMIN_EMAIL}?subject=${sub}&body=${body}`;
-    }
+    function contactEmail() { window.location.href = `mailto:${ADMIN_EMAIL}?subject=Payment_Help&body=My_Email:_${auth.currentUser.email}`; }
 
     async function runTrace(t) {
-        if(credits <= 0) return showModal("NO CREDITS", "Please recharge your account.");
+        if(credits <= 0) return showModal("NO CREDITS", "Please recharge.");
         const v = document.getElementById('target').value.trim();
         if(!v) return;
         switchPage('pg-load');

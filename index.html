@@ -3,222 +3,273 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TERMINAL v3.0 | IMRANPLAYZ</title>
-    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <title>CENTRAL COMMAND | IMRANPLAYZ</title>
+    <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap" rel="stylesheet">
     <style>
         :root {
-            --primary: #00f2ff; /* Cyan Neon */
-            --bg: #0a0b10;
-            --glass: rgba(15, 20, 30, 0.8);
-            --border: rgba(0, 242, 255, 0.3);
+            --neon: #00ff41; /* Classic Matrix Green */
+            --bg: #050505;
+            --panel-bg: rgba(10, 15, 10, 0.9);
+            --border: #003b00;
         }
 
+        * { box-sizing: border-box; }
         body {
             background-color: var(--bg);
-            color: var(--primary);
-            font-family: 'JetBrains Mono', monospace;
+            color: var(--neon);
+            font-family: 'Share Tech Mono', monospace;
             margin: 0; padding: 0;
-            overflow-x: hidden;
-            background-image: radial-gradient(circle at 50% 50%, #1a1b26 0%, #0a0b10 100%);
+            height: 100vh; overflow: hidden;
+            display: flex;
         }
 
-        /* Scanline Effect */
-        body::before {
-            content: " "; display: block; position: fixed; top: 0; left: 0; bottom: 0; right: 0;
-            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), 
-                        linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
-            z-index: 2; background-size: 100% 2px, 3px 100%; pointer-events: none;
+        /* Scanline Overlay */
+        body::after {
+            content: " "; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.1) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.03), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.03));
+            z-index: 999; pointer-events: none; background-size: 100% 3px, 3px 100%;
         }
 
-        .container {
-            min-height: 100vh; display: flex; align-items: center; justify-content: center;
-            padding: 20px; z-index: 5; position: relative;
+        /* Sidebar Navigation */
+        .sidebar {
+            width: 240px; border-right: 1px solid var(--neon);
+            background: #000; padding: 20px 0;
+            display: flex; flex-direction: column;
         }
 
-        .panel {
-            width: 100%; max-width: 480px;
-            background: var(--glass);
-            backdrop-filter: blur(15px);
-            border: 1px solid var(--border);
-            border-radius: 20px;
-            padding: 40px;
-            box-shadow: 0 0 30px rgba(0, 242, 255, 0.1);
-            text-align: center;
+        .sidebar-header { text-align: center; padding-bottom: 20px; border-bottom: 1px dashed var(--neon); margin: 0 15px 20px; }
+        .sidebar-item {
+            padding: 15px 25px; cursor: pointer; transition: 0.3s;
+            border-left: 4px solid transparent; font-size: 14px;
+        }
+        .sidebar-item:hover, .sidebar-item.active {
+            background: rgba(0, 255, 65, 0.1); border-left: 4px solid var(--neon);
         }
 
-        h1 { font-size: 24px; text-transform: uppercase; letter-spacing: 5px; margin-bottom: 30px; text-shadow: 0 0 10px var(--primary); }
+        /* Main Content */
+        .main-content { flex: 1; display: flex; flex-direction: column; padding: 20px; overflow-y: auto; }
 
-        .input-group { position: relative; margin-bottom: 20px; }
+        .header-bar {
+            display: flex; justify-content: space-between; align-items: center;
+            padding-bottom: 10px; border-bottom: 1px solid var(--neon); margin-bottom: 20px;
+        }
 
+        .grid-container { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; }
+
+        .card {
+            background: var(--panel-bg); border: 1px solid var(--border);
+            padding: 15px; border-radius: 5px; position: relative; overflow: hidden;
+        }
+        .card:hover { border-color: var(--neon); box-shadow: 0 0 10px rgba(0, 255, 65, 0.2); }
+
+        .btn-action {
+            width: 100%; padding: 12px; background: transparent; border: 1px solid var(--neon);
+            color: var(--neon); cursor: pointer; font-family: inherit; margin-top: 10px;
+        }
+        .btn-action:hover { background: var(--neon); color: black; }
+
+        /* Terminal Window */
+        .terminal {
+            background: #000; border: 1px solid var(--neon);
+            height: 150px; margin-top: auto; padding: 10px;
+            font-size: 12px; overflow-y: auto; color: #00aa00;
+        }
+
+        /* Inputs */
         input {
-            width: 100%; padding: 15px; background: rgba(0, 0, 0, 0.4);
-            border: 1px solid var(--border); border-radius: 10px;
-            color: var(--primary); outline: none; transition: 0.3s;
-            box-sizing: border-box; font-size: 16px;
+            width: 100%; background: #000; border: 1px solid var(--border);
+            color: var(--neon); padding: 10px; margin: 10px 0; outline: none;
         }
+        input:focus { border-color: var(--neon); }
 
-        input:focus { border-color: var(--primary); box-shadow: 0 0 15px rgba(0, 242, 255, 0.2); }
-
-        button {
-            width: 100%; padding: 15px; margin-top: 10px;
-            background: transparent; border: 1px solid var(--primary);
-            color: var(--primary); font-weight: bold; border-radius: 10px;
-            cursor: pointer; transition: 0.4s; text-transform: uppercase; letter-spacing: 2px;
+        /* Login Overlay */
+        #login-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: black; z-index: 1000; display: flex; align-items: center; justify-content: center;
         }
+        .login-box { width: 350px; padding: 40px; border: 1px solid var(--neon); text-align: center; }
 
-        button:hover { background: var(--primary); color: #000; box-shadow: 0 0 20px var(--primary); }
+        .hidden { display: none !important; }
+        
+        /* Stats Animation */
+        .stat-bar { height: 4px; background: #002200; width: 100%; margin-top: 5px; }
+        .stat-fill { height: 100%; background: var(--neon); width: 40%; transition: width 2s; }
 
-        .footer { margin-top: 30px; font-size: 10px; opacity: 0.6; color: #fff; }
-
-        /* Results Display */
-        .res-box { text-align: left; background: rgba(0,0,0,0.5); padding: 15px; border-radius: 10px; margin-top: 20px; border-left: 4px solid var(--primary); font-size: 13px; max-height: 300px; overflow-y: auto; }
-
-        #loginSection, #mainSection, #loadSection, #resSection { display: none; }
-        .active { display: block !important; }
-
-        .status-dot { height: 10px; width: 10px; background-color: #00ff00; border-radius: 50%; display: inline-block; margin-right: 5px; box-shadow: 0 0 5px #00ff00; }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <div class="panel active" id="loginSection">
-        <h1>Authorize</h1>
-        <div class="input-group">
-            <input type="text" id="user" placeholder="OPERATOR ID">
-        </div>
-        <div class="input-group">
-            <input type="password" id="pass" placeholder="ACCESS KEY">
-        </div>
-        <button onclick="authLogin()">Initialize Session</button>
-        <p id="loginError" style="color:#ff4444; font-size:12px; margin-top:15px; display:none;">ACCESS DENIED: INVALID CREDENTIALS</p>
+<div id="login-overlay">
+    <div class="login-box">
+        <h2 style="letter-spacing: 5px;">AUTHORIZATION</h2>
+        <input type="text" id="user" placeholder="USERNAME">
+        <input type="password" id="pass" placeholder="ACCESS KEY">
+        <button class="btn-action" onclick="checkAuth()">ENTER SYSTEM</button>
+        <p id="error" style="color: red; font-size: 11px; margin-top: 10px; display: none;">[!] ACCESS DENIED</p>
+    </div>
+</div>
+
+<div class="sidebar">
+    <div class="sidebar-header">
+        <div style="font-size: 20px;">SYSTEM OS</div>
+        <div style="font-size: 10px; opacity: 0.6;">v4.0.2 - STABLE</div>
+    </div>
+    <div class="sidebar-item active" onclick="showTab('dashboard')">🏠 DASHBOARD</div>
+    <div class="sidebar-item" onclick="showTab('lookup')">🔍 DATA LOOKUP</div>
+    <div class="sidebar-item" onclick="showTab('tools')">🛠️ SYSTEM TOOLS</div>
+    <div class="sidebar-item" onclick="showTab('database')">📂 DATABASE</div>
+    <div class="sidebar-item" onclick="showTab('logs')">📜 SYSTEM LOGS</div>
+    <div style="margin-top: auto; padding: 20px;">
+        <button class="btn-action" onclick="location.reload()" style="border-color: #ff3333; color: #ff3333;">LOGOUT</button>
+    </div>
+</div>
+
+<div class="main-content">
+    <div class="header-bar">
+        <div>STATUS: <span style="color: #00ff00;">ENCRYPTED</span></div>
+        <div id="clock">00:00:00</div>
+        <div>OPERATOR: <span id="op-name">GUEST</span></div>
     </div>
 
-    <div class="panel" id="mainSection">
-        <div style="font-size: 10px; text-align: right; margin-bottom: 10px;">
-            <span class="status-dot"></span> SYSTEM ONLINE: <span id="activeUser"></span>
+    <div id="tab-dashboard">
+        <div class="grid-container">
+            <div class="card">
+                <div>CPU LOAD</div>
+                <div class="stat-bar"><div class="stat-fill" style="width: 65%;"></div></div>
+                <div style="font-size: 10px; margin-top: 5px;">Core 1: 45% | Core 2: 88%</div>
+            </div>
+            <div class="card">
+                <div>NETWORK TRAFFIC</div>
+                <div style="font-size: 20px;">124.5 KB/s</div>
+                <div style="font-size: 10px; color: #ffae00;">Incoming Proxy Active</div>
+            </div>
+            <div class="card">
+                <div>TOTAL SEARCHES</div>
+                <div style="font-size: 20px;" id="search-count">0</div>
+                <div style="font-size: 10px;">Cloud Sync: Enabled</div>
+            </div>
         </div>
-        <h1>Command Center</h1>
-        <input type="text" id="target" placeholder="MOBILE / VEHICLE NUMBER">
-        <div style="display: flex; gap: 10px; margin-top: 15px;">
-            <button onclick="processData('mobile')" style="font-size: 12px;">Trace Number</button>
-            <button onclick="processData('vehicle')" style="font-size: 12px;">Check RC</button>
+        <h3 style="margin-top: 30px; border-bottom: 1px solid var(--border);">QUICK ACCESS MODULES</h3>
+        <div class="grid-container">
+            <button class="btn-action" onclick="showTab('lookup')">Open Tracer</button>
+            <button class="btn-action">IP Scanner</button>
+            <button class="btn-action">Proxy Manager</button>
+            <button class="btn-action">SQL Injector</button>
         </div>
-        <button onclick="location.reload()" style="border-color: #ff4444; color: #ff4444; margin-top: 20px;">Disconnect</button>
     </div>
 
-    <div class="panel" id="loadSection">
-        <h1 id="loadText">Bypassing...</h1>
-        <div style="width: 100%; height: 4px; background: #1a1b26; border-radius: 2px;">
-            <div id="progBar" style="width: 0%; height: 100%; background: var(--primary); box-shadow: 0 0 10px var(--primary);"></div>
+    <div id="tab-lookup" class="hidden">
+        <h2>CENTRAL DATA TRACER</h2>
+        <div class="card" style="max-width: 500px; margin: auto;">
+            <p>Enter Target (Mobile / Vehicle RC):</p>
+            <input type="text" id="target" placeholder="987654XXXX / DL10CXXXX">
+            <div style="display: flex; gap: 10px;">
+                <button class="btn-action" onclick="executeFetch('mobile')">TRACE MOBILE</button>
+                <button class="btn-action" onclick="executeFetch('vehicle')">TRACE VEHICLE</button>
+            </div>
+        </div>
+        <div id="result-area" class="card hidden" style="margin-top: 20px; max-height: 250px; overflow-y: auto;">
+            <div style="border-bottom: 1px solid var(--neon); margin-bottom: 10px;">EXTRACTED_DATA:</div>
+            <div id="raw-data"></div>
         </div>
     </div>
 
-    <div class="panel" id="resSection">
-        <h1>Data Extracted</h1>
-        <div id="resData" class="res-box"></div>
-        <button onclick="switchPage('mainSection')">New Request</button>
+    <div id="tab-logs" class="hidden">
+        <h2>SECURITY AUDIT LOGS</h2>
+        <div id="audit-logs" style="font-size: 12px; color: #00aa66;">
+            [03:44:12] System Kernel Booted Successfully...<br>
+            [03:44:15] Firewall Rules Applied...<br>
+        </div>
+    </div>
+
+    <div class="terminal" id="term-box">
+        > _
     </div>
 </div>
 
 <script>
-    // --- 1. CONFIGURATION (FIREBASE SETUP) ---
-    // Google Firebase par project banake apna config yahan paste karein
-    const firebaseConfig = {
-        apiKey: "YOUR_API_KEY",
-        authDomain: "YOUR_PROJECT.firebaseapp.com",
-        databaseURL: "https://YOUR_PROJECT.firebaseio.com",
-        projectId: "YOUR_PROJECT",
-        storageBucket: "YOUR_PROJECT.appspot.com",
-        messagingSenderId: "YOUR_ID",
-        appId: "YOUR_APP_ID"
-    };
-    
-    // Initialize Firebase (sirf tab jab aapke paas config ho)
-    // firebase.initializeApp(firebaseConfig);
-    // const db = firebase.database();
+    // 1. CLOCK
+    setInterval(() => {
+        document.getElementById('clock').innerText = new Date().toLocaleTimeString();
+    }, 1000);
 
-    // --- 2. AUTH LOGIC ---
-    const USERS = { "admin": "imran786", "user123": "pass18" };
-
-    function authLogin() {
+    // 2. AUTH
+    function checkAuth() {
         const u = document.getElementById('user').value;
         const p = document.getElementById('pass').value;
-        const deviceID = navigator.userAgent.replace(/\D/g, '').slice(0, 10); // Simple fingerprint
-
-        if(USERS[u] && USERS[u] === p) {
-            document.getElementById('activeUser').innerText = u;
-            switchPage('mainSection');
-            // Activity log for login
-            logToFirebase(u, "LOGIN", deviceID);
+        if(u === "user123" && p === "password18") {
+            document.getElementById('login-overlay').style.display = 'none';
+            document.getElementById('op-name').innerText = u.toUpperCase();
+            addLog("Authorization Granted for: " + u);
         } else {
-            document.getElementById('loginError').style.display = 'block';
+            document.getElementById('error').style.display = 'block';
         }
     }
 
-    // --- 3. DATA PROCESSING ---
-    async function processData(type) {
-        const val = document.getElementById('target').value;
-        if(!val) return;
-
-        switchPage('loadSection');
-        let p = 0;
-        const bar = document.getElementById('progBar');
-        const loadTxt = document.getElementById('loadText');
+    // 3. TAB SYSTEM
+    function showTab(tabId) {
+        ['tab-dashboard', 'tab-lookup', 'tab-logs'].forEach(id => {
+            const el = document.getElementById(id);
+            if(el) el.classList.add('hidden');
+        });
+        document.getElementById('tab-' + tabId).classList.remove('hidden');
         
-        const timer = setInterval(() => {
-            p += 5; bar.style.width = p + "%";
-            if(p > 40) loadTxt.innerText = "Extracting...";
-            if(p > 80) loadTxt.innerText = "Decrypting...";
-            if(p >= 100) clearInterval(timer);
-        }, 100);
+        document.querySelectorAll('.sidebar-item').forEach(item => {
+            item.classList.remove('active');
+            if(item.innerText.includes(tabId.toUpperCase())) item.classList.add('active');
+        });
+        addLog("Switching to Module: " + tabId);
+    }
+
+    // 4. DATA FETCHING
+    async function executeFetch(type) {
+        const target = document.getElementById('target').value;
+        if(!target) return alert("Target Required!");
+
+        addLog("Initializing request for: " + target);
+        document.getElementById('result-area').classList.remove('hidden');
+        document.getElementById('raw-data').innerHTML = "Fetching from secure server...";
 
         try {
-            let url = (type === 'mobile') 
-                ? `https://yash-code-with-ai.alphamovies.workers.dev/?num=${val}&key=7189814021`
-                : `https://vehicle-eight-vert.vercel.app/api?rc=${val}`;
+            let api = (type === 'mobile') 
+                ? `https://yash-code-with-ai.alphamovies.workers.dev/?num=${target}&key=7189814021`
+                : `https://vehicle-eight-vert.vercel.app/api?rc=${target}`;
             
-            const res = await fetch(url);
+            const res = await fetch(api);
             const data = await res.json();
             
-            // Log search activity
-            logToFirebase(document.getElementById('activeUser').innerText, type, val);
-            
-            displayRes(data);
-        } catch(e) {
-            alert("Connection Failed!");
-            switchPage('mainSection');
-        }
-    }
-
-    function displayRes(data) {
-        const box = document.getElementById('resData');
-        box.innerHTML = "";
-        
-        function extract(o) {
-            for(let k in o) {
-                if(typeof o[k] === 'object' && o[k] !== null) extract(o[k]);
-                else box.innerHTML += `<div><strong>${k.toUpperCase()}:</strong> ${o[k]}</div><br>`;
+            let out = "";
+            function parse(o) {
+                for(let k in o) {
+                    if(typeof o[k] === 'object' && o[k] !== null) parse(o[k]);
+                    else out += `<div>➤ ${k.toUpperCase()}: <span style="color:#fff">${o[k]}</span></div>`;
+                }
             }
+            parse(data);
+            document.getElementById('raw-data').innerHTML = out || "No record found.";
+            addLog("Data packet received for " + target);
+            
+            // Search count increment
+            let count = parseInt(document.getElementById('search-count').innerText);
+            document.getElementById('search-count').innerText = count + 1;
+
+        } catch(e) {
+            addLog("ERROR: Connection Timeout!");
+            document.getElementById('raw-data').innerHTML = "API Connection Error.";
         }
-        extract(data);
-        switchPage('resSection');
     }
 
-    function switchPage(id) {
-        ['loginSection', 'mainSection', 'loadSection', 'resSection'].forEach(s => {
-            document.getElementById(s).classList.remove('active');
-        });
-        document.getElementById(id).classList.add('active');
+    function addLog(msg) {
+        const box = document.getElementById('term-box');
+        const time = new Date().toLocaleTimeString();
+        box.innerHTML += `<div>[${time}] ${msg}</div>`;
+        box.scrollTop = box.scrollHeight;
+        
+        // Audit tab also
+        const audit = document.getElementById('audit-logs');
+        if(audit) audit.innerHTML += `[${time}] ${msg}<br>`;
     }
 
-    function logToFirebase(user, action, target) {
-        console.log(`LOG: ${user} | ${action} | ${target}`);
-        // Agar Firebase setup hai toh:
-        // db.ref('logs/' + Date.now()).set({ user, action, target, time: new Date().toLocaleString() });
-    }
 </script>
 </body>
 </html>

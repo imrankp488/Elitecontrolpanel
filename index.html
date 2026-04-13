@@ -3,52 +3,109 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>IMRAN PLAYZ | SYSTEM</title>
+<title>IMRAN PLAYZ | ELITE SYSTEM</title>
 
 <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
 
 <style>
-body { background:#000; color:#00ff41; font-family: monospace; text-align:center; }
-.container { max-width:400px; margin:auto; padding:20px; border:1px solid #00ff41; }
-input,button { width:100%; padding:10px; margin:5px 0; }
-button { background:none; border:1px solid #00ff41; color:#00ff41; cursor:pointer; }
+:root { --p:#00ff41; --b:#000; --panel:#0a0a0a; }
+body { background:var(--b); color:var(--p); font-family:monospace; margin:0; }
+
+.page { display:none; height:100vh; justify-content:center; align-items:center; }
+.active { display:flex; }
+
+.container {
+ width:90%; max-width:400px;
+ background:var(--panel);
+ border:1px solid var(--p);
+ padding:20px;
+ text-align:center;
+}
+
+input {
+ width:100%; padding:12px;
+ margin:8px 0;
+ background:#050505;
+ border:1px solid #333;
+ color:var(--p);
+}
+
+button {
+ width:100%; padding:12px;
+ margin:5px 0;
+ background:none;
+ border:1px solid var(--p);
+ color:var(--p);
+ cursor:pointer;
+}
+
+button:hover { background:var(--p); color:#000; }
+
+.link { font-size:12px; color:#888; cursor:pointer; }
 </style>
 </head>
 
 <body>
 
-<div id="loader">Loading...</div>
+<!-- LOADER -->
+<div id="loader" class="page active">
+<div class="container"><h2>LOADING...</h2></div>
+</div>
 
-<div id="auth" style="display:none;">
+<!-- LOGIN -->
+<div id="login" class="page">
 <div class="container">
-<h2>LOGIN / REGISTER</h2>
-<input id="email" placeholder="Email">
-<input id="pass" type="password" placeholder="Password">
-<button onclick="handleAuth()">Continue</button>
+<h2>LOGIN</h2>
+
+<input id="l-email" placeholder="Email">
+<input id="l-pass" type="password" placeholder="Password">
+
+<button onclick="login()">LOGIN</button>
+
+<button onclick="googleLogin()">GOOGLE LOGIN</button>
+
+<p class="link" onclick="show('register')">Create Account</p>
 </div>
 </div>
 
-<div id="dash" style="display:none;">
+<!-- REGISTER -->
+<div id="register" class="page">
 <div class="container">
-<h2>Dashboard</h2>
+<h2>REGISTER</h2>
+
+<input id="r-email" placeholder="Email">
+<input id="r-pass" type="password" placeholder="Password">
+
+<button onclick="register()">CREATE ACCOUNT</button>
+
+<p class="link" onclick="show('login')">Already have account?</p>
+</div>
+</div>
+
+<!-- DASH -->
+<div id="dash" class="page">
+<div class="container">
+<h2>DASHBOARD</h2>
+
 Credits: <span id="credits">0</span>
 
 <input id="target" placeholder="Target">
-<button onclick="trace()">Run</button>
+
+<button onclick="trace()">RUN</button>
 
 <hr>
 
 <button onclick="selectPlan(50)">₹50</button>
 <button onclick="selectPlan(100)">₹100</button>
 
-<button onclick="pay()">Pay</button>
+<button onclick="pay()">PAY</button>
 
 <input type="file" id="img">
-<button onclick="upload()">Submit Proof</button>
+<button onclick="upload()">SUBMIT PROOF</button>
 
-<button onclick="logout()">Logout</button>
+<button onclick="logout()">LOGOUT</button>
 </div>
 </div>
 
@@ -66,13 +123,21 @@ const db = firebase.database();
 
 let selectedAmt = 0;
 
+// PAGE SWITCH
+function show(id){
+ document.querySelectorAll(".page").forEach(p=>p.classList.remove("active"));
+ document.getElementById(id).classList.add("active");
+}
+
+// AUTH STATE
 auth.onAuthStateChanged(user=>{
- document.getElementById("loader").style.display="none";
+ document.getElementById("loader").classList.remove("active");
 
  if(user){
    if(!user.emailVerified){
-     alert("Please verify your email first.");
+     alert("Please verify your email before login.");
      auth.signOut();
+     show("login");
      return;
    }
 
@@ -80,54 +145,90 @@ auth.onAuthStateChanged(user=>{
      document.getElementById("credits").innerText = snap.val()?.credits || 0;
    });
 
-   document.getElementById("auth").style.display="none";
-   document.getElementById("dash").style.display="block";
+   show("dash");
 
- }else{
-   document.getElementById("auth").style.display="block";
+ } else {
+   show("login");
  }
 });
 
-function handleAuth(){
- const e=email.value;
- const p=pass.value;
+// LOGIN
+function login(){
+ const e=document.getElementById("l-email").value;
+ const p=document.getElementById("l-pass").value;
+
+ auth.signInWithEmailAndPassword(e,p)
+ .then(res=>{
+   if(!res.user.emailVerified){
+     alert("Email not verified!");
+     auth.signOut();
+   }
+ })
+ .catch(err=>alert(err.message));
+}
+
+// REGISTER
+function register(){
+ const e=document.getElementById("r-email").value;
+ const p=document.getElementById("r-pass").value;
 
  auth.createUserWithEmailAndPassword(e,p)
  .then(async res=>{
    await res.user.sendEmailVerification();
+
+   await db.ref("users/"+res.user.uid).set({
+     email:e,
+     credits:1
+   });
+
    alert("Verification email sent. Please verify.");
    auth.signOut();
+   show("login");
  })
- .catch(()=>{
-   auth.signInWithEmailAndPassword(e,p)
-   .then(res=>{
-     if(!res.user.emailVerified){
-       alert("Email not verified");
-       auth.signOut();
-     }
-   })
-   .catch(err=>alert(err.message));
- });
+ .catch(err=>alert(err.message));
 }
 
+// GOOGLE LOGIN
+function googleLogin(){
+ const provider = new firebase.auth.GoogleAuthProvider();
+
+ auth.signInWithPopup(provider)
+ .then(res=>{
+   const uid=res.user.uid;
+
+   db.ref("users/"+uid).once("value").then(snap=>{
+     if(!snap.exists()){
+       db.ref("users/"+uid).set({
+         email:res.user.email,
+         credits:1
+       });
+     }
+   });
+ })
+ .catch(err=>alert(err.message));
+}
+
+// PLAN
 function selectPlan(a){
  selectedAmt=a;
  alert("Selected ₹"+a);
 }
 
+// UPI
 function pay(){
  const upi=`upi://pay?pa=imrankhan17@ptyes&pn=IMRAN&am=${selectedAmt}&cu=INR`;
 
  if(/iPhone|iPad/.test(navigator.userAgent)){
-   alert("Use QR method on iPhone");
+   alert("Use QR on iPhone");
  }else{
    window.location.href=upi;
  }
 }
 
+// UPLOAD
 function upload(){
  const file=document.getElementById("img").files[0];
- if(!file) return alert("Select file");
+ if(!file) return alert("Select screenshot");
 
  const reader=new FileReader();
  reader.readAsDataURL(file);
@@ -142,10 +243,11 @@ function upload(){
      time:new Date().toLocaleString()
    });
 
-   alert("Screenshot submitted");
+   alert("Submitted");
  };
 }
 
+// TRACE
 async function trace(){
  const ref=db.ref("users/"+auth.currentUser.uid+"/credits");
  const snap=await ref.get();
@@ -154,9 +256,10 @@ async function trace(){
  if(c<=0) return alert("No credits");
 
  await ref.set(c-1);
- alert("Trace done (demo)");
+ alert("Done");
 }
 
+// LOGOUT
 function logout(){
  auth.signOut();
 }

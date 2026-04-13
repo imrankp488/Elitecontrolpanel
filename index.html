@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>IMRAN PLAYZ | ELITE SYSTEM v27.0</title>
+    <title>IMRAN PLAYZ | ELITE SYSTEM v28.0</title>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
@@ -11,25 +11,36 @@
     <style>
         :root { --p: #00ff41; --r: #ff3131; --b: #000; --panel: rgba(10, 10, 10, 0.98); --blue: #00ccff; --y: #ffd700; }
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; transition: 0.3s ease; }
-        body { background: var(--b); color: var(--p); font-family: 'Share Tech Mono', monospace; margin: 0; }
+        body { background: var(--b); color: var(--p); font-family: 'Share Tech Mono', monospace; margin: 0; overflow-x: hidden; }
+        
         .page { display: none; min-height: 100vh; padding: 20px; flex-direction: column; align-items: center; justify-content: center; }
         .active { display: flex !important; animation: fadeIn 0.4s; }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
         .container { width: 100%; max-width: 450px; background: var(--panel); border: 1px solid var(--p); border-radius: 15px; padding: 25px; box-shadow: 0 0 25px rgba(0, 255, 65, 0.15); text-align: center; }
         h1 { font-family: 'Orbitron', sans-serif; font-size: 18px; color: #fff; text-shadow: 0 0 10px var(--p); margin-bottom: 20px; }
+        
         input { width: 100%; padding: 14px; background: #050505; border: 1px solid #333; color: var(--p); border-radius: 8px; margin-bottom: 12px; outline: none; font-family: inherit; font-size: 16px; }
+        
         button { width: 100%; padding: 14px; background: transparent; border: 1.5px solid var(--p); color: var(--p); font-weight: bold; cursor: pointer; border-radius: 8px; font-family: inherit; margin-bottom: 10px; }
-        button:hover { background: var(--p); color: #000; }
+        button:hover { background: var(--p); color: #000; box-shadow: 0 0 15px var(--p); }
         button:disabled { border-color: #444; color: #444; cursor: not-allowed; }
+        
         .btn-blue { border-color: var(--blue); color: var(--blue); }
         .btn-red { border-color: var(--r); color: var(--r); }
-        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.98); z-index: 5000; align-items: center; justify-content: center; backdrop-filter: blur(8px); }
+        
+        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 5000; align-items: center; justify-content: center; backdrop-filter: blur(10px); }
         .modal-box { width: 85%; max-width: 380px; background: #080808; border: 2px solid var(--p); border-radius: 15px; padding: 25px; text-align: center; }
+
+        .bar-bg { width: 100%; height: 10px; border: 1px solid var(--p); border-radius: 5px; margin: 20px 0; overflow: hidden; background: #111; position: relative; }
+        .bar-f { width: 0%; height: 100%; background: var(--p); box-shadow: 0 0 15px var(--p); transition: 0.1s linear; }
+
         .plan-card { border: 1px solid #333; padding: 15px; border-radius: 10px; margin-bottom: 10px; text-align: left; cursor: pointer; }
         .plan-card.selected { border-color: var(--p); background: rgba(0,255,0,0.05); }
         .pay-options { display: none; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 15px; }
+
         .upload-box { border: 2px dashed #444; padding: 20px; border-radius: 10px; margin-top: 15px; position: relative; }
-        input[type="file"] { position: absolute; width: 100%; height: 100%; top: 0; left: 0; opacity: 0; }
+        input[type="file"] { position: absolute; width: 100%; height: 100%; top: 0; left: 0; opacity: 0; cursor: pointer; }
         .msg-box { background: rgba(0, 204, 255, 0.1); border: 1px solid var(--blue); padding: 12px; border-radius: 8px; margin-bottom: 15px; font-size: 11px; color: #fff; display: none; }
     </style>
 </head>
@@ -37,10 +48,10 @@
 
     <div id="modal" class="modal-overlay">
         <div class="modal-box">
-            <h2 id="m-t" style="color:#fff; font-family:'Orbitron'; font-size:16px;">NOTIFICATION</h2>
+            <h2 id="m-t" style="color:#fff; font-family:'Orbitron'; font-size:16px;"></h2>
             <div id="qr-wrap" style="display:none; margin: 15px 0;">
                 <div style="width:200px; height:200px; background:#fff; margin:0 auto; padding:10px; border-radius:10px;"><img id="live-qr" style="width:100%;"></div>
-                <p style="font-size:10px; color:var(--y); margin-top:10px;">Scan to Pay via any UPI</p>
+                <button class="btn-blue" style="font-size:10px; padding:8px; margin-top:10px;" onclick="copyID()">COPY UPI ID</button>
             </div>
             <p id="m-m" style="font-size:13px; color:#ccc; line-height:1.5;"></p>
             <button onclick="closeModal()">OKAY</button>
@@ -51,12 +62,12 @@
         <div class="container">
             <h1 id="auth-t">SYSTEM LOGIN</h1>
             <input type="email" id="email" placeholder="Email Address">
-            <input type="password" id="pass" placeholder="Password (Min 6)">
+            <input type="password" id="pass" placeholder="Password">
             <button id="auth-btn" onclick="handleAuth()">LOGIN</button>
             <button style="background:#fff; color:#000; border:none; display:flex; align-items:center; justify-content:center; gap:10px;" onclick="loginGoogle()">
-                <img src="https://cdn1.iconfinder.com/data/icons/google-s-logo/150/Google_Icons-09-512.png" width="18"> GOOGLE LOGIN
+                <img src="https://cdn1.iconfinder.com/data/icons/google-s-logo/150/Google_Icons-09-512.png" width="18"> GOOGLE SIGN-IN
             </button>
-            <p onclick="toggleMode()" id="toggle-t" style="font-size:11px; color:#444; cursor:pointer; margin-top:15px; text-decoration: underline;">New? Create Account</p>
+            <p onclick="toggleMode()" id="toggle-t" style="font-size:11px; color:#444; cursor:pointer; margin-top:10px; text-decoration: underline;">New? Create Account</p>
         </div>
     </div>
 
@@ -64,8 +75,8 @@
         <div class="container">
             <h1>DASHBOARD</h1>
             <div id="admin-notif" class="msg-box"><strong>[ADMIN]:</strong> <span id="admin-txt"></span></div>
-            <div style="font-size:13px; color:var(--y); margin-bottom:15px;">CREDITS: <span id="user-credits">0</span></div>
-            <input type="text" id="target" placeholder="TARGET NUMBER / RC">
+            <div style="font-size:13px; color:var(--y); margin-bottom:15px; font-family:'Orbitron';">CREDITS: <span id="user-credits">0</span></div>
+            <input type="text" id="target" placeholder="98765XXXXX / MH12XXXX">
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
                 <button onclick="runTrace('mob')">Mobile</button>
                 <button onclick="runTrace('veh')">Vehicle</button>
@@ -77,15 +88,15 @@
 
     <div id="pg-plans" class="page">
         <div class="container">
-            <h1>SELECT PLAN</h1>
-            <div class="plan-card" onclick="selPlan('50', this)">₹50 - 10 Searches</div>
-            <div class="plan-card" onclick="selPlan('100', this)">₹100 - 30 Searches</div>
+            <h1>CHOOSE PLAN</h1>
+            <div class="plan-card" onclick="selPlan('50', this)">₹50 - 10 Credits</div>
+            <div class="plan-card" onclick="selPlan('100', this)">₹100 - 30 Credits</div>
             <div id="pay-opts" class="pay-options">
                 <button class="btn-blue" onclick="showQR()">SHOW QR</button>
                 <button class="btn-blue" onclick="window.location.href=`upi://pay?pa=${MY_UPI}&pn=IMRAN_PLAYZ&am=${selectedAmt}&cu=INR` ">OPEN UPI</button>
             </div>
             <div class="upload-box">
-                <span id="fn">Tap to Upload Screenshot</span>
+                <span id="fn">Upload Payment Screenshot</span>
                 <input type="file" id="p-img" onchange="document.getElementById('fn').innerText=this.files.name">
             </div>
             <button class="btn-blue" id="up-btn" style="margin-top:10px;" onclick="uploadImgBB()">SUBMIT PROOF</button>
@@ -93,8 +104,21 @@
         </div>
     </div>
 
-    <div id="pg-load" class="page"><h1>TRACING...</h1></div>
-    <div id="pg-res" class="page"><div class="container"><h1>RESULT</h1><div id="data-out" style="text-align:left; font-size:11px;"></div><button onclick="switchPage('pg-dash')">NEW SEARCH</button></div></div>
+    <div id="pg-load" class="page">
+        <div class="container">
+            <h1 id="load-text">INITIATING BYPASS...</h1>
+            <div class="bar-bg"><div id="bar" class="bar-f"></div></div>
+            <p style="font-size:10px; color:#555;">Connecting to API Gateway...</p>
+        </div>
+    </div>
+
+    <div id="pg-res" class="page">
+        <div class="container">
+            <h1>DECRYPTED DATA</h1>
+            <div id="data-out" style="text-align:left; font-size:11px; background:#050505; padding:15px; border:1px dashed var(--p); max-height:350px; overflow-y:auto;"></div>
+            <button onclick="switchPage('pg-dash')" style="margin-top:15px;">NEW SEARCH</button>
+        </div>
+    </div>
 
 <script>
     const firebaseConfig = {
@@ -115,18 +139,11 @@
 
     let isLogin = true, credits = 0, selectedAmt = 0;
 
-    // --- 🛡️ THE FINAL AUTH LISTENER ---
+    // --- 🔐 AUTH HANDLER ---
     auth.onAuthStateChanged(user => {
         if (user) sync(user);
         else {
-            // Check for redirect result when page loads
-            auth.getRedirectResult().then(result => {
-                if (result.user) sync(result.user);
-                else switchPage('pg-auth');
-            }).catch(err => {
-                console.error(err);
-                switchPage('pg-auth');
-            });
+            auth.getRedirectResult().then(res => { if(res.user) sync(res.user); else switchPage('pg-auth'); }).catch(() => switchPage('pg-auth'));
         }
     });
 
@@ -134,54 +151,30 @@
         document.getElementById('m-t').innerText = t;
         document.getElementById('m-m').innerText = m;
         document.getElementById('qr-wrap').style.display = qr ? 'block' : 'none';
-        if(qr) {
-            const upi = `upi://pay?pa=${MY_UPI}&pn=IMRAN_PLAYZ&am=${selectedAmt}&cu=INR`;
-            document.getElementById('live-qr').src = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(upi)}`;
-        }
+        if(qr) document.getElementById('live-qr').src = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent('upi://pay?pa='+MY_UPI+'&am='+selectedAmt)}`;
         document.getElementById('modal').style.display = 'flex';
     }
     function closeModal() { document.getElementById('modal').style.display = 'none'; }
     function switchPage(id) { document.querySelectorAll('.page').forEach(p=>p.classList.remove('active')); document.getElementById(id).classList.add('active'); }
-    
-    function toggleMode() { 
-        isLogin = !isLogin; 
-        document.getElementById('auth-t').innerText = isLogin ? "SYSTEM LOGIN" : "CREATE ACCOUNT";
-        document.getElementById('auth-btn').innerText = isLogin ? "LOGIN" : "REGISTER NOW";
-        document.getElementById('toggle-t').innerText = isLogin ? "New? Create Account" : "Back to Login";
-        // Reset inputs on toggle to avoid session conflicts
-        document.getElementById('email').value = "";
-        document.getElementById('pass').value = "";
-    }
+    function toggleMode() { isLogin=!isLogin; document.getElementById('auth-t').innerText=isLogin?"SYSTEM LOGIN":"CREATE ACCOUNT"; document.getElementById('auth-btn').innerText=isLogin?"LOGIN":"REGISTER NOW"; }
+    function logout() { auth.signOut().then(() => location.reload()); }
 
     function handleAuth() {
         const e = document.getElementById('email').value.trim(), p = document.getElementById('pass').value.trim();
-        if(!e || p.length < 6) return showModal("INVALID", "Email and 6-digit Password required.");
+        if(!e || p.length < 6) return showModal("ERROR", "Valid Email & 6-char Password required.");
+        const btn = document.getElementById('auth-btn'); btn.disabled = true; btn.innerText = "WAITING...";
         
-        const btn = document.getElementById('auth-btn');
-        btn.disabled = true; btn.innerText = "WAITING...";
-
         if(isLogin) {
-            auth.signInWithEmailAndPassword(e, p).catch(err => {
-                showModal("LOGIN FAILED", err.message);
-                btn.disabled = false; btn.innerText = "LOGIN";
-            });
+            auth.signInWithEmailAndPassword(e, p).catch(err => { showModal("LOGIN FAILED", err.message); btn.disabled = false; btn.innerText = "LOGIN"; });
         } else {
-            // Check if user is already logged in and sign out before registration
-            auth.signOut().then(() => {
-                auth.createUserWithEmailAndPassword(e, p).then(res => {
-                    db.ref('users/' + res.user.uid).set({ email: e, credits: 1 });
-                    showModal("SUCCESS", "Account Created! Verify your email and login.");
-                    toggleMode(); // Send back to login
-                }).catch(err => {
-                    showModal("ERROR", err.message);
-                    btn.disabled = false; btn.innerText = "REGISTER NOW";
-                });
-            });
+            auth.createUserWithEmailAndPassword(e, p).then(res => {
+                db.ref('users/' + res.user.uid).set({ email: e, credits: 1 });
+                showModal("SUCCESS", "Account Created! You can now Login."); toggleMode();
+            }).catch(err => { showModal("ERROR", err.message); btn.disabled = false; btn.innerText = "REGISTER"; });
         }
     }
 
     function loginGoogle() { auth.signInWithRedirect(new firebase.auth.GoogleAuthProvider()); }
-    function logout() { auth.signOut().then(() => location.reload()); }
 
     function sync(user) {
         db.ref('users/' + user.uid).on('value', snap => {
@@ -189,66 +182,95 @@
             if(!d) { db.ref('users/'+user.uid).set({email:user.email, credits:1}); return; }
             credits = d.credits || 0;
             document.getElementById('user-credits').innerText = credits;
-            if(d.admin_msg) {
-                document.getElementById('admin-notif').style.display = 'block';
-                document.getElementById('admin-txt').innerText = d.admin_msg;
-            } else { document.getElementById('admin-notif').style.display = 'none'; }
+            if(d.admin_msg) { document.getElementById('admin-notif').style.display = 'block'; document.getElementById('admin-txt').innerText = d.admin_msg; }
+            else document.getElementById('admin-notif').style.display = 'none';
             switchPage('pg-dash');
         });
     }
 
-    function selPlan(amt, el) {
-        selectedAmt = amt;
-        document.querySelectorAll('.plan-card').forEach(c => c.style.borderColor = "#333");
-        el.style.borderColor = "var(--p)";
-        document.getElementById('pay-opts').style.display = 'grid';
-    }
+    function selPlan(amt, el) { selectedAmt = amt; document.querySelectorAll('.plan-card').forEach(c => c.style.borderColor = "#333"); el.style.borderColor = "var(--p)"; document.getElementById('pay-opts').style.display = 'grid'; }
+    function showQR() { showModal("SCAN QR", `Pay ₹${selectedAmt} for credits.`, true); }
+    function copyID() { navigator.clipboard.writeText(MY_UPI); alert("UPI ID Copied!"); }
 
-    function showQR() { showModal("PAYMENT QR", `Scan to pay ₹${selectedAmt}`, true); }
-
+    // --- 📸 FINAL ROBUST SCREENSHOT UPLOAD ---
     async function uploadImgBB() {
         const file = document.getElementById('p-img').files;
-        if(!file) return showModal("NO FILE", "Select screenshot first.");
-        const btn = document.getElementById('up-btn');
-        btn.disabled = true; btn.innerText = "UPLOADING...";
+        if(!file) return showModal("ERROR", "Please select a file first.");
+        const btn = document.getElementById('up-btn'); btn.disabled = true; btn.innerText = "UPLOADING...";
+
         const reader = new FileReader();
         reader.readAsDataURL(file);
         reader.onload = async () => {
-            const base64 = reader.result.split(',');
-            const fd = new FormData(); fd.append("image", base64);
             try {
-                const res = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_KEY}`, { method: 'POST', body: fd });
+                const base64 = reader.result.split(',');
+                const formData = new FormData();
+                formData.append("image", base64);
+                
+                const res = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_KEY}`, { method: 'POST', body: formData });
                 const d = await res.json();
+                
                 if(d.success) {
                     await db.ref('recharge_requests/' + Date.now()).set({ user: auth.currentUser.email, uid: auth.currentUser.uid, screenshot: d.data.url, time: new Date().toLocaleString() });
-                    showModal("SUCCESS", "Proof Sent! Admin will verify in 5 mins.");
+                    showModal("SUCCESS", "Proof Sent! Admin will verify soon.");
                     switchPage('pg-dash');
-                }
-            } catch(e) { showModal("ERROR", "Upload Failed."); }
+                } else { throw new Error(); }
+            } catch(e) { showModal("UPLOAD FAILED", "Check internet or try smaller image."); }
             btn.disabled = false; btn.innerText = "SUBMIT PROOF";
         };
     }
 
+    // --- 🛡️ SMART TRACE (NO BRANDING + PROGRESS BAR) ---
     async function runTrace(t) {
         if(credits <= 0) return showModal("NO CREDITS", "Please recharge.");
         const v = document.getElementById('target').value.trim();
         if(!v) return;
+        
         switchPage('pg-load');
+        const bar = document.getElementById('bar');
+        const loadTxt = document.getElementById('load-text');
+        let p = 0;
+        const itv = setInterval(() => { 
+            p += 2; bar.style.width = p + "%"; 
+            if(p == 20) loadTxt.innerText = "BYPASSING FIREWALL...";
+            if(p == 50) loadTxt.innerText = "DECRYPTING API PACKETS...";
+            if(p == 80) loadTxt.innerText = "FINALIZING DATA...";
+            if(p >= 98) clearInterval(itv); 
+        }, 80);
+
         try {
             const api = (t==='mob') ? `https://yash-code-with-ai.alphamovies.workers.dev/?num=${v}&key=7189814021` : `https://vehicle-eight-vert.vercel.app/api?rc=${v}`;
-            const res = await fetch(api); const data = await res.json();
+            const res = await fetch(api);
+            const data = await res.json();
+            
+            clearInterval(itv);
+            bar.style.width = "100%";
+            
             const ds = JSON.stringify(data).toLowerCase();
-            if(Object.keys(data).length === 0 || ds.includes("not found")) {
-                showModal("NOT FOUND", "Refunded."); switchPage('pg-dash'); return;
+            if(Object.keys(data).length === 0 || ds.includes("not found") || ds.includes("invalid")) {
+                showModal("NOT FOUND", "Target data not available. Credits Refunded.");
+                switchPage('pg-dash'); return;
             }
+            
             await db.ref('users/'+auth.currentUser.uid).update({credits: credits-1});
-            setTimeout(()=>{ switchPage('pg-res'); render(data); }, 500);
-        } catch(e) { showModal("ERROR", "Refunded."); switchPage('pg-dash'); }
+            setTimeout(() => { switchPage('pg-res'); render(data); }, 500);
+        } catch(e) { clearInterval(itv); showModal("SERVER ERROR", "Refunded."); switchPage('pg-dash'); }
     }
 
+    // --- 🚫 NO BRANDING RENDER ---
     function render(d) {
         const out = document.getElementById('data-out'); out.innerHTML = "";
-        for(let k in d) if(typeof d[k] !== 'object') out.innerHTML += `<div><b>${k.toUpperCase()}:</b> ${d[k]}</div>`;
+        // Unwanted fields list
+        const skip = ["branding", "developer", "processed", "owner", "http", "yash", "flix", "status", "error"];
+        
+        for(let k in d) {
+            const key = k.toLowerCase();
+            const val = String(d[k]).toLowerCase();
+            
+            // Skip if key or value contains forbidden words
+            if(typeof d[k] !== 'object' && !skip.some(s => key.includes(s) || val.includes(s))) {
+                out.innerHTML += `<div style="padding:8px 0; border-bottom:1px solid #111;"><b style="color:var(--p);">${k.toUpperCase()}:</b> <span style="color:#fff;">${d[k]}</span></div>`;
+            }
+        }
     }
 </script>
 </body>

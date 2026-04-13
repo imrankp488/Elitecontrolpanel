@@ -2,145 +2,216 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>IMRAN PLAYZ | SECURE PANEL</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>IMRAN PLAYZ | ELITE SYSTEM</title>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
     <style>
-        :root { --p: #00ff41; --r: #ff3131; --b: #000; }
-        * { box-sizing: border-box; }
-        body { background: var(--b); color: var(--p); font-family: 'Share Tech Mono', monospace; margin: 0; display: flex; justify-content: center; min-height: 100vh; padding: 15px; }
-        .terminal { width: 100%; max-width: 400px; border: 1.5px solid var(--p); border-radius: 10px; padding: 25px; background: rgba(0, 10, 0, 0.98); box-shadow: 0 0 15px var(--p); }
-        input { width: 100%; padding: 12px; background: #000; border: 1px solid var(--p); color: var(--p); margin-bottom: 15px; outline: none; font-family: inherit; }
-        button { width: 100%; padding: 12px; background: transparent; border: 1.5px solid var(--p); color: var(--p); font-weight: bold; cursor: pointer; text-transform: uppercase; margin-bottom: 10px; font-family: inherit; }
-        button:active { background: var(--p); color: #000; }
+        :root { --p: #00ff41; --r: #ff3131; --b: #000; --panel: rgba(10, 10, 10, 0.95); }
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; transition: 0.3s ease; }
+        body { background: var(--b); color: var(--p); font-family: 'Share Tech Mono', monospace; margin: 0; overflow-x: hidden; }
+        
+        /* Layout Handling */
+        .page { display: none; min-height: 100vh; width: 100%; padding: 20px; flex-direction: column; align-items: center; justify-content: center; }
+        .active { display: flex !important; }
+
+        /* Component Styles */
+        .container { width: 100%; max-width: 500px; background: var(--panel); border: 1px solid var(--p); border-radius: 15px; padding: 30px; box-shadow: 0 0 20px rgba(0, 255, 65, 0.1); text-align: center; }
+        h1 { font-family: 'Orbitron', sans-serif; font-size: 20px; letter-spacing: 2px; margin-bottom: 25px; color: #fff; text-shadow: 0 0 10px var(--p); }
+        
+        input { width: 100%; padding: 15px; background: #050505; border: 1px solid #333; color: var(--p); border-radius: 8px; margin-bottom: 15px; outline: none; font-size: 16px; font-family: inherit; }
+        input:focus { border-color: var(--p); box-shadow: 0 0 10px rgba(0, 255, 65, 0.2); }
+        
+        button { width: 100%; padding: 14px; background: transparent; border: 1.5px solid var(--p); color: var(--p); font-weight: bold; cursor: pointer; text-transform: uppercase; border-radius: 8px; font-family: inherit; margin-bottom: 10px; }
+        button:hover { background: var(--p); color: #000; }
+        .btn-google { background: #fff; color: #000; border: none; display: flex; align-items: center; justify-content: center; gap: 10px; }
         .btn-red { border-color: var(--r); color: var(--r); }
-        .loader { display: none; text-align: center; margin: 20px 0; }
-        .bar-bg { width: 100%; height: 8px; border: 1px solid var(--p); margin: 10px 0; }
-        .bar-f { width: 0%; height: 100%; background: var(--p); transition: 0.2s; }
-        #res { display: none; margin-top: 15px; border: 1px dashed var(--p); padding: 10px; font-size: 12px; max-height: 250px; overflow-y: auto; }
-        .row { border-bottom: 1px solid rgba(0,255,0,0.1); padding: 5px 0; display: flex; justify-content: space-between; }
+        .btn-red:hover { background: var(--r); color: #000; }
+
+        /* Progress Page Styles */
+        .loader-wrap { width: 100%; max-width: 300px; margin: 20px 0; }
+        .bar-bg { width: 100%; height: 12px; background: #111; border: 1px solid var(--p); border-radius: 6px; overflow: hidden; }
+        .bar-fill { width: 0%; height: 100%; background: var(--p); box-shadow: 0 0 15px var(--p); }
+
+        /* Data Page Styles */
+        .data-vault { width: 100%; text-align: left; background: #050505; border: 1px dashed var(--p); border-radius: 10px; padding: 15px; max-height: 400px; overflow-y: auto; }
+        .row { border-bottom: 1px solid rgba(0,255,0,0.1); padding: 10px 0; display: flex; justify-content: space-between; font-size: 14px; }
+        .key { color: #888; text-transform: uppercase; font-size: 11px; }
+
+        /* Mobile Adjustments */
+        @media (max-width: 480px) { .container { padding: 20px; border-radius: 0; border: none; border-bottom: 1px solid var(--p); } }
     </style>
 </head>
 <body>
 
-<div class="terminal">
-    <div id="login-scr">
-        <h1 style="text-align:center; font-size:18px;">AUTHORIZATION</h1>
-        <input type="text" id="u" placeholder="USERNAME">
-        <input type="password" id="p" placeholder="PASSWORD">
-        <button onclick="login()">ENTER SYSTEM</button>
-    </div>
-
-    <div id="main-scr" style="display:none;">
-        <h1 style="text-align:center; font-size:18px;">COMMAND CENTER</h1>
-        <input type="text" id="target" placeholder="NUMBER / VEHICLE RC">
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-            <button onclick="run('mob')">Number Info</button>
-            <button onclick="run('veh')">Vehicle Info</button>
+    <div id="pg-auth" class="page active">
+        <div class="container">
+            <h1>IMRAN PLAYZ</h1>
+            <p style="font-size: 11px; color: #666; margin-bottom: 20px;">SECURE ACCESS GATEWAY</p>
+            <input type="email" id="email" placeholder="Email Address">
+            <input type="password" id="pass" placeholder="Password">
+            <button onclick="loginEmail()">Authorize Access</button>
+            <div style="margin: 15px 0; color: #444; font-size: 12px;">OR</div>
+            <button class="btn-google" onclick="loginGoogle()">
+                <img src="https://cdn1.iconfinder.com/data/icons/google-s-logo/150/Google_Icons-09-512.png" width="20"> Sign in with Google
+            </button>
+            <p id="auth-err" style="color:var(--r); font-size:10px; margin-top:10px;"></p>
         </div>
-        <button class="btn-red" onclick="location.reload()">LOGOUT</button>
     </div>
 
-    <div id="load-scr" class="loader">
-        <p id="l-txt">BYPASSING...</p>
-        <div class="bar-bg"><div id="bar" class="bar-f"></div></div>
-        <button class="btn-red" onclick="abort()">CANCEL</button>
+    <div id="pg-dash" class="page">
+        <div class="container">
+            <h1>COMMAND CENTER</h1>
+            <p style="font-size: 11px; margin-bottom: 20px;">OP: <span id="op-name" style="color:#fff;"></span></p>
+            <input type="text" id="target" placeholder="987654XXXX / DL10CXXXX">
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                <button onclick="startProcess('mob')">Number Info</button>
+                <button onclick="startProcess('veh')">Vehicle Info</button>
+            </div>
+            <button class="btn-red btn-full" style="margin-top:20px;" onclick="location.reload()">Terminate</button>
+        </div>
     </div>
 
-    <div id="res"></div>
-    <p style="text-align:center; font-size:9px; margin-top:15px; opacity:0.5;">POWERED BY IMRAN PLAYZ</p>
-</div>
+    <div id="pg-load" class="page" style="background: radial-gradient(circle, #001100 0%, #000 100%);">
+        <div class="container" style="border:none; background:transparent;">
+            <h1 id="l-status">INITIALIZING...</h1>
+            <div class="loader-wrap">
+                <div class="bar-bg"><div id="bar" class="bar-fill"></div></div>
+            </div>
+            <p id="l-detail" style="font-size: 10px; color: #008800;">> Connecting to secure proxy...</p>
+            <button class="btn-red" style="margin-top: 30px; width: auto; padding: 10px 30px;" onclick="abortAll()">ABORT</button>
+        </div>
+    </div>
+
+    <div id="pg-res" class="page">
+        <div class="container" style="max-width: 600px;">
+            <h1>DECRYPTED DATA</h1>
+            <div id="data-output" class="data-vault"></div>
+            <button class="btn-full" style="margin-top: 20px;" onclick="switchPage('pg-dash')">New Query</button>
+            <button class="btn-red btn-full" onclick="location.reload()">Logout</button>
+        </div>
+    </div>
 
 <script>
-    // --- CONFIG ---
-    const config = {
-        apiKey: "AIzaSyB011WYaNhJQx77yO3Ow7l-Z_clhS89Z8A",
-        authDomain: "adminpanel-6b862.firebaseapp.com",
-        databaseURL: "https://adminpanel-6b862-default-rtdb.firebaseio.com",
-        projectId: "adminpanel-6b862"
+    // --- 🔑 FIREBASE SETUP ---
+    const firebaseConfig = {
+      apiKey: "AIzaSyB011WYaNhJQx77yO3Ow7l-Z_clhS89Z8A",
+      authDomain: "adminpanel-6b862.firebaseapp.com",
+      databaseURL: "https://adminpanel-6b862-default-rtdb.firebaseio.com",
+      projectId: "adminpanel-6b862",
+      storageBucket: "adminpanel-6b862.firebasestorage.app",
+      messagingSenderId: "220057098294",
+      appId: "1:220057098294:web:9453e948e8817544916097"
     };
-    firebase.initializeApp(config);
-    const db = firebase.database();
 
-    // API Links (Encrypted to stop stealing)
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.database();
+    const provider = new firebase.auth.GoogleAuthProvider();
+
+    // API Keys (Encrypted)
     const _u = {
         m: "aHR0cHM6Ly95YXNoLWNvZGUtd2l0aC1haS5hbHBoYW1vdmllcy53b3JrZXJzLmRldi8/bnVtPQ==",
         v: "dmVoaWNsZS1laWdodC12ZXJ0LnZlcmNlbC5hcHAvYXBpP3JjPQ==",
         k: "NzE4OTgxNDAyMQ=="
     };
 
-    function login() {
-        const user = document.getElementById('u').value.trim();
-        const pass = document.getElementById('p').value.trim();
-
-        // Direct Login (Hardcoded for now to avoid 'Invalid' error)
-        if((user === "imran" && pass === "imran786") || (user === "user123" && pass === "password18")) {
-            document.getElementById('login-scr').style.display = 'none';
-            document.getElementById('main-scr').style.display = 'block';
-            db.ref('logs/' + Date.now()).set({ user: user, action: "LOGIN", time: new Date().toLocaleString() });
-        } else {
-            alert("ACCESS DENIED!");
-        }
+    // --- 🔐 AUTH LOGIC ---
+    function loginEmail() {
+        const e = document.getElementById('email').value;
+        const p = document.getElementById('pass').value;
+        auth.signInWithEmailAndPassword(e, p)
+            .then(res => handleLoginSuccess(res.user))
+            .catch(err => document.getElementById('auth-err').innerText = err.message);
     }
 
-    let ctrl, anim;
-    async function run(type) {
+    function loginGoogle() {
+        auth.signInWithPopup(provider)
+            .then(res => handleLoginSuccess(res.user))
+            .catch(err => alert("Google Sign-in Failed"));
+    }
+
+    function handleLoginSuccess(user) {
+        document.getElementById('op-name').innerText = user.displayName || user.email;
+        switchPage('pg-dash');
+        db.ref('logs/' + Date.now()).set({ user: user.email, action: "LOGIN", time: new Date().toLocaleString() });
+    }
+
+    // --- 🛠️ PROCESS LOGIC ---
+    let currentCtrl = null;
+    let barInt = null;
+
+    async function startProcess(type) {
         const val = document.getElementById('target').value.trim();
-        if(!val) return alert("Enter Target!");
+        if(!val) return;
 
-        document.getElementById('main-scr').style.display = 'none';
-        document.getElementById('load-scr').style.display = 'block';
-        document.getElementById('res').style.display = 'none';
+        switchPage('pg-load');
+        animateBar();
 
-        let p = 0;
-        anim = setInterval(() => {
-            p += 5; if(p>=95) p=95;
-            document.getElementById('bar').style.width = p + "%";
-        }, 150);
-
-        ctrl = new AbortController();
+        currentCtrl = new AbortController();
         try {
             const api = (type === 'mob') ? atob(_u.m) + val + "&key=" + atob(_u.k) : "https://" + atob(_u.v) + val;
-            const res = await fetch(api, { signal: ctrl.signal });
+            const res = await fetch(api, { signal: currentCtrl.signal });
             const data = await res.json();
             
-            clearInterval(anim);
+            clearInterval(barInt);
             document.getElementById('bar').style.width = "100%";
-            db.ref('logs/' + Date.now()).set({ user: "IMRAN", action: type, target: val, time: new Date().toLocaleString() });
+            db.ref('logs/' + Date.now()).set({ user: auth.currentUser.email, action: type, target: val, time: new Date().toLocaleString() });
 
             setTimeout(() => {
-                document.getElementById('load-scr').style.display = 'none';
-                show(data);
-            }, 500);
-        } catch(e) { abort(); }
+                switchPage('pg-res');
+                renderData(data);
+            }, 600);
+        } catch(e) { abortAll(); }
     }
 
-    function show(data) {
-        const out = document.getElementById('res');
-        out.style.display = 'block';
-        out.innerHTML = "<strong>RESULT:</strong><br>";
-        const skip = ["branding", "developer", "telegram", "yash", "flix", "http", "@"];
+    function animateBar() {
+        let p = 0;
+        const b = document.getElementById('bar');
+        const s = document.getElementById('l-status');
+        const d = document.getElementById('l-detail');
+        
+        barInt = setInterval(() => {
+            p += Math.random() * 4;
+            if(p >= 98) p = 98;
+            b.style.width = p + "%";
+            if(p > 30) { s.innerText = "EXTRACTING..."; d.innerText = "> Bypassing firewall..."; }
+            if(p > 70) { s.innerText = "DECRYPTING..."; d.innerText = "> Parsing data packets..."; }
+        }, 150);
+    }
+
+    function renderData(data) {
+        const out = document.getElementById('data-output');
+        out.innerHTML = "";
+        const skip = ["branding", "developer", "telegram", "yash", "flix", "http", "@", "contact"];
 
         function walk(obj) {
             for(let k in obj) {
                 if(typeof obj[k] === 'object' && obj[k] !== null) walk(obj[k]);
                 else {
-                    if(!skip.some(s => k.toLowerCase().includes(s) || String(obj[k]).toLowerCase().includes(s))) {
-                        out.innerHTML += `<div class="row"><span>${k.toUpperCase()}</span> <span>${obj[k]}</span></div>`;
+                    let kL = k.toLowerCase(), vL = String(obj[k]).toLowerCase();
+                    if(!skip.some(s => kL.includes(s) || vL.includes(s))) {
+                        out.innerHTML += `<div class="row"><span class="key">${k.replace(/_/g, ' ')}</span> <span style="color:#fff;">${obj[k]}</span></div>`;
                     }
                 }
             }
         }
         walk(data);
-        document.getElementById('main-scr').style.display = 'block';
+        if(out.innerHTML === "") out.innerHTML = "No secure data retrieved.";
     }
 
-    function abort() {
-        if(ctrl) ctrl.abort(); clearInterval(anim);
-        document.getElementById('load-scr').style.display = 'none';
-        document.getElementById('main-scr').style.display = 'block';
+    function switchPage(id) {
+        document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+        document.getElementById(id).classList.add('active');
+    }
+
+    function abortAll() {
+        if(currentCtrl) currentCtrl.abort();
+        clearInterval(barInt);
+        switchPage('pg-dash');
+        document.getElementById('bar').style.width = "0%";
     }
 </script>
 </body>

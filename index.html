@@ -12,117 +12,194 @@
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
 
 <style>
-:root { --p:#00ff41; --r:#ff3131; --b:#000; --panel:rgba(10,10,10,0.98); --y:#ffd700; }
-body { background:var(--b); color:var(--p); font-family:'Share Tech Mono'; margin:0; }
+:root { 
+    --p: #00ff41; 
+    --p-glow: rgba(0, 255, 65, 0.3);
+    --r: #ff3131; 
+    --b: #050505; 
+    --glass: rgba(15, 15, 15, 0.95);
+    --border: #1a1a1a;
+}
 
-.page { display:none; min-height:100vh; justify-content:center; align-items:center; }
-.active { display:flex; }
+body { 
+    background: var(--b); 
+    color: var(--p); 
+    font-family: 'Share Tech Mono', monospace; 
+    margin: 0; 
+    overflow-x: hidden;
+    background-image: linear-gradient(0deg, transparent 24%, rgba(0, 255, 65, .05) 25%, rgba(0, 255, 65, .05) 26%, transparent 27%, transparent 74%, rgba(0, 255, 65, .05) 75%, rgba(0, 255, 65, .05) 76%, transparent 77%, transparent), linear-gradient(90deg, transparent 24%, rgba(0, 255, 65, .05) 25%, rgba(0, 255, 65, .05) 26%, transparent 27%, transparent 74%, rgba(0, 255, 65, .05) 75%, rgba(0, 255, 65, .05) 76%, transparent 77%, transparent);
+    background-size: 50px 50px;
+}
+
+/* Page Overlay for Matrix Vibe */
+body::after {
+    content: " ";
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+    background-size: 100% 2px, 3px 100%;
+    pointer-events: none;
+    z-index: 999;
+}
+
+.page { display:none; min-height:100vh; justify-content:center; align-items:center; flex-direction: column; padding: 20px; box-sizing: border-box;}
+.active { display:flex; animation: fadeIn 0.5s ease; }
+
+@keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
 .container {
- width:90%; max-width:450px;
- background:var(--panel);
- border:1px solid var(--p);
- border-radius:15px;
- padding:25px;
- text-align:center;
+    width: 100%;
+    max-width: 420px;
+    background: var(--glass);
+    border: 1px solid var(--p);
+    border-radius: 15px;
+    padding: 30px;
+    text-align: center;
+    box-shadow: 0 0 20px var(--p-glow);
+    backdrop-filter: blur(10px);
 }
 
-h1 { font-family:'Orbitron'; color:#fff; }
+h1 { font-family: 'Orbitron'; color: #fff; font-size: 22px; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 25px; text-shadow: 0 0 10px var(--p-glow); }
 
+/* Input Styling */
 input {
- width:100%; padding:12px;
- margin:8px 0;
- background:#050505;
- border:1px solid #333;
- color:var(--p);
+    width: 100%; padding: 14px;
+    margin: 10px 0;
+    background: #000;
+    border: 1px solid var(--border);
+    color: var(--p);
+    font-family: 'Share Tech Mono';
+    box-sizing: border-box;
+    transition: 0.3s;
 }
+input:focus { border-color: var(--p); outline: none; box-shadow: 0 0 10px var(--p-glow); }
 
+/* Button Styling */
 button {
- width:100%; padding:12px;
- margin:5px 0;
- border:1px solid var(--p);
- background:none;
- color:var(--p);
- cursor:pointer;
+    width: 100%; padding: 14px;
+    margin: 10px 0;
+    border: 1px solid var(--p);
+    background: transparent;
+    color: var(--p);
+    font-family: 'Orbitron';
+    font-weight: bold;
+    cursor: pointer;
+    transition: 0.3s;
+    text-transform: uppercase;
 }
-button:hover { background:var(--p); color:#000; }
+button:hover { background: var(--p); color: #000; box-shadow: 0 0 15px var(--p); }
 
+.google-btn { border-color: #fff; color: #fff; margin-top: 5px; }
+.google-btn:hover { background: #fff; color: #000; }
+
+/* Plan Cards */
+.plan-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 20px 0; }
 .plan-card {
- border:1px solid #333;
- padding:12px;
- margin:8px 0;
- cursor:pointer;
+    border: 1px solid var(--border);
+    padding: 15px;
+    border-radius: 10px;
+    cursor: pointer;
+    background: #0a0a0a;
+    transition: 0.3s;
 }
-.plan-card:hover { border-color:var(--p); }
+.plan-card.selected { border-color: var(--p); background: var(--p-glow); }
+.plan-card:hover { border-color: var(--p); transform: translateY(-3px); }
+.plan-amt { font-size: 18px; color: #fff; font-weight: bold; }
+.plan-credit { font-size: 12px; color: var(--p); }
 
-.modal {
- display:none;
- position:fixed;
- top:0; left:0;
- width:100%; height:100%;
- background:rgba(0,0,0,0.9);
- justify-content:center;
- align-items:center;
-}
+/* Progress Bar */
+.progress-track { background: #002211; border-radius: 5px; height: 12px; overflow: hidden; width: 100%; margin: 20px 0; display: none; }
+.progress-fill { background: var(--p); height: 100%; width: 0%; box-shadow: 0 0 10px var(--p); transition: width 0.3s linear; }
 
-.modal-box {
- background:#050505;
- border:2px solid var(--p);
- padding:20px;
- text-align:center;
+/* Dashboard Header */
+.user-info {
+    display: flex; justify-content: space-between; align-items: center;
+    background: #001100; padding: 10px 15px; border-radius: 8px; margin-bottom: 20px; border-left: 3px solid var(--p);
 }
+.credits-box { color: #fff; font-weight: bold; }
+
+.footer { margin-top: 25px; font-size: 10px; color: #444; text-transform: uppercase; letter-spacing: 1px; }
+
+/* Modal */
+.modal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); justify-content:center; align-items:center; z-index: 1000; }
+.modal-box { background:#0a0a0a; border:1px solid var(--p); padding:30px; border-radius:10px; text-align:center; max-width: 300px; box-shadow: 0 0 30px #000; }
+
 </style>
 </head>
 
 <body>
 
 <div id="modal" class="modal">
-<div class="modal-box">
-<h2 id="m-title"></h2>
-<p id="m-msg"></p>
-<button onclick="closeModal()">Close</button>
-</div>
+    <div class="modal-box">
+        <h2 id="m-title" style="font-family:'Orbitron'; font-size:16px;"></h2>
+        <p id="m-msg" style="font-size:13px; margin: 15px 0;"></p>
+        <button onclick="closeModal()">ACKNOWLEDGE</button>
+    </div>
 </div>
 
 <div id="auth" class="page active">
-<div class="container">
-<h1 id="auth-title">SYSTEM LOGIN</h1>
+    <div class="container">
+        <h1 id="auth-title">SYSTEM LOGIN</h1>
+        
+        <input id="email" type="email" placeholder="ADMIN_EMAIL@ROOT.COM">
+        <input id="pass" type="password" placeholder="ACCESS_PASSWORD">
 
-<input id="email" placeholder="Email">
-<input id="pass" type="password" placeholder="Password">
+        <button onclick="handleAuth()" id="authBtn">INITIALIZE LOGIN</button>
+        <button onclick="googleLogin()" class="google-btn">GOOGLE ACCESS</button>
 
-<button onclick="handleAuth()">Continue</button>
-<button onclick="googleLogin()">Google Login</button>
-
-<p onclick="toggleMode()" style="cursor:pointer;">Switch Mode</p>
-</div>
+        <p onclick="toggleMode()" style="cursor:pointer; font-size:12px; margin-top:15px; color:#00aa66;">[CLICK TO SWITCH MODE]</p>
+        
+        <div class="footer">DEVELOPED BY IMRANPLAYZ</div>
+    </div>
 </div>
 
 <div id="dash" class="page">
-<div class="container">
-<h1>DASHBOARD</h1>
+    <div class="container">
+        <h1>CONTROL PANEL</h1>
 
-Credits: <span id="credits">0</span>
+        <div class="user-info">
+            <span style="font-size:12px;">STATUS: <span style="color:var(--p)">ENCRYPTED</span></span>
+            <span class="credits-box">CREDITS: <span id="credits" style="color:var(--p)">0</span></span>
+        </div>
 
-<input id="target" placeholder="Target">
+        <input id="target" placeholder="ENTER TARGET NUMBER / RC">
+        
+        <div id="hackProgress" class="progress-track">
+            <div id="bar" class="progress-fill"></div>
+        </div>
 
-<button onclick="trace()">TRACE</button>
+        <button onclick="trace()">START TRACE</button>
 
-<hr>
+        <hr style="border:0; border-top:1px solid #222; margin:20px 0;">
 
-<div class="plan-card" onclick="selectPlan(50,10)">₹50 → 10 Credits</div>
-<div class="plan-card" onclick="selectPlan(100,30)">₹100 → 30 Credits</div>
+        <div style="font-size:12px; text-align:left; color:#fff; margin-bottom:10px;">CREDIT TOP-UP:</div>
+        <div class="plan-grid">
+            <div class="plan-card" onclick="selectPlan(this, 50, 10)">
+                <div class="plan-amt">₹50</div>
+                <div class="plan-credit">10 CREDITS</div>
+            </div>
+            <div class="plan-card" onclick="selectPlan(this, 100, 30)">
+                <div class="plan-amt">₹100</div>
+                <div class="plan-credit">30 CREDITS</div>
+            </div>
+        </div>
 
-<button onclick="pay()">PAY NOW</button>
+        <button onclick="pay()" style="border-color:var(--y); color:var(--y);">PURCHASE CREDITS</button>
 
-<input type="file" id="img">
-<button onclick="upload()">Submit Screenshot</button>
+        <div style="margin-top:20px; border: 1px dashed #333; padding: 10px;">
+            <div style="font-size:10px; margin-bottom:10px;">UPLOAD PAYMENT SCREENSHOT</div>
+            <input type="file" id="img" style="font-size:10px; border:none; background:transparent;">
+            <button onclick="upload()" style="font-size:12px; padding:8px;">SUBMIT DATA</button>
+        </div>
 
-<button onclick="logout()">Logout</button>
-</div>
+        <button onclick="logout()" style="border-color:var(--r); color:var(--r); margin-top:30px; font-size:12px;">TERMINATE SESSION</button>
+        
+        <div class="footer">IMRANPLAYZ SECURITY SYSTEMS v10</div>
+    </div>
 </div>
 
 <script>
+// Firebase Initialization (Using your existing config)
 const firebaseConfig = {
  apiKey:"AIzaSyB011WYaNhJQx77yO3Ow7l-Z_clhS89Z8A",
  authDomain:"adminpanel-6b862.firebaseapp.com",
@@ -140,28 +217,13 @@ let isLogin=true;
 let selectedAmt=0;
 let selectedCredits=0;
 
+// UI Helpers
 function modal(t,m){
  document.getElementById("m-title").innerText=t;
  document.getElementById("m-msg").innerText=m;
  document.getElementById("modal").style.display="flex";
 }
 function closeModal(){ document.getElementById("modal").style.display="none"; }
-
-auth.onAuthStateChanged(user=>{
- if(user){
-   if(!user.emailVerified){
-     modal("Verification Required","Please verify your email before login.");
-     auth.signOut();
-     return;
-   }
-
-   db.ref("users/"+user.uid).on("value",snap=>{
-     document.getElementById("credits").innerText=snap.val()?.credits||0;
-   });
-
-   show("dash");
- } else show("auth");
-});
 
 function show(id){
  document.querySelectorAll(".page").forEach(p=>p.classList.remove("active"));
@@ -171,29 +233,39 @@ function show(id){
 function toggleMode(){
  isLogin=!isLogin;
  document.getElementById("auth-title").innerText=isLogin?"SYSTEM LOGIN":"CREATE ACCOUNT";
+ document.getElementById("authBtn").innerText=isLogin?"INITIALIZE LOGIN":"REGISTER SYSTEM";
 }
 
+// Auth State
+auth.onAuthStateChanged(user=>{
+ if(user){
+   if(!user.emailVerified && user.providerData.providerId === 'password'){
+     modal("Verification Required","Check your email inbox.");
+     auth.signOut();
+     return;
+   }
+   db.ref("users/"+user.uid).on("value",snap=>{
+     document.getElementById("credits").innerText=snap.val()?.credits||0;
+   });
+   show("dash");
+ } else show("auth");
+});
+
+// Handlers
 function handleAuth(){
  let e=email.value;
  let p=pass.value;
+ if(!e || !p) return modal("Input Missing","Enter credentials");
 
  if(isLogin){
-   auth.signInWithEmailAndPassword(e,p)
-   .catch(err=>modal("Login Failed",err.message));
+   auth.signInWithEmailAndPassword(e,p).catch(err=>modal("Access Denied",err.message));
  } else {
-   auth.createUserWithEmailAndPassword(e,p)
-   .then(async res=>{
+   auth.createUserWithEmailAndPassword(e,p).then(async res=>{
      await res.user.sendEmailVerification();
-
-     await db.ref("users/"+res.user.uid).set({
-       email:e,
-       credits:1
-     });
-
-     modal("Verification Sent","Check your email and verify your account before login.");
+     await db.ref("users/"+res.user.uid).set({ email:e, credits:1 });
+     modal("Verification Sent","Verify your email to activate the system.");
      auth.signOut();
-   })
-   .catch(err=>modal("Error",err.message));
+   }).catch(err=>modal("Registration Error",err.message));
  }
 }
 
@@ -202,35 +274,32 @@ function googleLogin(){
  auth.signInWithPopup(provider).then(res=>{
    db.ref("users/"+res.user.uid).once("value").then(snap=>{
      if(!snap.exists()){
-       db.ref("users/"+res.user.uid).set({
-         email:res.user.email,
-         credits:1
-       });
+       db.ref("users/"+res.user.uid).set({ email:res.user.email, credits:1 });
      }
    });
- });
+ }).catch(err=>modal("Google Login Error",err.message));
 }
 
-function selectPlan(a,c){
+function selectPlan(el, a, c){
+ document.querySelectorAll(".plan-card").forEach(card=>card.classList.remove("selected"));
+ el.classList.add("selected");
  selectedAmt=a;
  selectedCredits=c;
- modal("Plan Selected","₹"+a+" selected");
 }
 
 function pay(){
+ if(selectedAmt === 0) return modal("No Plan","Please select a credit plan first.");
  const upi=`upi://pay?pa=imrankhan17@ptyes&pn=IMRAN&am=${selectedAmt}&cu=INR`;
  window.location.href=upi;
 }
 
 async function upload(){
- const file=document.getElementById("img").files[0];
- if(!file) return modal("Error","Select screenshot");
+ const file=document.getElementById("img").files;
+ if(!file) return modal("Missing File","Please select payment screenshot.");
 
  const reader=new FileReader();
-
  reader.onloadend=async()=>{
-   const base64=reader.result.split(',')[1];
-
+   const base64=reader.result.split(',');
    const fd=new FormData();
    fd.append("image",base64);
 
@@ -240,10 +309,8 @@ async function upload(){
    });
 
    const data=await res.json();
-
    if(data.success){
-     const utr=prompt("Enter UTR Number");
-
+     const utr=prompt("Enter UTR Number / Reference ID");
      await db.ref("recharge_requests/"+Date.now()).set({
        user:auth.currentUser.email,
        uid:auth.currentUser.uid,
@@ -254,40 +321,65 @@ async function upload(){
        status:"pending",
        time:new Date().toLocaleString()
      });
-
-     modal("Success","Submitted for verification");
-   }else{
-     modal("Error","Upload failed");
-   }
+     modal("Success","Screenshot submitted. Credits will be added after verification.");
+   }else{ modal("Upload Failed","Server rejected the image."); }
  };
-
  reader.readAsDataURL(file);
 }
 
+// TRACE WITH ANIMATION
 async function trace(){
  let val=target.value.trim();
- if(!val) return;
+ if(!val) return modal("Target Missing","Enter Number or RC first.");
 
  let ref=db.ref("users/"+auth.currentUser.uid+"/credits");
  let snap=await ref.get();
  let c=snap.val()||0;
 
- if(c<=0) return modal("No Credits","Recharge required");
+ if(c<=0) return modal("No Credits","Please recharge your account.");
 
- try{
-   let res=await fetch(`https://vehicle-eight-vert.vercel.app/api?rc=${val}`);
-   let data=await res.json();
+ // Start UI Animation
+ document.getElementById("hackProgress").style.display = "block";
+ let bar = document.getElementById("bar");
+ let p = 0;
+ 
+ let hackInterval = setInterval(async () => {
+    p += Math.floor(Math.random() * 10) + 5;
+    if(p >= 100) {
+        p = 100;
+        clearInterval(hackInterval);
+        
+        // Asli API Call
+        try {
+            let res=await fetch(`https://vehicle-eight-vert.vercel.app/api?rc=${val}`);
+            let data=await res.json();
 
-   if(!data || Object.keys(data).length===0){
-     modal("No Data","No data found. Credit not deducted.");
-     return;
-   }
+            if(!data || Object.keys(data).length===0){
+                modal("No Data","No details found for this target. Credits preserved.");
+                document.getElementById("hackProgress").style.display = "none";
+                bar.style.width = "0%";
+                return;
+            }
 
-   await ref.set(c-1);
-   modal("Success","Data fetched");
- }catch{
-   modal("Error","Server issue");
- }
+            await ref.set(c-1);
+            
+            // Result Display (JSON to String formatted)
+            let resultStr = "";
+            for (let key in data) {
+                if(typeof data[key] !== 'object') resultStr += `➤ ${key.toUpperCase()}: ${data[key]}\n`;
+            }
+            alert("🎯 TRACE SUCCESSFUL\n\n" + resultStr);
+            
+            document.getElementById("hackProgress").style.display = "none";
+            bar.style.width = "0%";
+        } catch {
+            modal("Server Timeout","Please try again later.");
+            document.getElementById("hackProgress").style.display = "none";
+            bar.style.width = "0%";
+        }
+    }
+    bar.style.width = p + "%";
+ }, 150);
 }
 
 function logout(){ auth.signOut(); }

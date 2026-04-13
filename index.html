@@ -27,25 +27,15 @@
         .msg-box { background: rgba(0, 204, 255, 0.1); border: 1px solid var(--blue); padding: 12px; border-radius: 8px; margin-bottom: 15px; font-size: 12px; color: #fff; display: none; }
         .credit-badge { background: rgba(255, 215, 0, 0.1); border: 1px solid var(--y); padding: 6px 15px; border-radius: 20px; font-size: 13px; margin-bottom: 20px; color: var(--y); }
         .bar-bg { width: 100%; height: 8px; border: 1px solid var(--p); border-radius: 4px; margin: 15px 0; overflow: hidden; background: #111; }
-        .bar-f { width: 0%; height: 100%; background: var(--p); transition: 0.1s linear; }
+        .bar-f { width: 0%; height: 100%; background: var(--p); transition: 0.1s; }
         .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 2000; align-items: center; justify-content: center; backdrop-filter: blur(8px); }
         .modal-box { width: 85%; max-width: 380px; background: #050505; border: 2px solid var(--p); border-radius: 15px; padding: 25px; text-align: center; }
-        
-        /* Result Styling */
-        .result-row { border-bottom: 1px solid #1a1a1a; padding: 10px 5px; display: flex; justify-content: space-between; font-size: 13px; }
-        .result-k { color: var(--p); font-weight: bold; text-transform: uppercase; }
-        .result-v { color: #fff; text-align: right; }
+        .res-row { border-bottom: 1px solid #1a1a1a; padding: 10px 0; text-align: left; display: flex; justify-content: space-between; font-size: 12px; }
     </style>
 </head>
 <body>
 
-<div id="modal" class="modal-overlay">
-<div class="modal-box">
-<h2 id="m-t"></h2>
-<p id="m-m" style="font-size:13px; color:#ccc;"></p>
-<button onclick="closeModal()">OKAY</button>
-</div>
-</div>
+<div id="modal" class="modal-overlay"><div class="modal-box"><h2 id="m-t"></h2><p id="m-m" style="font-size:13px; color:#ccc;"></p><button onclick="closeModal()">OKAY</button></div></div>
 
 <div id="pg-auth" class="page active">
 <div class="container">
@@ -77,14 +67,14 @@
 <div class="container">
 <h1>RECHARGE</h1>
 <div onclick="openPay('50')" style="border:1px solid #333;padding:12px;border-radius:10px;margin-bottom:10px;text-align:left;">
-<span style="float:right;">₹50</span><strong>BASIC</strong><br><small>10 Searches</small></div>
+<span style="float:right; color:var(--p);">₹50</span><strong>BASIC</strong><br><small>10 Searches</small></div>
 <div onclick="openPay('100')" style="border:1px solid #333;padding:12px;border-radius:10px;margin-bottom:10px;text-align:left;">
-<span style="float:right;">₹100</span><strong>PRO</strong><br><small>30 Searches</small></div>
+<span style="float:right; color:var(--p);">₹100</span><strong>PRO</strong><br><small>30 Searches</small></div>
 <div style="margin-top:15px;border-top:1px solid #333;padding-top:15px;">
-<p style="font-size:11px;color:var(--blue);">UPLOAD SCREENSHOT:</p>
+<p style="font-size:11px;color:var(--blue);">UPLOAD PAYMENT SCREENSHOT:</p>
 <div class="upload-box">
-<span id="fn">Select Payment Photo</span>
-<input type="file" id="p-img" accept="image/*" onchange="document.getElementById('fn').innerText=this.files?.name || 'Select Payment Photo'">
+<span id="fn">Select Image</span>
+<input type="file" id="p-img" accept="image/*" onchange="document.getElementById('fn').innerText=this.files?.name || 'Select Image'">
 </div>
 <button class="btn-blue" id="up-btn" onclick="uploadImgBB()">SUBMIT PROOF</button>
 </div>
@@ -92,20 +82,9 @@
 </div>
 </div>
 
-<div id="pg-load" class="page">
-<div class="container">
-<h1 id="load-status">BYPASSING...</h1>
-<div class="bar-bg"><div id="bar" class="bar-f"></div></div>
-</div>
-</div>
+<div id="pg-load" class="page"><div class="container"><h1>BYPASSING...</h1><div class="bar-bg"><div id="bar" class="bar-f"></div></div></div></div>
 
-<div id="pg-res" class="page">
-<div class="container" style="max-height:85vh; overflow-y:auto;">
-<h1>DECRYPTED DATA</h1>
-<div id="data-out"></div>
-<button onclick="switchPage('pg-dash')" style="margin-top:15px;">NEW SEARCH</button>
-</div>
-</div>
+<div id="pg-res" class="page"><div class="container" style="max-height:85vh; overflow-y:auto;"><h1>DECRYPTED DATA</h1><div id="data-out"></div><button onclick="switchPage('pg-dash')" style="margin-top:15px;">NEW SEARCH</button></div></div>
 
 <script>
 const firebaseConfig = {
@@ -117,153 +96,93 @@ const firebaseConfig = {
 
 const IMGBB_KEY="47d4ddf5133629b43bb606ec944137f9";
 firebase.initializeApp(firebaseConfig);
-const auth=firebase.auth();
-const db=firebase.database();
+const auth=firebase.auth(), db=firebase.database();
+let credits=0, isLogin=true;
 
-let credits=0;
-let isLogin=true;
+// --- Auto Login Session ---
+auth.onAuthStateChanged(user => { if(user) sync(user); else switchPage('pg-auth'); });
 
-// --- Persistence Fix ---
-auth.onAuthStateChanged(user => {
-    if (user) sync(user);
-    else switchPage('pg-auth');
-});
-
-function showModal(t,m){
- document.getElementById('m-t').innerText=t;
- document.getElementById('m-m').innerText=m;
- document.getElementById('modal').style.display='flex';
-}
+function showModal(t,m){ document.getElementById('m-t').innerText=t; document.getElementById('m-m').innerText=m; document.getElementById('modal').style.display='flex'; }
 function closeModal(){ document.getElementById('modal').style.display='none'; }
-
-function switchPage(id){
- document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
- document.getElementById(id).classList.add('active');
-}
-
-function toggleMode(){
- isLogin=!isLogin;
- document.querySelector('#pg-auth h1').innerText=isLogin?"SYSTEM LOGIN":"CREATE ACCOUNT";
-}
+function switchPage(id){ document.querySelectorAll('.page').forEach(p=>p.classList.remove('active')); document.getElementById(id).classList.add('active'); }
+function toggleMode(){ isLogin=!isLogin; document.querySelector('#pg-auth h1').innerText=isLogin?"SYSTEM LOGIN":"CREATE ACCOUNT"; }
 
 function handleAuth(){
  const e=document.getElementById('email').value, p=document.getElementById('pass').value;
- if(isLogin){
-   auth.signInWithEmailAndPassword(e,p).catch(err=>showModal("ERROR",err.message));
- }else{
-   auth.createUserWithEmailAndPassword(e,p).then(async r=>{
-     await db.ref('users/'+r.user.uid).set({email:e,credits:1});
-     showModal("SUCCESS","Account Created! You can now login.");
-     isLogin = true;
-     toggleMode();
-   }).catch(err=>showModal("ERROR",err.message));
- }
+ if(isLogin) auth.signInWithEmailAndPassword(e,p).catch(err=>showModal("ERROR",err.message));
+ else auth.createUserWithEmailAndPassword(e,p).then(async r=>{ await r.user.sendEmailVerification(); await db.ref('users/'+r.user.uid).set({email:e,credits:1}); showModal("VERIFY","Email Sent! Verify to Login."); auth.signOut(); });
 }
 
-function loginGoogle(){
- auth.signInWithPopup(new firebase.auth.GoogleAuthProvider()).then(r=>sync(r.user));
-}
+function loginGoogle(){ auth.signInWithPopup(new firebase.auth.GoogleAuthProvider()); }
 
 function sync(user){
  db.ref('users/'+user.uid).on('value',snap=>{
-   const d=snap.val();
-   credits=d?.credits||0;
+   const d=snap.val(); credits=d?.credits||0;
    document.getElementById('user-credits').innerText=credits;
    switchPage('pg-dash');
  });
 }
 
-function openPay(amt){
- window.location.href=`upi://pay?pa=imrankhan17@ptyes&pn=IMRAN&am=${amt}&cu=INR`;
-}
+function openPay(amt){ window.location.href=`upi://pay?pa=imrankhan17@ptyes&pn=IMRAN&am=${amt}&cu=INR`; }
 
-// --- Old Working Image Logic ---
 async function uploadImgBB(){
  const file=document.getElementById('p-img').files;
  if(!file) return showModal("ERROR","Select screenshot");
  const btn=document.getElementById('up-btn');
  btn.innerText="UPLOADING..."; btn.disabled=true;
+
  const reader=new FileReader();
- reader.onloadend=async ()=>{
-   const base64=reader.result.split(',');
-   const fd=new FormData();
-   fd.append("image",base64);
-   try{
-     const res=await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_KEY}`,{method:"POST",body:fd});
-     const d=await res.json();
-     if(!d.success) throw new Error();
-     await db.ref('recharge_requests/'+Date.now()).set({
-       user:auth.currentUser.email, uid:auth.currentUser.uid, screenshot:d.data.url, status:"pending", time:new Date().toLocaleString()
-     });
-     showModal("SUCCESS","Proof submitted! Wait for approval.");
-     switchPage('pg-dash');
-   }catch{ showModal("UPLOAD FAILED","Please try again."); }
-   btn.innerText="SUBMIT PROOF"; btn.disabled=false;
+ reader.onload = async () => {
+    try {
+        const base64 = reader.result.split(',');
+        const fd = new FormData(); fd.append("image", base64);
+        const res = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_KEY}`, { method: "POST", body: fd });
+        const d = await res.json();
+        if(d.success) {
+            await db.ref('recharge_requests/'+Date.now()).set({
+                user: auth.currentUser.email, uid: auth.currentUser.uid, screenshot: d.data.url, status: "pending", time: new Date().toLocaleString()
+            });
+            showModal("SUCCESS","Sent! Wait for approval.");
+            switchPage('pg-dash');
+        } else { throw new Error(); }
+    } catch(e) { showModal("FAILED","Upload Error. Try again."); }
+    btn.innerText="SUBMIT PROOF"; btn.disabled=false;
  };
  reader.readAsDataURL(file);
 }
 
-// --- Professional Data Filter ---
-function displayData(data) {
-    const out = document.getElementById('data-out');
-    out.innerHTML = "";
-    const unwanted = ["branding", "developer", "processed_by", "owner_contact", "status"];
-    
+function render(data) {
+    const out = document.getElementById('data-out'); out.innerHTML = "";
+    const skip = ["branding", "developer", "processed_by", "owner_contact"];
     for (let key in data) {
-        if (!unwanted.includes(key.toLowerCase()) && typeof data[key] !== 'object') {
-            const row = `<div class="result-row"><span class="result-k">${key.replace(/_/g, ' ')}</span><span class="result-v">${data[key]}</span></div>`;
-            out.innerHTML += row;
+        if (!skip.includes(key.toLowerCase()) && typeof data[key] !== 'object') {
+            out.innerHTML += `<div class="res-row"><span style="color:var(--p)">${key.toUpperCase()}</span><span style="color:#fff">${data[key]}</span></div>`;
         }
     }
 }
 
 async function runTrace(t){
- if(credits<=0) return showModal("NO CREDITS","Recharge required");
+ if(credits<=0) return showModal("NO CREDITS","Please recharge.");
  const v=document.getElementById('target').value.trim();
  if(!v) return;
 
  switchPage('pg-load');
- 
- // --- Progress Bar Logic ---
- let p = 0;
- const bar = document.getElementById('bar');
- const status = document.getElementById('load-status');
- const itv = setInterval(() => {
-    p += Math.random() * 12;
-    if(p > 98) p = 98;
-    bar.style.width = p + "%";
-    if(p > 30) status.innerText = "ACCESSING DATABASE...";
-    if(p > 70) status.innerText = "DECRYPTING DATA...";
- }, 150);
+ let p=0; const bar=document.getElementById('bar');
+ const itv = setInterval(() => { p += Math.random()*10; if(p>95) p=95; bar.style.width=p+"%"; }, 150);
 
  try{
-   const api=(t==='mob')?
-   `https://yash-code-with-ai.alphamovies.workers.dev/?num=${v}&key=7189814021`:
-   `https://vehicle-eight-vert.vercel.app/api?rc=${v}`;
-
-   const res=await fetch(api);
+   const api=(t==='mob')?`https://yash-code-with-ai.alphamovies.workers.dev/?num=${v}&key=7189814021`:`https://vehicle-eight-vert.vercel.app/api?rc=${v}`;
+   const res = await fetch(api);
    const data = await res.json();
-   
-   clearInterval(itv);
-   bar.style.width = "100%";
+   clearInterval(itv); bar.style.width="100%";
 
-   if(!data || Object.keys(data).length===0 || data.status === "error"){
-     showModal("NOT FOUND","Information not found. Credits refunded.");
-     switchPage('pg-dash');
-     return;
+   if(!data || Object.keys(data).length < 2){
+     showModal("NOT FOUND","No data in database."); switchPage('pg-dash'); return;
    }
 
    await db.ref('users/'+auth.currentUser.uid).update({credits:credits-1});
-   setTimeout(() => {
-       switchPage('pg-res');
-       displayData(data);
-   }, 600);
-
- }catch{
-   clearInterval(itv);
-   showModal("SERVER ERROR","Please try again later.");
-   switchPage('pg-dash');
- }
+   setTimeout(() => { switchPage('pg-res'); render(data); }, 400);
+ } catch(e) { clearInterval(itv); showModal("ERROR","Server Busy."); switchPage('pg-dash'); }
 }
 </script>
 </body>

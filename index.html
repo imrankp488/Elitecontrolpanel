@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>IMRAN PLAYZ | ELITE SYSTEM v14.0</title>
+    <title>IMRAN PLAYZ | ELITE SYSTEM v14.1</title>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
@@ -34,147 +34,239 @@
 </head>
 <body>
 
-    <div id="modal" class="modal-overlay"><div class="modal-box"><h2 id="m-t"></h2><p id="m-m" style="font-size:13px; color:#ccc;"></p><button onclick="closeModal()">OKAY</button></div></div>
+<div id="modal" class="modal-overlay">
+<div class="modal-box">
+<h2 id="m-t"></h2>
+<p id="m-m" style="font-size:13px; color:#ccc;"></p>
+<button onclick="closeModal()">OKAY</button>
+</div>
+</div>
 
-    <div id="pg-auth" class="page active">
-        <div class="container">
-            <h1>SYSTEM LOGIN</h1>
-            <input type="email" id="email" placeholder="Email Address">
-            <input type="password" id="pass" placeholder="Password">
-            <button onclick="handleAuth()">LOGIN</button>
-            <button style="background:#fff; color:#000; border:none;" onclick="loginGoogle()">SIGN IN WITH GOOGLE</button>
-            <p onclick="toggleMode()" style="font-size:11px; color:#444; cursor:pointer; margin-top:10px;">New User? Create Account</p>
-        </div>
-    </div>
+<div id="pg-auth" class="page active">
+<div class="container">
+<h1>SYSTEM LOGIN</h1>
+<input type="email" id="email" placeholder="Email Address">
+<input type="password" id="pass" placeholder="Password">
+<button onclick="handleAuth()">LOGIN</button>
+<button style="background:#fff; color:#000; border:none;" onclick="loginGoogle()">SIGN IN WITH GOOGLE</button>
+<p onclick="toggleMode()" style="font-size:11px; color:#444; cursor:pointer; margin-top:10px;">New User? Create Account</p>
+</div>
+</div>
 
-    <div id="pg-dash" class="page">
-        <div class="container">
-            <h1>DASHBOARD</h1>
-            <div id="admin-notif" class="msg-box"><strong>[ADMIN]:</strong> <span id="admin-txt"></span></div>
-            <div class="credit-badge">CREDITS: <span id="user-credits">0</span></div>
-            <input type="text" id="target" placeholder="98765XXXXX / DL10CXXXX">
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-                <button onclick="runTrace('mob')">Mobile</button>
-                <button onclick="runTrace('veh')">Vehicle</button>
-            </div>
-            <button class="btn-blue" style="margin-top:15px;" onclick="switchPage('pg-plans')">RECHARGE / PLANS</button>
-            <button class="btn-red" style="font-size:10px;" onclick="location.reload()">LOGOUT</button>
-        </div>
-    </div>
+<div id="pg-dash" class="page">
+<div class="container">
+<h1>DASHBOARD</h1>
+<div id="admin-notif" class="msg-box"><strong>[ADMIN]:</strong> <span id="admin-txt"></span></div>
+<div class="credit-badge">CREDITS: <span id="user-credits">0</span></div>
+<input type="text" id="target" placeholder="98765XXXXX / DL10CXXXX">
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+<button onclick="runTrace('mob')">Mobile</button>
+<button onclick="runTrace('veh')">Vehicle</button>
+</div>
+<button class="btn-blue" style="margin-top:15px;" onclick="switchPage('pg-plans')">RECHARGE / PLANS</button>
+<button class="btn-red" style="font-size:10px;" onclick="location.reload()">LOGOUT</button>
+</div>
+</div>
 
-    <div id="pg-plans" class="page">
-        <div class="container">
-            <h1>RECHARGE</h1>
-            <div style="border:1px solid #333; padding:10px; border-radius:8px; margin-bottom:10px; text-align:left;" onclick="openPay('50')"><span style="float:right;">₹50</span><strong>BASIC</strong><br><small>10 Searches</small></div>
-            <div style="border:1px solid #333; padding:10px; border-radius:8px; margin-bottom:10px; text-align:left;" onclick="openPay('100')"><span style="float:right;">₹100</span><strong>PRO</strong><br><small>30 Searches</small></div>
-            
-            <div style="margin-top: 15px; border-top: 1px solid #333; padding-top: 15px;">
-                <p style="font-size: 11px; color: var(--blue);">UPLOAD SCREENSHOT:</p>
-                <div class="upload-box">
-                    <span id="fn">Select Payment Photo</span>
-                    <input type="file" id="p-img" accept="image/*" onchange="document.getElementById('fn').innerText=this.files.name">
-                </div>
-                <button class="btn-blue" id="up-btn" onclick="uploadImgBB()">SUBMIT PROOF</button>
-                <button class="btn-blue" style="font-size:11px; border-style:dashed;" onclick="contactEmail()">EMAIL ADMIN FOR HELP</button>
-            </div>
-            <button class="btn-red" onclick="switchPage('pg-dash')">BACK</button>
-        </div>
-    </div>
+<div id="pg-plans" class="page">
+<div class="container">
+<h1>RECHARGE</h1>
 
-    <div id="pg-load" class="page"><div class="container"><h1>BYPASSING...</h1><div class="bar-bg"><div id="bar" class="bar-f"></div></div></div></div>
-    <div id="pg-res" class="page"><div class="container"><h1>DECRYPTED DATA</h1><div id="data-out" style="text-align:left; font-size:11px; background:#050505; padding:15px; border:1px dashed var(--p); max-height:300px; overflow-y:auto;"></div><button onclick="switchPage('pg-dash')" style="margin-top:15px;">NEW SEARCH</button></div></div>
+<div onclick="openPay('50')" style="border:1px solid #333;padding:10px;border-radius:8px;margin-bottom:10px;text-align:left;">
+<span style="float:right;">₹50</span><strong>BASIC</strong><br><small>10 Searches</small>
+</div>
+
+<div onclick="openPay('100')" style="border:1px solid #333;padding:10px;border-radius:8px;margin-bottom:10px;text-align:left;">
+<span style="float:right;">₹100</span><strong>PRO</strong><br><small>30 Searches</small>
+</div>
+
+<div style="margin-top:15px;border-top:1px solid #333;padding-top:15px;">
+<p style="font-size:11px;color:var(--blue);">UPLOAD SCREENSHOT:</p>
+
+<div class="upload-box">
+<span id="fn">Select Payment Photo</span>
+<input type="file" id="p-img" accept="image/*" onchange="document.getElementById('fn').innerText=this.files[0]?.name || 'Select Payment Photo'">
+</div>
+
+<button class="btn-blue" id="up-btn" onclick="uploadImgBB()">SUBMIT PROOF</button>
+<button class="btn-blue" style="font-size:11px;border-style:dashed;" onclick="contactEmail()">EMAIL ADMIN</button>
+</div>
+
+<button class="btn-red" onclick="switchPage('pg-dash')">BACK</button>
+</div>
+</div>
+
+<div id="pg-load" class="page">
+<div class="container">
+<h1>BYPASSING...</h1>
+<div class="bar-bg"><div id="bar" class="bar-f"></div></div>
+</div>
+</div>
+
+<div id="pg-res" class="page">
+<div class="container">
+<h1>DECRYPTED DATA</h1>
+<div id="data-out"></div>
+<button onclick="switchPage('pg-dash')">NEW SEARCH</button>
+</div>
+</div>
 
 <script>
-    const firebaseConfig = {
-      apiKey: "AIzaSyB011WYaNhJQx77yO3Ow7l-Z_clhS89Z8A",
-      authDomain: "adminpanel-6b862.firebaseapp.com",
-      databaseURL: "https://adminpanel-6b862-default-rtdb.firebaseio.com",
-      projectId: "adminpanel-6b862",
-      storageBucket: "adminpanel-6b862.firebasestorage.app",
-      messagingSenderId: "220057098294",
-      appId: "1:220057098294:web:9453e948e8817544916097"
-    };
+const firebaseConfig = {
+ apiKey:"AIzaSyB011WYaNhJQx77yO3Ow7l-Z_clhS89Z8A",
+ authDomain:"adminpanel-6b862.firebaseapp.com",
+ databaseURL:"https://adminpanel-6b862-default-rtdb.firebaseio.com",
+ projectId:"adminpanel-6b862"
+};
 
-    const IMGBB_KEY = "47d4ddf5133629b43bb606ec944137f9";
-    const ADMIN_EMAIL = "ip6675696@gmail.com";
+const IMGBB_KEY="47d4ddf5133629b43bb606ec944137f9";
+firebase.initializeApp(firebaseConfig);
 
-    firebase.initializeApp(firebaseConfig);
-    const auth = firebase.auth();
-    const db = firebase.database();
-    let isLogin = true, credits = 0;
+const auth=firebase.auth();
+const db=firebase.database();
 
-    function showModal(t, m) { document.getElementById('m-t').innerText=t; document.getElementById('m-m').innerText=m; document.getElementById('modal').style.display='flex'; }
-    function closeModal() { document.getElementById('modal').style.display='none'; }
-    function switchPage(id) { document.querySelectorAll('.page').forEach(p=>p.classList.remove('active')); document.getElementById(id).classList.add('active'); }
-    function toggleMode() { isLogin=!isLogin; document.querySelector('#pg-auth h1').innerText = isLogin?"SYSTEM LOGIN":"CREATE ACCOUNT"; }
+let credits=0;
+let isLogin=true;
 
-    function handleAuth() {
-        const e = document.getElementById('email').value, p = document.getElementById('pass').value;
-        if(isLogin) auth.signInWithEmailAndPassword(e,p).then(r=>sync(r.user)).catch(e=>alert(e.message));
-        else auth.createUserWithEmailAndPassword(e,p).then(r=>{ db.ref('users/'+r.user.uid).set({email:e,credits:1}); location.reload(); });
-    }
-    function loginGoogle() { auth.signInWithPopup(new firebase.auth.GoogleAuthProvider()).then(r=>sync(r.user)); }
+function showModal(t,m){
+ document.getElementById('m-t').innerText=t;
+ document.getElementById('m-m').innerText=m;
+ document.getElementById('modal').style.display='flex';
+}
+function closeModal(){ document.getElementById('modal').style.display='none'; }
 
-    function sync(user) {
-        db.ref('users/' + user.uid).on('value', snap => {
-            const d = snap.val();
-            credits = d?.credits || 0;
-            document.getElementById('user-credits').innerText = credits;
-            if(d?.admin_msg) {
-                document.getElementById('admin-notif').style.display = 'block';
-                document.getElementById('admin-txt').innerText = d.admin_msg;
-            } else { document.getElementById('admin-notif').style.display = 'none'; }
-            switchPage('pg-dash');
-        });
-    }
+function switchPage(id){
+ document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+ document.getElementById(id).classList.add('active');
+}
 
-    async function uploadImgBB() {
-        const file = document.getElementById('p-img').files;
-        if(!file) return alert("Select screenshot!");
-        const btn = document.getElementById('up-btn');
-        btn.innerText = "UPLOADING..."; btn.disabled = true;
-        const fd = new FormData(); fd.append('image', file);
-        try {
-            const res = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_KEY}`, { method: 'POST', body: fd });
-            const d = await res.json();
-            await db.ref('recharge_requests/' + Date.now()).set({ user: auth.currentUser.email, uid: auth.currentUser.uid, screenshot: d.data.url, status: "pending", time: new Date().toLocaleString() });
-            await db.ref('users/' + auth.currentUser.uid).update({ admin_msg: "System: Proof Received! Admin is verifying..." });
-            showModal("SUBMITTED", "Payment proof sent to Admin. Wait 5-10 mins for verification.");
-            switchPage('pg-dash');
-        } catch(e) { alert("Upload Failed!"); }
-        btn.innerText = "SUBMIT FOR VERIFICATION"; btn.disabled = false;
-    }
+function toggleMode(){
+ isLogin=!isLogin;
+ document.querySelector('#pg-auth h1').innerText=isLogin?"SYSTEM LOGIN":"CREATE ACCOUNT";
+}
 
-    function contactEmail() {
-        const sub = encodeURIComponent("Recharge Request | Elite System");
-        const body = encodeURIComponent(`Operator Email: ${auth.currentUser.email}\nI have paid for credits. Please verify.`);
-        window.location.href = `mailto:${ADMIN_EMAIL}?subject=${sub}&body=${body}`;
-    }
+function handleAuth(){
+ const e=email.value,p=pass.value;
 
-    function openPay(amt) {
-        const upi = `upi://pay?pa=imranplayz@upi&pn=IMRAN_PLAYZ&am=${amt}&tn=Elite_Recharge`;
-        if(/Android|iPhone/i.test(navigator.userAgent)) window.location.href = upi;
-        else showModal("PAYMENT", "Pay ₹"+amt+" to: imranplayz@upi and upload screenshot.");
-    }
+ if(isLogin){
+   auth.signInWithEmailAndPassword(e,p)
+   .then(r=>{
+     if(!r.user.emailVerified){
+       showModal("VERIFY EMAIL","Please verify your email before login.");
+       auth.signOut();
+     } else sync(r.user);
+   })
+   .catch(err=>showModal("ERROR",err.message));
+ }else{
+   auth.createUserWithEmailAndPassword(e,p).then(async r=>{
+     await r.user.sendEmailVerification();
+     await db.ref('users/'+r.user.uid).set({email:e,credits:1});
+     showModal("VERIFICATION SENT","Check your email and verify your account.");
+     auth.signOut();
+   });
+ }
+}
 
-    async function runTrace(t) {
-        if(credits <= 0) return showModal("NO CREDITS", "Recharge your account.");
-        const v = document.getElementById('target').value.trim();
-        if(!v) return;
-        switchPage('pg-load');
-        let p=0; const itv = setInterval(()=>{ p+=10; document.getElementById('bar').style.width=p+"%"; if(p>=100) clearInterval(itv);}, 150);
-        try {
-            const api = (t==='mob') ? `https://yash-code-with-ai.alphamovies.workers.dev/?num=${v}&key=7189814021` : `https://vehicle-eight-vert.vercel.app/api?rc=${v}`;
-            const res = await fetch(api); const data = await res.json();
-            await db.ref('users/'+auth.currentUser.uid).update({credits: credits-1});
-            setTimeout(()=>{ switchPage('pg-res'); render(data); }, 600);
-        } catch(e) { switchPage('pg-dash'); }
-    }
+function loginGoogle(){
+ auth.signInWithPopup(new firebase.auth.GoogleAuthProvider())
+ .then(r=>sync(r.user));
+}
 
-    function render(d) {
-        const out = document.getElementById('data-out'); out.innerHTML = "";
-        for(let k in d) if(typeof d[k] !== 'object') out.innerHTML += `<b>${k.toUpperCase()}:</b> ${d[k]}<br>`;
-    }
+function sync(user){
+ db.ref('users/'+user.uid).on('value',snap=>{
+   const d=snap.val();
+   credits=d?.credits||0;
+   document.getElementById('user-credits').innerText=credits;
+   switchPage('pg-dash');
+ });
+}
+
+function openPay(amt){
+ const upi=`upi://pay?pa=imrankhan17@ptyes&pn=IMRAN&am=${amt}&cu=INR`;
+ window.location.href=upi;
+}
+
+async function uploadImgBB(){
+ const file=document.getElementById('p-img').files[0];
+ if(!file) return showModal("ERROR","Select screenshot");
+
+ const btn=document.getElementById('up-btn');
+ btn.innerText="UPLOADING...";
+ btn.disabled=true;
+
+ const reader=new FileReader();
+
+ reader.onloadend=async ()=>{
+   const base64=reader.result.split(',')[1];
+
+   const fd=new FormData();
+   fd.append("image",base64);
+
+   try{
+     const res=await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_KEY}`,{
+       method:"POST",
+       body:fd
+     });
+
+     const d=await res.json();
+
+     if(!d.success) throw new Error();
+
+     await db.ref('recharge_requests/'+Date.now()).set({
+       user:auth.currentUser.email,
+       uid:auth.currentUser.uid,
+       screenshot:d.data.url,
+       status:"pending",
+       time:new Date().toLocaleString()
+     });
+
+     showModal("SUCCESS","Screenshot uploaded. Wait for admin approval.");
+     switchPage('pg-dash');
+
+   }catch{
+     showModal("UPLOAD FAILED","Try another image.");
+   }
+
+   btn.innerText="SUBMIT PROOF";
+   btn.disabled=false;
+ };
+
+ reader.readAsDataURL(file);
+}
+
+async function runTrace(t){
+ if(credits<=0) return showModal("NO CREDITS","Recharge required");
+
+ const v=target.value.trim();
+ if(!v) return;
+
+ switchPage('pg-load');
+
+ try{
+   const api=(t==='mob')?
+   `https://yash-code-with-ai.alphamovies.workers.dev/?num=${v}&key=7189814021`:
+   `https://vehicle-eight-vert.vercel.app/api?rc=${v}`;
+
+   const res=await fetch(api);
+   const data=await res.json();
+
+   if(!data || Object.keys(data).length===0){
+     showModal("NO DATA","No data found. Credit not deducted.");
+     switchPage('pg-dash');
+     return;
+   }
+
+   await db.ref('users/'+auth.currentUser.uid).update({credits:credits-1});
+
+   switchPage('pg-res');
+   document.getElementById('data-out').innerText=JSON.stringify(data,null,2);
+
+ }catch{
+   showModal("ERROR","Server issue");
+   switchPage('pg-dash');
+ }
+}
 </script>
+
 </body>
 </html>

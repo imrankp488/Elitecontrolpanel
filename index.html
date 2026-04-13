@@ -2,109 +2,119 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Elite Terminal | ImranPlayz</title>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Courier+Prime:wght@400;700&display=swap" rel="stylesheet">
     <style>
         :root { --green: #00ff41; --red: #ff3333; --bg: #000000; }
-        body { background: var(--bg); color: var(--green); font-family: 'Courier Prime', monospace; margin: 0; padding: 20px; display: flex; justify-content: center; min-height: 100vh; }
-        .terminal { width: 100%; max-width: 450px; border: 2px solid var(--green); border-radius: 12px; padding: 25px; background: rgba(0, 15, 0, 0.95); box-shadow: 0 0 20px rgba(0,255,65,0.2); position: relative; }
-        h1 { text-align: center; font-size: 20px; letter-spacing: 2px; text-shadow: 0 0 8px var(--green); }
-        input { width: 100%; padding: 12px; background: #000; border: 1px solid var(--green); color: var(--green); border-radius: 5px; margin-bottom: 15px; outline: none; font-size: 16px; }
-        .btn-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-        button { padding: 12px; background: transparent; border: 1px solid var(--green); color: var(--green); font-weight: bold; cursor: pointer; text-transform: uppercase; font-family: inherit; }
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        body { background: var(--bg); color: var(--green); font-family: 'Courier Prime', monospace; margin: 0; display: flex; justify-content: center; min-height: 100vh; padding: 15px; }
+        .terminal { width: 100%; max-width: 420px; border: 2px solid var(--green); border-radius: 15px; padding: 25px; background: rgba(0, 10, 0, 0.98); box-shadow: 0 0 25px rgba(0, 255, 65, 0.2); position: relative; }
+        h1 { text-align: center; font-size: 18px; letter-spacing: 2px; text-shadow: 0 0 8px var(--green); margin-bottom: 25px; }
+        input { width: 100%; padding: 14px; background: #000; border: 1px solid var(--green); color: var(--green); border-radius: 8px; margin-bottom: 15px; outline: none; font-size: 16px; font-family: inherit; }
+        .btn-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        button { padding: 14px; background: transparent; border: 1px solid var(--green); color: var(--green); font-weight: bold; cursor: pointer; text-transform: uppercase; font-family: inherit; border-radius: 8px; }
         button:active { background: var(--green); color: #000; }
+        .btn-full { width: 100%; }
         .btn-red { border-color: var(--red); color: var(--red); }
-        .btn-red:active { background: var(--red); color: #000; }
         .loader { display: none; margin: 20px 0; text-align: center; }
-        .progress { width: 100%; height: 12px; border: 1px solid var(--green); margin: 10px 0; }
-        .bar { width: 0%; height: 100%; background: var(--green); transition: 0.1s linear; }
-        #result { display: none; margin-top: 20px; border: 1px dashed var(--green); padding: 10px; font-size: 13px; max-height: 250px; overflow-y: auto; }
-        .row { border-bottom: 1px solid rgba(0,255,0,0.1); padding: 5px 0; display: flex; justify-content: space-between; }
+        .progress { width: 100%; height: 14px; border: 1px solid var(--green); border-radius: 7px; overflow: hidden; margin: 15px 0; }
+        .bar { width: 0%; height: 100%; background: var(--green); transition: 0.1s linear; box-shadow: 0 0 10px var(--green); }
+        #result { display: none; margin-top: 20px; border: 1px dashed var(--green); padding: 15px; font-size: 13px; max-height: 280px; overflow-y: auto; border-radius: 8px; }
+        .row { border-bottom: 1px solid rgba(0,255,0,0.1); padding: 8px 0; display: flex; justify-content: space-between; }
+        .key { font-weight: bold; color: #fff; }
         #login-scr { display: block; }
         #app-scr { display: none; }
+        .footer { margin-top: 25px; font-size: 9px; color: #008800; text-align: center; border-top: 1px solid #003300; padding-top: 10px; }
     </style>
 </head>
 <body>
 
 <div class="terminal">
     <div id="login-scr">
-        <h1>SECURE ACCESS</h1>
-        <input type="text" id="user" placeholder="OPERATOR ID">
+        <h1>SECURE LOGIN</h1>
+        <input type="text" id="user" placeholder="OPERATOR ID" autocomplete="off">
         <input type="password" id="pass" placeholder="ACCESS KEY">
-        <button style="width:100%" onclick="auth()">AUTHORIZE</button>
+        <button class="btn-full" onclick="auth()">AUTHORIZE ACCESS</button>
+        <p id="err" style="color:var(--red); font-size:10px; text-align:center; margin-top:10px; display:none;">[!] INVALID CREDENTIALS</p>
     </div>
 
     <div id="app-scr">
-        <h1>SYSTEM MAIN</h1>
-        <p style="text-align:center; font-size:10px;">OP: <span id="op-id"></span> | STATUS: SECURE</p>
+        <h1>ELITE SYSTEM</h1>
+        <p style="text-align:center; font-size:10px; margin-bottom: 20px;">OP: <span id="op-id"></span> | STATUS: ENCRYPTED</p>
         <input type="text" id="target" placeholder="987654XXXX / DL10CXXXX">
         <div class="btn-grid">
-            <button onclick="fetchInfo('mobile')">Number Info</button>
-            <button onclick="fetchInfo('vehicle')">Vehicle Info</button>
+            <button onclick="fetchData('mobile')">Number Info</button>
+            <button onclick="fetchData('vehicle')">Vehicle Info</button>
         </div>
 
         <div class="loader" id="loader">
-            <div id="l-text" style="font-size: 12px; margin-bottom: 5px;">BYPASSING PROTOCOLS...</div>
+            <div id="l-text" style="font-size: 12px;">BYPASSING PROTOCOLS...</div>
             <div class="progress"><div class="bar" id="bar"></div></div>
-            <button class="btn-red" style="width: 100%; margin-top: 10px; font-size: 11px;" onclick="cancelRequest()">CANCEL OPERATION [X]</button>
+            <button class="btn-full btn-red" style="font-size: 11px; padding: 8px;" onclick="cancelReq()">CANCEL OPERATION [X]</button>
         </div>
 
         <div id="result"></div>
-        <button class="btn-red" style="width:100%; margin-top: 20px;" onclick="location.reload()">TERMINATE SESSION</button>
+        <button class="btn-full btn-red" style="margin-top: 20px;" onclick="location.reload()">TERMINATE SESSION</button>
+    </div>
+
+    <div class="footer">
+        [/>] SYSTEM BY IMRANPLAYZ | IG: @_imranplayz_
     </div>
 </div>
 
 <script>
-    // --- FIREBASE CONFIG ---
+    // --- 🔑 YOUR FIREBASE CONFIG ---
     const firebaseConfig = {
-        apiKey: "YOUR_API_KEY",
-        authDomain: "YOUR_PROJECT.firebaseapp.com",
-        databaseURL: "https://YOUR_PROJECT.firebaseio.com",
-        projectId: "YOUR_PROJECT",
-        appId: "YOUR_APP_ID"
+      apiKey: "AIzaSyB011WYaNhJQx77yO3Ow7l-Z_clhS89Z8A",
+      authDomain: "adminpanel-6b862.firebaseapp.com",
+      projectId: "adminpanel-6b862",
+      storageBucket: "adminpanel-6b862.firebasestorage.app",
+      messagingSenderId: "220057098294",
+      appId: "1:220057098294:web:9453e948e8817544916097",
+      measurementId: "G-BMFF36NP9Z",
+      databaseURL: "https://adminpanel-6b862-default-rtdb.firebaseio.com"
     };
+
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
     const USERS = { "user123": "password18", "imran": "admin786" };
-    
-    // Global Variables for Cancellation
+    const BLACKLIST = ["branding", "developer", "telegram", "yash", "flix", "http", "@", "contact", "processed"];
+
     let currentFetch = null;
-    let fetchInterval = null;
+    let barInterval = null;
 
     function auth() {
-        const u = document.getElementById('user').value.trim();
+        const u = document.getElementById('user').value.trim().toLowerCase();
         const p = document.getElementById('pass').value.trim();
         if(USERS[u] && USERS[u] === p) {
             document.getElementById('op-id').innerText = u.toUpperCase();
             document.getElementById('login-scr').style.display = 'none';
             document.getElementById('app-scr').style.display = 'block';
             db.ref('logs/' + Date.now()).set({ user: u, action: "LOGIN", time: new Date().toLocaleString() });
-        } else { alert("ACCESS DENIED"); }
+        } else {
+            document.getElementById('err').style.display = 'block';
+        }
     }
 
-    async function fetchInfo(type) {
+    async function fetchData(type) {
         const val = document.getElementById('target').value.trim();
-        if(!val) return alert("ENTER TARGET!");
-        const u = document.getElementById('op-id').innerText;
+        if(!val) return alert("ENTER NUMBER!");
+        const op = document.getElementById('op-id').innerText;
 
-        // Reset UI
         document.getElementById('result').style.display = 'none';
         document.getElementById('loader').style.display = 'block';
-        document.getElementById('bar').style.width = "0%";
         
-        // Progress Bar Logic
         let p = 0;
-        fetchInterval = setInterval(() => {
-            p += Math.random() * 8;
+        barInterval = setInterval(() => {
+            p += Math.random() * 7;
             if(p >= 95) p = 95;
             document.getElementById('bar').style.width = p + "%";
         }, 150);
 
-        // AbortController setup (To actually stop the API call)
         currentFetch = new AbortController();
 
         try {
@@ -115,56 +125,48 @@
             const res = await fetch(api, { signal: currentFetch.signal });
             const data = await res.json();
             
-            clearInterval(fetchInterval);
+            clearInterval(barInterval);
             document.getElementById('bar').style.width = "100%";
             
-            // Log to Firebase
-            db.ref('logs/' + Date.now()).set({ user: u, action: type, target: val, time: new Date().toLocaleString() });
+            // 🔥 Log Search to Firebase
+            db.ref('logs/' + Date.now()).set({ user: op, action: type, target: val, time: new Date().toLocaleString() });
 
             setTimeout(() => {
                 document.getElementById('loader').style.display = 'none';
-                showData(data);
+                renderResult(data);
             }, 500);
 
         } catch(e) {
-            if (e.name === 'AbortError') {
-                console.log('Fetch cancelled by user');
-            } else {
-                alert("API CONNECTION ERROR!");
-                cancelRequest();
-            }
+            if(e.name !== 'AbortError') alert("API ERROR!");
+            cancelReq();
         }
     }
 
-    function cancelRequest() {
-        if(currentFetch) currentFetch.abort(); // API request stop
-        if(fetchInterval) clearInterval(fetchInterval); // Progress bar stop
-        
+    function cancelReq() {
+        if(currentFetch) currentFetch.abort();
+        if(barInterval) clearInterval(barInterval);
         document.getElementById('loader').style.display = 'none';
         document.getElementById('bar').style.width = "0%";
-        document.getElementById('result').style.display = 'none';
-        console.log("Operation Cancelled");
     }
 
-    function showData(data) {
+    function renderResult(data) {
         const resDiv = document.getElementById('result');
         resDiv.style.display = 'block';
-        resDiv.innerHTML = "<div style='color:#fff; border-bottom:1px solid #00ff41; margin-bottom:10px;'>DECRYPTED DATA FOUND:</div>";
-        const BLACKLIST = ["branding", "developer", "telegram", "yash", "flix", "http", "@"];
+        resDiv.innerHTML = "<div style='color:#fff; border-bottom:1px solid #00ff41; margin-bottom:10px;'>DECRYPTED DATA:</div>";
 
-        function render(obj) {
+        function walk(obj) {
             for(let k in obj) {
-                if(typeof obj[k] === 'object' && obj[k] !== null) render(obj[k]);
+                if(typeof obj[k] === 'object' && obj[k] !== null) walk(obj[k]);
                 else {
                     let kL = k.toLowerCase();
                     let vL = String(obj[k]).toLowerCase();
                     if(!BLACKLIST.some(b => kL.includes(b) || vL.includes(b))) {
-                        resDiv.innerHTML += `<div class="row"><span>${k.toUpperCase()}:</span> <span>${obj[k]}</span></div>`;
+                        resDiv.innerHTML += `<div class="row"><span class="key">${k.toUpperCase()}:</span> <span>${obj[k]}</span></div>`;
                     }
                 }
             }
         }
-        render(data);
+        walk(data);
     }
 </script>
 </body>

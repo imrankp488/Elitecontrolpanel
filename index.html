@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ELITE CONTROL PANEL | IMRANPLAYZ</title>
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --glow-color: #00ff9f;
+            --bg-color: #050505;
+        }
+
+        body, html {
+            margin: 0; padding: 0;
+            background: var(--bg-color);
+            color: var(--glow-color);
+            font-family: 'Fira Code', monospace;
+            overflow-x: hidden;
+            height: 100%;
+        }
+
+        /* Matrix Background Effect */
+        #matrix-bg {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            z-index: -1; opacity: 0.15;
+        }
+
+        .container {
+            display: flex; flex-direction: column; align-items: center;
+            justify-content: center; min-height: 100vh; padding: 20px;
+        }
+
+        .terminal-box {
+            width: 100%; max-width: 450px;
+            background: rgba(0, 20, 10, 0.8);
+            border: 1px solid var(--glow-color);
+            border-radius: 10px;
+            padding: 30px;
+            box-shadow: 0 0 20px rgba(0, 255, 159, 0.2);
+            position: relative;
+        }
+
+        .terminal-header {
+            position: absolute; top: 0; left: 50%;
+            transform: translateX(-50%);
+            background: var(--glow-color);
+            color: black; padding: 2px 15px;
+            font-size: 12px; font-weight: bold;
+            border-bottom-left-radius: 5px; border-bottom-right-radius: 5px;
+        }
+
+        h2 { text-align: center; letter-spacing: 2px; text-shadow: 0 0 10px var(--glow-color); }
+
+        input {
+            width: 100%; padding: 12px; margin-bottom: 15px;
+            background: rgba(0,0,0,0.5); border: 1px solid #004422;
+            color: var(--glow-color); outline: none; box-sizing: border-box;
+            transition: 0.3s;
+        }
+
+        input:focus { border-color: var(--glow-color); box-shadow: 0 0 10px rgba(0,255,159,0.3); }
+
+        button {
+            width: 100%; padding: 12px; background: transparent;
+            border: 1px solid var(--glow-color); color: var(--glow-color);
+            font-weight: bold; cursor: pointer; transition: 0.3s;
+            margin-bottom: 10px; text-transform: uppercase;
+        }
+
+        button:hover { background: var(--glow-color); color: black; box-shadow: 0 0 15px var(--glow-color); }
+
+        .footer {
+            margin-top: 25px; font-size: 10px; color: #00aa66;
+            text-align: center; border-top: 1px dashed #004422; padding-top: 10px;
+        }
+
+        /* Results & Loading */
+        #loadingScreen, #homeScreen, #resultScreen { display: none; }
+
+        .progress-bar {
+            width: 100%; height: 10px; border: 1px solid var(--glow-color);
+            margin: 20px 0; border-radius: 5px; overflow: hidden;
+        }
+        #bar-fill { width: 0%; height: 100%; background: var(--glow-color); transition: 0.1s linear; }
+
+        .log-text { font-size: 12px; color: #00aa66; margin-bottom: 5px; }
+
+        .result-item {
+            background: rgba(0,255,159,0.05); padding: 10px;
+            border-left: 3px solid var(--glow-color); margin-bottom: 8px; font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+
+<canvas id="matrix-bg"></canvas>
+
+<div class="container">
+    
+    <div class="terminal-box" id="loginScreen">
+        <div class="terminal-header">AUTH_REQUIRED</div>
+        <h2>SYSTEM LOGIN</h2>
+        <input type="text" id="user" placeholder="USERNAME" autocomplete="off">
+        <input type="password" id="pass" placeholder="ACCESS_KEY">
+        <button onclick="handleLogin()">Authorize Access</button>
+        <div id="loginError" style="color: #ff3333; text-align: center; font-size: 12px; margin-top: 10px; display: none;">[!] INVALID CREDENTIALS</div>
+        <div class="footer">
+            DESIGNED BY IMRANPLAYZ <br>
+            SECURE ACCESS v2.4
+        </div>
+    </div>
+
+    <div class="terminal-box" id="homeScreen">
+        <div class="terminal-header">COMMAND_CENTER</div>
+        <h2 style="font-size: 18px;">ELITE CONTROL PANEL</h2>
+        <p style="text-align: center; font-size: 11px; color: #00aa66;">Welcome back, Operator</p>
+        
+        <input type="text" id="target" placeholder="Enter Number / Vehicle RC">
+        
+        <button onclick="startProcess('mobile')">Execute Number Lookup</button>
+        <button onclick="startProcess('vehicle')">Execute Vehicle Lookup</button>
+        <button onclick="logout()" style="border-color: #ff3333; color: #ff3333; margin-top: 20px;">Terminate Session</button>
+        
+        <div class="footer">LOGGED IN AS: <span id="displayUser"></span></div>
+    </div>
+
+    <div class="terminal-box" id="loadingScreen">
+        <div class="terminal-header">PROCESSING</div>
+        <h3 id="loadStatus">INITIALIZING...</h3>
+        <div class="progress-bar"><div id="bar-fill"></div></div>
+        <div id="logs">
+            <div class="log-text">> Establishing Proxy Tunnel...</div>
+            <div class="log-text" id="log2" style="display:none">> Bypassing Cloudflare protection...</div>
+            <div class="log-text" id="log3" style="display:none">> Extracting encrypted packets...</div>
+        </div>
+    </div>
+
+    <div class="terminal-box" id="resultScreen">
+        <div class="terminal-header">DATA_FOUND</div>
+        <h2 id="resTitle">QUERY RESULT</h2>
+        <div id="resContent" style="max-height: 300px; overflow-y: auto;"></div>
+        <button onclick="backToHome()" style="margin-top: 15px;">New Query</button>
+    </div>
+
+</div>
+
+<script>
+    // --- 1. USER DATABASE (Yahan aap aur users add kar sakte hain) ---
+    // Note: Secure karne ke liye Firebase use karein, ye sirf demo hai
+    const VALID_USERS = {
+        "user123": "password18",
+        "imran": "admin786",
+        "test": "test11"
+    };
+
+    // --- 2. MATRIX BACKGROUND ---
+    const canvas = document.getElementById('matrix-bg');
+    const ctx = canvas.getContext('2d');
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789$#@%&*";
+    const fontSize = 16;
+    const columns = canvas.width / fontSize;
+    const rainDrops = Array.from({ length: columns }).fill(1);
+
+    function drawMatrix() {
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.05)';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.fillStyle = '#0f0';
+        ctx.font = fontSize + 'px monospace';
+        for (let i = 0; i < rainDrops.length; i++) {
+            const text = alphabet.charAt(Math.floor(Math.random() * alphabet.length));
+            ctx.fillText(text, i * fontSize, rainDrops[i] * fontSize);
+            if (rainDrops[i] * fontSize > canvas.height && Math.random() > 0.975) rainDrops[i] = 0;
+            rainDrops[i]++;
+        }
+    }
+    setInterval(drawMatrix, 30);
+
+    // --- 3. LOGIC FUNCTIONS ---
+    function handleLogin() {
+        const u = document.getElementById('user').value.trim();
+        const p = document.getElementById('pass').value.trim();
+
+        if (VALID_USERS[u] && VALID_USERS[u] === p) {
+            // Anti-Sharing Check (Simple version using LocalStorage)
+            const deviceID = localStorage.getItem("device_id") || Math.random().toString(36).slice(2);
+            localStorage.setItem("device_id", deviceID);
+            
+            document.getElementById('loginScreen').style.display = 'none';
+            document.getElementById('homeScreen').style.display = 'block';
+            document.getElementById('displayUser').innerText = u.toUpperCase();
+        } else {
+            const err = document.getElementById('loginError');
+            err.style.display = 'block';
+            setTimeout(() => err.style.display = 'none', 3000);
+        }
+    }
+
+    async function startProcess(type) {
+        const target = document.getElementById('target').value.trim();
+        if(!target) return alert("Target Required!");
+
+        showSection('loadingScreen');
+        let p = 0;
+        const bar = document.getElementById('bar-fill');
+        
+        const interval = setInterval(() => {
+            p += Math.random() * 5;
+            if(p >= 90) {
+                p = 95;
+                clearInterval(interval);
+            }
+            bar.style.width = p + "%";
+            if(p > 30) document.getElementById('log2').style.display = 'block';
+            if(p > 65) document.getElementById('log3').style.display = 'block';
+        }, 100);
+
+        // Fetch Data
+        try {
+            let url = "";
+            if(type === 'mobile') {
+                url = `https://yash-code-with-ai.alphamovies.workers.dev/?num=${target}&key=7189814021`;
+            } else {
+                url = `https://vehicle-eight-vert.vercel.app/api?rc=${target}`;
+            }
+
+            const response = await fetch(url);
+            const data = await response.json();
+            
+            clearInterval(interval);
+            bar.style.width = "100%";
+            
+            setTimeout(() => displayResult(type, data), 500);
+        } catch (error) {
+            alert("API Error or Timeout!");
+            backToHome();
+        }
+    }
+
+    function displayResult(type, data) {
+        showSection('resultScreen');
+        const resContent = document.getElementById('resContent');
+        resContent.innerHTML = "";
+
+        if(data.status === false || !data) {
+            resContent.innerHTML = "<div class='result-item'>❌ NO DATA FOUND IN DATABASE</div>";
+            return;
+        }
+
+        // Recursive function to show all keys
+        function parse(obj) {
+            for (let key in obj) {
+                if (typeof obj[key] === 'object' && obj[key] !== null) {
+                    parse(obj[key]);
+                } else {
+                    let div = document.createElement('div');
+                    div.className = 'result-item';
+                    div.innerHTML = `<strong>${key.toUpperCase()}:</strong> ${obj[key]}`;
+                    resContent.appendChild(div);
+                }
+            }
+        }
+        parse(data);
+    }
+
+    function showSection(id) {
+        ['loginScreen', 'homeScreen', 'loadingScreen', 'resultScreen'].forEach(s => {
+            document.getElementById(s).style.display = (s === id) ? 'block' : 'none';
+        });
+    }
+
+    function backToHome() {
+        document.getElementById('bar-fill').style.width = "0%";
+        document.getElementById('log2').style.display = 'none';
+        document.getElementById('log3').style.display = 'none';
+        showSection('homeScreen');
+    }
+
+    function logout() { location.reload(); }
+</script>
+
+</body>
+</html>

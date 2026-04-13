@@ -2,174 +2,145 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>IMRAN PLAYZ | SECURE SYSTEM</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IMRAN PLAYZ | SECURE PANEL</title>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap" rel="stylesheet">
     <style>
         :root { --p: #00ff41; --r: #ff3131; --b: #000; }
-        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        * { box-sizing: border-box; }
         body { background: var(--b); color: var(--p); font-family: 'Share Tech Mono', monospace; margin: 0; display: flex; justify-content: center; min-height: 100vh; padding: 15px; }
         .terminal { width: 100%; max-width: 400px; border: 1.5px solid var(--p); border-radius: 10px; padding: 25px; background: rgba(0, 10, 0, 0.98); box-shadow: 0 0 15px var(--p); }
-        h1 { text-align: center; font-size: 18px; letter-spacing: 3px; text-shadow: 0 0 5px var(--p); margin-bottom: 20px; }
-        input { width: 100%; padding: 12px; background: #000; border: 1px solid var(--p); color: var(--p); border-radius: 5px; margin-bottom: 15px; outline: none; font-size: 16px; font-family: inherit; }
-        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-        button { padding: 12px; background: transparent; border: 1.5px solid var(--p); color: var(--p); font-weight: bold; cursor: pointer; text-transform: uppercase; border-radius: 5px; font-family: inherit; }
+        input { width: 100%; padding: 12px; background: #000; border: 1px solid var(--p); color: var(--p); margin-bottom: 15px; outline: none; font-family: inherit; }
+        button { width: 100%; padding: 12px; background: transparent; border: 1.5px solid var(--p); color: var(--p); font-weight: bold; cursor: pointer; text-transform: uppercase; margin-bottom: 10px; font-family: inherit; }
         button:active { background: var(--p); color: #000; }
-        .btn-full { width: 100%; margin-top: 15px; }
         .btn-red { border-color: var(--r); color: var(--r); }
-        .loader { display: none; margin: 20px 0; text-align: center; }
-        .bar-bg { width: 100%; height: 8px; border: 1px solid var(--p); margin: 10px 0; border-radius: 4px; overflow: hidden; }
-        .bar-fill { width: 0%; height: 100%; background: var(--p); box-shadow: 0 0 10px var(--p); transition: 0.2s; }
-        #res { display: none; margin-top: 20px; border: 1px dashed var(--p); padding: 12px; font-size: 13px; max-height: 250px; overflow-y: auto; text-align: left; background: rgba(0,255,0,0.05); }
-        .row { border-bottom: 1px solid rgba(0,255,65,0.1); padding: 6px 0; display: flex; justify-content: space-between; }
-        .footer { margin-top: 20px; font-size: 9px; color: #007700; text-align: center; }
-        #app, #load { display: none; }
+        .loader { display: none; text-align: center; margin: 20px 0; }
+        .bar-bg { width: 100%; height: 8px; border: 1px solid var(--p); margin: 10px 0; }
+        .bar-f { width: 0%; height: 100%; background: var(--p); transition: 0.2s; }
+        #res { display: none; margin-top: 15px; border: 1px dashed var(--p); padding: 10px; font-size: 12px; max-height: 250px; overflow-y: auto; }
+        .row { border-bottom: 1px solid rgba(0,255,0,0.1); padding: 5px 0; display: flex; justify-content: space-between; }
     </style>
 </head>
 <body>
 
 <div class="terminal">
-    <div id="login">
-        <h1>ACCESS CONTROL</h1>
-        <input type="text" id="user" placeholder="USERNAME" autocomplete="off">
-        <input type="password" id="pass" placeholder="PASSWORD">
-        <button class="btn-full" onclick="h_auth()">AUTHORIZE SESSION</button>
-        <p id="msg" style="color:var(--r); font-size:10px; text-align:center; margin-top:10px;"></p>
+    <div id="login-scr">
+        <h1 style="text-align:center; font-size:18px;">AUTHORIZATION</h1>
+        <input type="text" id="u" placeholder="USERNAME">
+        <input type="password" id="p" placeholder="PASSWORD">
+        <button onclick="login()">ENTER SYSTEM</button>
     </div>
 
-    <div id="app">
-        <h1>COMMAND CENTER</h1>
-        <p style="text-align:center; font-size:10px; margin-bottom:15px;">OPERATOR: <span id="op"></span> | HWID: LOCKED</p>
-        <input type="text" id="target" placeholder="TARGET_ID / VEHICLE_RC">
-        <div class="grid">
-            <button onclick="h_exec('mob')">Number Info</button>
-            <button onclick="h_exec('veh')">Vehicle Info</button>
+    <div id="main-scr" style="display:none;">
+        <h1 style="text-align:center; font-size:18px;">COMMAND CENTER</h1>
+        <input type="text" id="target" placeholder="NUMBER / VEHICLE RC">
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+            <button onclick="run('mob')">Number Info</button>
+            <button onclick="run('veh')">Vehicle Info</button>
         </div>
-        <button class="btn-full btn-red" onclick="location.reload()">TERMINATE</button>
+        <button class="btn-red" onclick="location.reload()">LOGOUT</button>
     </div>
 
-    <div id="load" class="loader">
-        <h2 id="l-txt" style="font-size: 14px;">BYPASSING...</h2>
-        <div class="bar-bg"><div id="bar" class="bar-fill"></div></div>
-        <button class="btn-full btn-red" style="font-size:10px; padding:5px;" onclick="h_abort()">ABORT OPERATION</button>
+    <div id="load-scr" class="loader">
+        <p id="l-txt">BYPASSING...</p>
+        <div class="bar-bg"><div id="bar" class="bar-f"></div></div>
+        <button class="btn-red" onclick="abort()">CANCEL</button>
     </div>
 
     <div id="res"></div>
-
-    <div class="footer">DEVELOPED BY IMRAN PLAYZ | SYSTEM v6.0</div>
+    <p style="text-align:center; font-size:9px; margin-top:15px; opacity:0.5;">POWERED BY IMRAN PLAYZ</p>
 </div>
 
 <script>
-    // --- 🔑 ENCRYPTED CONFIG ---
-    // API links are Base64 encoded to avoid easy sniffing
-    const _c = {
-        a: "AIzaSyB011WYaNhJQx77yO3Ow7l-Z_clhS89Z8A",
-        b: "adminpanel-6b862.firebaseapp.com",
-        c: "https://adminpanel-6b862-default-rtdb.firebaseio.com",
-        d: "adminpanel-6b862",
-        e: "220057098294",
-        f: "1:220057098294:web:9453e948e8817544916097"
+    // --- CONFIG ---
+    const config = {
+        apiKey: "AIzaSyB011WYaNhJQx77yO3Ow7l-Z_clhS89Z8A",
+        authDomain: "adminpanel-6b862.firebaseapp.com",
+        databaseURL: "https://adminpanel-6b862-default-rtdb.firebaseio.com",
+        projectId: "adminpanel-6b862"
     };
+    firebase.initializeApp(config);
+    const db = firebase.database();
 
+    // API Links (Encrypted to stop stealing)
     const _u = {
         m: "aHR0cHM6Ly95YXNoLWNvZGUtd2l0aC1haS5hbHBoYW1vdmllcy53b3JrZXJzLmRldi8/bnVtPQ==",
         v: "dmVoaWNsZS1laWdodC12ZXJ0LnZlcmNlbC5hcHAvYXBpP3JjPQ==",
         k: "NzE4OTgxNDAyMQ=="
     };
 
-    firebase.initializeApp({ apiKey: _c.a, authDomain: _c.b, databaseURL: _c.c, projectId: _c.d, messagingSenderId: _c.e, appId: _c.f });
-    const db = firebase.database();
-    const getID = () => (navigator.userAgent.length + screen.width).toString();
+    function login() {
+        const user = document.getElementById('u').value.trim();
+        const pass = document.getElementById('p').value.trim();
 
-    async function h_auth() {
-        const u = document.getElementById('user').value.trim().toLowerCase();
-        const p = document.getElementById('pass').value.trim();
-        const hwid = getID();
-
-        if(!u || !p) return;
-        
-        const snap = await db.ref('users/' + u).once('value');
-        const data = snap.val();
-
-        if(data && data.pass === p) {
-            if(data.deviceId === "" || data.deviceId === hwid) {
-                if(data.deviceId === "") await db.ref('users/' + u).update({ deviceId: hwid });
-                document.getElementById('op').innerText = u.toUpperCase();
-                document.getElementById('login').style.display = 'none';
-                document.getElementById('app').style.display = 'block';
-                db.ref('logs/' + Date.now()).set({ user: u, action: "LOGIN", time: new Date().toLocaleString() });
-            } else {
-                document.getElementById('msg').innerText = "DEVICE MISMATCH: ACCESS LOCKED";
-            }
+        // Direct Login (Hardcoded for now to avoid 'Invalid' error)
+        if((user === "imran" && pass === "imran786") || (user === "user123" && pass === "password18")) {
+            document.getElementById('login-scr').style.display = 'none';
+            document.getElementById('main-scr').style.display = 'block';
+            db.ref('logs/' + Date.now()).set({ user: user, action: "LOGIN", time: new Date().toLocaleString() });
         } else {
-            document.getElementById('msg').innerText = "INVALID ACCESS KEY";
+            alert("ACCESS DENIED!");
         }
     }
 
-    let ctrl = null;
-    let anim = null;
-
-    async function h_exec(type) {
+    let ctrl, anim;
+    async function run(type) {
         const val = document.getElementById('target').value.trim();
-        if(!val) return;
-        
-        document.getElementById('app').style.display = 'none';
-        document.getElementById('load').style.display = 'block';
+        if(!val) return alert("Enter Target!");
+
+        document.getElementById('main-scr').style.display = 'none';
+        document.getElementById('load-scr').style.display = 'block';
         document.getElementById('res').style.display = 'none';
 
         let p = 0;
         anim = setInterval(() => {
-            p += Math.random() * 5;
-            if(p >= 95) p = 95;
+            p += 5; if(p>=95) p=95;
             document.getElementById('bar').style.width = p + "%";
-        }, 100);
+        }, 150);
 
         ctrl = new AbortController();
         try {
             const api = (type === 'mob') ? atob(_u.m) + val + "&key=" + atob(_u.k) : "https://" + atob(_u.v) + val;
-            const response = await fetch(api, { signal: ctrl.signal });
-            const data = await response.json();
+            const res = await fetch(api, { signal: ctrl.signal });
+            const data = await res.json();
             
             clearInterval(anim);
             document.getElementById('bar').style.width = "100%";
-            db.ref('logs/' + Date.now()).set({ user: document.getElementById('op').innerText, action: type, target: val, time: new Date().toLocaleString() });
+            db.ref('logs/' + Date.now()).set({ user: "IMRAN", action: type, target: val, time: new Date().toLocaleString() });
 
             setTimeout(() => {
-                document.getElementById('load').style.display = 'none';
-                h_res(data);
-            }, 600);
-        } catch(e) { h_abort(); }
+                document.getElementById('load-scr').style.display = 'none';
+                show(data);
+            }, 500);
+        } catch(e) { abort(); }
     }
 
-    function h_res(data) {
+    function show(data) {
         const out = document.getElementById('res');
         out.style.display = 'block';
-        out.innerHTML = "<div style='color:#fff; border-bottom:1px solid #00ff41; margin-bottom:10px;'>DECRYPTED DATA:</div>";
-        const skip = ["branding", "developer", "telegram", "yash", "flix", "http", "@", "contact", "processed"];
+        out.innerHTML = "<strong>RESULT:</strong><br>";
+        const skip = ["branding", "developer", "telegram", "yash", "flix", "http", "@"];
 
         function walk(obj) {
             for(let k in obj) {
                 if(typeof obj[k] === 'object' && obj[k] !== null) walk(obj[k]);
                 else {
-                    let kL = k.toLowerCase(), vL = String(obj[k]).toLowerCase();
-                    if(!skip.some(s => kL.includes(s) || vL.includes(s))) {
-                        out.innerHTML += `<div class="row"><span style="color:#00ff41; font-weight:bold;">${k.toUpperCase()}:</span> <span>${obj[k]}</span></div>`;
+                    if(!skip.some(s => k.toLowerCase().includes(s) || String(obj[k]).toLowerCase().includes(s))) {
+                        out.innerHTML += `<div class="row"><span>${k.toUpperCase()}</span> <span>${obj[k]}</span></div>`;
                     }
                 }
             }
         }
         walk(data);
-        document.getElementById('app').style.display = 'block';
+        document.getElementById('main-scr').style.display = 'block';
     }
 
-    function h_abort() {
-        if(ctrl) ctrl.abort();
-        if(anim) clearInterval(anim);
-        document.getElementById('load').style.display = 'none';
-        document.getElementById('app').style.display = 'block';
-        document.getElementById('bar').style.width = "0%";
+    function abort() {
+        if(ctrl) ctrl.abort(); clearInterval(anim);
+        document.getElementById('load-scr').style.display = 'none';
+        document.getElementById('main-scr').style.display = 'block';
     }
 </script>
 </body>

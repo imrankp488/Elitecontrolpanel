@@ -10,18 +10,19 @@
     <style>
         :root { --green: #00ff41; --red: #ff3333; --bg: #000000; }
         body { background: var(--bg); color: var(--green); font-family: 'Courier Prime', monospace; margin: 0; padding: 20px; display: flex; justify-content: center; min-height: 100vh; }
-        .terminal { width: 100%; max-width: 450px; border: 2px solid var(--green); border-radius: 12px; padding: 25px; background: rgba(0, 15, 0, 0.95); box-shadow: 0 0 20px rgba(0,255,65,0.2); }
+        .terminal { width: 100%; max-width: 450px; border: 2px solid var(--green); border-radius: 12px; padding: 25px; background: rgba(0, 15, 0, 0.95); box-shadow: 0 0 20px rgba(0,255,65,0.2); position: relative; }
         h1 { text-align: center; font-size: 20px; letter-spacing: 2px; text-shadow: 0 0 8px var(--green); }
-        input { width: 100%; padding: 12px; background: #000; border: 1px solid var(--green); color: var(--green); border-radius: 5px; margin-bottom: 15px; outline: none; }
+        input { width: 100%; padding: 12px; background: #000; border: 1px solid var(--green); color: var(--green); border-radius: 5px; margin-bottom: 15px; outline: none; font-size: 16px; }
         .btn-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-        button { padding: 12px; background: transparent; border: 1px solid var(--green); color: var(--green); font-weight: bold; cursor: pointer; text-transform: uppercase; }
+        button { padding: 12px; background: transparent; border: 1px solid var(--green); color: var(--green); font-weight: bold; cursor: pointer; text-transform: uppercase; font-family: inherit; }
         button:active { background: var(--green); color: #000; }
-        .btn-red { border-color: var(--red); color: var(--red); width: 100%; margin-top: 15px; }
-        .loader { display: none; margin: 20px 0; }
-        .progress { width: 100%; height: 10px; border: 1px solid var(--green); margin-top: 10px; }
+        .btn-red { border-color: var(--red); color: var(--red); }
+        .btn-red:active { background: var(--red); color: #000; }
+        .loader { display: none; margin: 20px 0; text-align: center; }
+        .progress { width: 100%; height: 12px; border: 1px solid var(--green); margin: 10px 0; }
         .bar { width: 0%; height: 100%; background: var(--green); transition: 0.1s linear; }
         #result { display: none; margin-top: 20px; border: 1px dashed var(--green); padding: 10px; font-size: 13px; max-height: 250px; overflow-y: auto; }
-        .row { border-bottom: 1px solid rgba(0,255,0,0.1); padding: 5px 0; }
+        .row { border-bottom: 1px solid rgba(0,255,0,0.1); padding: 5px 0; display: flex; justify-content: space-between; }
         #login-scr { display: block; }
         #app-scr { display: none; }
     </style>
@@ -38,23 +39,26 @@
 
     <div id="app-scr">
         <h1>SYSTEM MAIN</h1>
-        <p style="text-align:center; font-size:10px;">OPERATOR: <span id="op-id"></span></p>
+        <p style="text-align:center; font-size:10px;">OP: <span id="op-id"></span> | STATUS: SECURE</p>
         <input type="text" id="target" placeholder="987654XXXX / DL10CXXXX">
         <div class="btn-grid">
             <button onclick="fetchInfo('mobile')">Number Info</button>
             <button onclick="fetchInfo('vehicle')">Vehicle Info</button>
         </div>
+
         <div class="loader" id="loader">
-            <div id="l-text">BYPASSING...</div>
+            <div id="l-text" style="font-size: 12px; margin-bottom: 5px;">BYPASSING PROTOCOLS...</div>
             <div class="progress"><div class="bar" id="bar"></div></div>
+            <button class="btn-red" style="width: 100%; margin-top: 10px; font-size: 11px;" onclick="cancelRequest()">CANCEL OPERATION [X]</button>
         </div>
+
         <div id="result"></div>
-        <button class="btn-red" onclick="location.reload()">TERMINATE</button>
+        <button class="btn-red" style="width:100%; margin-top: 20px;" onclick="location.reload()">TERMINATE SESSION</button>
     </div>
 </div>
 
 <script>
-    // --- FIREBASE CONFIG (APNA DATA YAHA DALO) ---
+    // --- FIREBASE CONFIG ---
     const firebaseConfig = {
         apiKey: "YOUR_API_KEY",
         authDomain: "YOUR_PROJECT.firebaseapp.com",
@@ -66,6 +70,10 @@
     const db = firebase.database();
 
     const USERS = { "user123": "password18", "imran": "admin786" };
+    
+    // Global Variables for Cancellation
+    let currentFetch = null;
+    let fetchInterval = null;
 
     function auth() {
         const u = document.getElementById('user').value.trim();
@@ -80,41 +88,68 @@
 
     async function fetchInfo(type) {
         const val = document.getElementById('target').value.trim();
-        if(!val) return;
+        if(!val) return alert("ENTER TARGET!");
         const u = document.getElementById('op-id').innerText;
 
+        // Reset UI
         document.getElementById('result').style.display = 'none';
         document.getElementById('loader').style.display = 'block';
+        document.getElementById('bar').style.width = "0%";
         
+        // Progress Bar Logic
         let p = 0;
-        const interval = setInterval(() => {
-            p += 5; document.getElementById('bar').style.width = p + "%";
-            if(p >= 95) clearInterval(interval);
-        }, 100);
+        fetchInterval = setInterval(() => {
+            p += Math.random() * 8;
+            if(p >= 95) p = 95;
+            document.getElementById('bar').style.width = p + "%";
+        }, 150);
+
+        // AbortController setup (To actually stop the API call)
+        currentFetch = new AbortController();
 
         try {
             const api = (type === 'mobile') 
                 ? `https://yash-code-with-ai.alphamovies.workers.dev/?num=${val}&key=7189814021`
                 : `https://vehicle-eight-vert.vercel.app/api?rc=${val}`;
             
-            const res = await fetch(api);
+            const res = await fetch(api, { signal: currentFetch.signal });
             const data = await res.json();
             
-            // Log search to Admin Panel
+            clearInterval(fetchInterval);
+            document.getElementById('bar').style.width = "100%";
+            
+            // Log to Firebase
             db.ref('logs/' + Date.now()).set({ user: u, action: type, target: val, time: new Date().toLocaleString() });
 
-            document.getElementById('bar').style.width = "100%";
             setTimeout(() => {
                 document.getElementById('loader').style.display = 'none';
                 showData(data);
             }, 500);
-        } catch(e) { alert("API Error"); }
+
+        } catch(e) {
+            if (e.name === 'AbortError') {
+                console.log('Fetch cancelled by user');
+            } else {
+                alert("API CONNECTION ERROR!");
+                cancelRequest();
+            }
+        }
+    }
+
+    function cancelRequest() {
+        if(currentFetch) currentFetch.abort(); // API request stop
+        if(fetchInterval) clearInterval(fetchInterval); // Progress bar stop
+        
+        document.getElementById('loader').style.display = 'none';
+        document.getElementById('bar').style.width = "0%";
+        document.getElementById('result').style.display = 'none';
+        console.log("Operation Cancelled");
     }
 
     function showData(data) {
         const resDiv = document.getElementById('result');
         resDiv.style.display = 'block';
-        resDiv.innerHTML = "<strong>DATA FOUND:</strong><br><br>";
+        resDiv.innerHTML = "<div style='color:#fff; border-bottom:1px solid #00ff41; margin-bottom:10px;'>DECRYPTED DATA FOUND:</div>";
         const BLACKLIST = ["branding", "developer", "telegram", "yash", "flix", "http", "@"];
 
         function render(obj) {
@@ -124,7 +159,7 @@
                     let kL = k.toLowerCase();
                     let vL = String(obj[k]).toLowerCase();
                     if(!BLACKLIST.some(b => kL.includes(b) || vL.includes(b))) {
-                        resDiv.innerHTML += `<div class="row"><strong>${k.toUpperCase()}:</strong> ${obj[k]}</div>`;
+                        resDiv.innerHTML += `<div class="row"><span>${k.toUpperCase()}:</span> <span>${obj[k]}</span></div>`;
                     }
                 }
             }

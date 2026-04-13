@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>IMRAN PLAYZ | ELITE SYSTEM v14.0</title>
+    <title>IMRAN PLAYZ | ELITE SYSTEM v15.0</title>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
@@ -26,10 +26,12 @@
         .btn-red { border-color: var(--r); color: var(--r); }
         .msg-box { background: rgba(0, 204, 255, 0.1); border: 1px solid var(--blue); padding: 12px; border-radius: 8px; margin-bottom: 15px; font-size: 12px; color: #fff; display: none; }
         .credit-badge { background: rgba(255, 215, 0, 0.1); border: 1px solid var(--y); padding: 6px 15px; border-radius: 20px; font-size: 13px; margin-bottom: 20px; color: var(--y); }
-        .bar-bg { width: 100%; height: 8px; border: 1px solid var(--p); border-radius: 4px; margin: 15px 0; overflow: hidden; background: #111; }
-        .bar-f { width: 0%; height: 100%; background: var(--p); transition: 0.3s; }
+        .plan-card { border: 1px solid #333; padding: 12px; border-radius: 10px; margin-bottom: 10px; text-align: left; cursor: pointer; }
+        .plan-card.selected { border-color: var(--p); background: rgba(0,255,0,0.1); }
         .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 2000; align-items: center; justify-content: center; backdrop-filter: blur(8px); }
         .modal-box { width: 85%; max-width: 380px; background: #050505; border: 2px solid var(--p); border-radius: 15px; padding: 25px; text-align: center; }
+        .bar-bg { width: 100%; height: 8px; border: 1px solid var(--p); border-radius: 4px; margin: 15px 0; overflow: hidden; background: #111; }
+        .bar-f { width: 0%; height: 100%; background: var(--p); transition: 0.3s; }
     </style>
 </head>
 <body>
@@ -58,21 +60,23 @@
                 <button onclick="runTrace('veh')">Vehicle</button>
             </div>
             <button class="btn-blue" style="margin-top:15px;" onclick="switchPage('pg-plans')">RECHARGE / PLANS</button>
-            <button class="btn-red" style="font-size:10px;" onclick="location.reload()">LOGOUT</button>
+            <button class="btn-red" style="font-size:10px;" onclick="logout()">LOGOUT</button>
         </div>
     </div>
 
     <div id="pg-plans" class="page">
         <div class="container">
-            <h1>RECHARGE</h1>
-            <div style="border:1px solid #333; padding:10px; border-radius:8px; margin-bottom:10px; text-align:left;" onclick="openPay('50')"><span style="float:right;">₹50</span><strong>BASIC</strong><br><small>10 Searches</small></div>
-            <div style="border:1px solid #333; padding:10px; border-radius:8px; margin-bottom:10px; text-align:left;" onclick="openPay('100')"><span style="float:right;">₹100</span><strong>PRO</strong><br><small>30 Searches</small></div>
+            <h1>SELECT PLAN</h1>
+            <div id="plan-50" class="plan-card" onclick="selectPlan('50')"><span style="float:right;">₹50</span><strong>BASIC</strong><br><small>10 Searches</small></div>
+            <div id="plan-100" class="plan-card" onclick="selectPlan('100')"><span style="float:right;">₹100</span><strong>PRO</strong><br><small>30 Searches</small></div>
             
+            <button class="btn-blue" id="pay-confirm-btn" style="display:none; margin-top:10px;" onclick="openUPI()">CONFIRM & PAY</button>
+
             <div style="margin-top: 15px; border-top: 1px solid #333; padding-top: 15px;">
                 <p style="font-size: 11px; color: var(--blue);">UPLOAD SCREENSHOT:</p>
                 <div class="upload-box">
                     <span id="fn">Select Payment Photo</span>
-                    <input type="file" id="p-img" accept="image/*" onchange="document.getElementById('fn').innerText=this.files.name">
+                    <input type="file" id="p-img" accept="image/*" onchange="updateFN(this)">
                 </div>
                 <button class="btn-blue" id="up-btn" onclick="uploadImgBB()">SUBMIT PROOF</button>
                 <button class="btn-blue" style="font-size:11px; border-style:dashed;" onclick="contactEmail()">EMAIL ADMIN FOR HELP</button>
@@ -95,25 +99,32 @@
       appId: "1:220057098294:web:9453e948e8817544916097"
     };
 
-    const IMGBB_KEY = "47d4ddf5133629b43bb606ec944137f9";
-    const ADMIN_EMAIL = "ip6675696@gmail.com";
-
     firebase.initializeApp(firebaseConfig);
     const auth = firebase.auth();
     const db = firebase.database();
-    let isLogin = true, credits = 0;
+    const IMGBB_KEY = "47d4ddf5133629b43bb606ec944137f9";
+    const ADMIN_EMAIL = "ip6675696@gmail.com";
+    let isLogin = true, credits = 0, selectedAmt = 0;
+
+    // --- Persistence Check ---
+    auth.onAuthStateChanged(user => {
+        if (user) sync(user);
+        else switchPage('pg-auth');
+    });
 
     function showModal(t, m) { document.getElementById('m-t').innerText=t; document.getElementById('m-m').innerText=m; document.getElementById('modal').style.display='flex'; }
     function closeModal() { document.getElementById('modal').style.display='none'; }
     function switchPage(id) { document.querySelectorAll('.page').forEach(p=>p.classList.remove('active')); document.getElementById(id).classList.add('active'); }
     function toggleMode() { isLogin=!isLogin; document.querySelector('#pg-auth h1').innerText = isLogin?"SYSTEM LOGIN":"CREATE ACCOUNT"; }
+    function updateFN(input) { if(input.files) document.getElementById('fn').innerText = input.files.name; }
 
     function handleAuth() {
         const e = document.getElementById('email').value, p = document.getElementById('pass').value;
-        if(isLogin) auth.signInWithEmailAndPassword(e,p).then(r=>sync(r.user)).catch(e=>alert(e.message));
-        else auth.createUserWithEmailAndPassword(e,p).then(r=>{ db.ref('users/'+r.user.uid).set({email:e,credits:1}); location.reload(); });
+        if(isLogin) auth.signInWithEmailAndPassword(e,p).catch(e=>alert(e.message));
+        else auth.createUserWithEmailAndPassword(e,p).then(r=>{ db.ref('users/'+r.user.uid).set({email:e,credits:1}); });
     }
-    function loginGoogle() { auth.signInWithPopup(new firebase.auth.GoogleAuthProvider()).then(r=>sync(r.user)); }
+    function loginGoogle() { auth.signInWithPopup(new firebase.auth.GoogleAuthProvider()); }
+    function logout() { auth.signOut().then(() => location.reload()); }
 
     function sync(user) {
         db.ref('users/' + user.uid).on('value', snap => {
@@ -128,6 +139,21 @@
         });
     }
 
+    // --- Payment Flow ---
+    function selectPlan(amt) {
+        selectedAmt = amt;
+        document.querySelectorAll('.plan-card').forEach(c => c.classList.remove('selected'));
+        document.getElementById('plan-' + amt).classList.add('selected');
+        document.getElementById('pay-confirm-btn').style.display = 'block';
+        document.getElementById('pay-confirm-btn').innerText = `CONFIRM & PAY ₹${amt}`;
+    }
+
+    function openUPI() {
+        // This triggers the native Android UPI intent picker
+        const upi = `upi://pay?pa=imranplayz@upi&pn=IMRAN_PLAYZ&am=${selectedAmt}&tn=Elite_Recharge&cu=INR`;
+        window.location.href = upi;
+    }
+
     async function uploadImgBB() {
         const file = document.getElementById('p-img').files;
         if(!file) return alert("Select screenshot!");
@@ -138,27 +164,21 @@
             const res = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_KEY}`, { method: 'POST', body: fd });
             const d = await res.json();
             await db.ref('recharge_requests/' + Date.now()).set({ user: auth.currentUser.email, uid: auth.currentUser.uid, screenshot: d.data.url, status: "pending", time: new Date().toLocaleString() });
-            await db.ref('users/' + auth.currentUser.uid).update({ admin_msg: "System: Proof Received! Admin is verifying..." });
-            showModal("SUBMITTED", "Payment proof sent to Admin. Wait 5-10 mins for verification.");
+            await db.ref('users/' + auth.currentUser.uid).update({ admin_msg: "System: Proof Received! Verification in progress..." });
+            showModal("SUBMITTED", "Payment details sent to Admin. Verification will take 5-10 mins.");
             switchPage('pg-dash');
         } catch(e) { alert("Upload Failed!"); }
-        btn.innerText = "SUBMIT FOR VERIFICATION"; btn.disabled = false;
+        btn.innerText = "SUBMIT PROOF"; btn.disabled = false;
     }
 
     function contactEmail() {
-        const sub = encodeURIComponent("Recharge Request | Elite System");
-        const body = encodeURIComponent(`Operator Email: ${auth.currentUser.email}\nI have paid for credits. Please verify.`);
+        const sub = encodeURIComponent("Support | Elite System");
+        const body = encodeURIComponent(`User: ${auth.currentUser.email}\nI need help with my recharge.`);
         window.location.href = `mailto:${ADMIN_EMAIL}?subject=${sub}&body=${body}`;
     }
 
-    function openPay(amt) {
-        const upi = `upi://pay?pa=imranplayz@upi&pn=IMRAN_PLAYZ&am=${amt}&tn=Elite_Recharge`;
-        if(/Android|iPhone/i.test(navigator.userAgent)) window.location.href = upi;
-        else showModal("PAYMENT", "Pay ₹"+amt+" to: imranplayz@upi and upload screenshot.");
-    }
-
     async function runTrace(t) {
-        if(credits <= 0) return showModal("NO CREDITS", "Recharge your account.");
+        if(credits <= 0) return showModal("NO CREDITS", "Please recharge your account.");
         const v = document.getElementById('target').value.trim();
         if(!v) return;
         switchPage('pg-load');

@@ -1,188 +1,231 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>IMRAN PLAYZ | ELITE SYSTEM v14.3</title>
-    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
-    <style>
-        :root { --p: #00ff41; --r: #ff3131; --b: #000; --panel: rgba(10, 10, 10, 0.98); --blue: #00ccff; --y: #ffd700; }
-        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; transition: 0.3s ease; }
-        body { background: var(--b); color: var(--p); font-family: 'Share Tech Mono', monospace; margin: 0; }
-        .page { display: none; min-height: 100vh; padding: 20px; flex-direction: column; align-items: center; justify-content: center; }
-        .active { display: flex !important; animation: fadeIn 0.4s; }
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-        .container { width: 100%; max-width: 450px; background: var(--panel); border: 1px solid var(--p); border-radius: 15px; padding: 25px; box-shadow: 0 0 25px rgba(0, 255, 65, 0.15); text-align: center; }
-        h1 { font-family: 'Orbitron', sans-serif; font-size: 18px; color: #fff; text-shadow: 0 0 10px var(--p); margin-bottom: 20px; }
-        input { width: 100%; padding: 14px; background: #050505; border: 1px solid #333; color: var(--p); border-radius: 8px; margin-bottom: 12px; outline: none; font-family: inherit; }
-        .upload-box { border: 2px dashed #444; padding: 20px; border-radius: 10px; cursor: pointer; margin-bottom: 15px; position: relative; background: rgba(255,255,255,0.02); }
-        input[type="file"] { position: absolute; width: 100%; height: 100%; top: 0; left: 0; opacity: 0; cursor: pointer; }
-        button { width: 100%; padding: 14px; background: transparent; border: 1.5px solid var(--p); color: var(--p); font-weight: bold; cursor: pointer; border-radius: 8px; font-family: inherit; margin-bottom: 10px; }
-        button:hover { background: var(--p); color: #000; box-shadow: 0 0 15px var(--p); }
-        .btn-blue { border-color: var(--blue); color: var(--blue); }
-        .btn-red { border-color: var(--r); color: var(--r); }
-        .msg-box { background: rgba(0, 204, 255, 0.1); border: 1px solid var(--blue); padding: 12px; border-radius: 8px; margin-bottom: 15px; font-size: 12px; color: #fff; display: none; }
-        .credit-badge { background: rgba(255, 215, 0, 0.1); border: 1px solid var(--y); padding: 6px 15px; border-radius: 20px; font-size: 13px; margin-bottom: 20px; color: var(--y); }
-        .bar-bg { width: 100%; height: 8px; border: 1px solid var(--p); border-radius: 4px; margin: 15px 0; overflow: hidden; background: #111; }
-        .bar-f { width: 0%; height: 100%; background: var(--p); transition: 0.1s; }
-        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 2000; align-items: center; justify-content: center; backdrop-filter: blur(8px); }
-        .modal-box { width: 85%; max-width: 380px; background: #050505; border: 2px solid var(--p); border-radius: 15px; padding: 25px; text-align: center; }
-        .res-row { border-bottom: 1px solid #1a1a1a; padding: 10px 0; text-align: left; display: flex; justify-content: space-between; font-size: 12px; }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>IMRAN PLAYZ | ELITE SYSTEM v14.4</title>
+
+<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
+
+<link href="https://fonts.googleapis.com/css2?family=Orbitron&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+
+<style>
+:root { --p:#00ff41; --r:#ff3131; --b:#000; --panel:#0a0a0a; --blue:#00ccff; --y:#ffd700;}
+body{background:var(--b);color:var(--p);font-family:'Share Tech Mono';margin:0;}
+.page{display:none;min-height:100vh;justify-content:center;align-items:center;flex-direction:column;}
+.active{display:flex;}
+.container{width:90%;max-width:420px;background:var(--panel);padding:20px;border-radius:12px;border:1px solid var(--p);}
+h1{color:#fff;text-align:center;}
+input{width:100%;padding:12px;margin-bottom:10px;background:#050505;border:1px solid #333;color:var(--p);}
+button{width:100%;padding:12px;margin-top:5px;background:transparent;border:1px solid var(--p);color:var(--p);}
+.upload-box{border:1px dashed #444;padding:15px;text-align:center;margin-bottom:10px;position:relative;}
+input[type=file]{position:absolute;width:100%;height:100%;opacity:0;top:0;left:0;}
+.bar-bg{width:100%;height:8px;background:#111;margin-top:10px;}
+.bar-f{width:0%;height:100%;background:var(--p);}
+.res-row{display:flex;justify-content:space-between;border-bottom:1px solid #222;padding:6px 0;}
+.modal-overlay{display:none;position:fixed;width:100%;height:100%;background:#000d;top:0;left:0;justify-content:center;align-items:center;}
+.modal-box{background:#050505;padding:20px;border:1px solid var(--p);}
+</style>
 </head>
+
 <body>
 
-<div id="modal" class="modal-overlay"><div class="modal-box"><h2 id="m-t"></h2><p id="m-m" style="font-size:13px; color:#ccc;"></p><button onclick="closeModal()">OKAY</button></div></div>
+<div id="modal" class="modal-overlay">
+<div class="modal-box">
+<h2 id="m-t"></h2>
+<p id="m-m"></p>
+<button onclick="closeModal()">OK</button>
+</div>
+</div>
 
+<!-- AUTH -->
 <div id="pg-auth" class="page active">
 <div class="container">
-<h1>SYSTEM LOGIN</h1>
-<input type="email" id="email" placeholder="Email Address">
-<input type="password" id="pass" placeholder="Password">
+<h1>LOGIN</h1>
+<input id="email" placeholder="Email">
+<input id="pass" type="password" placeholder="Password">
 <button onclick="handleAuth()">LOGIN</button>
-<button style="background:#fff; color:#000; border:none;" onclick="loginGoogle()">SIGN IN WITH GOOGLE</button>
-<p onclick="toggleMode()" style="font-size:11px; color:#444; cursor:pointer; margin-top:10px;">New User? Create Account</p>
+<button onclick="loginGoogle()">GOOGLE</button>
+<p onclick="toggleMode()">Switch Mode</p>
 </div>
 </div>
 
+<!-- DASH -->
 <div id="pg-dash" class="page">
 <div class="container">
 <h1>DASHBOARD</h1>
-<div id="admin-notif" class="msg-box"><strong>[ADMIN]:</strong> <span id="admin-txt"></span></div>
-<div class="credit-badge">CREDITS: <span id="user-credits">0</span></div>
-<input type="text" id="target" placeholder="98765XXXXX / MH12XXXX">
-<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+<div>CREDITS: <span id="user-credits">0</span></div>
+<input id="target" placeholder="Enter">
 <button onclick="runTrace('mob')">Mobile</button>
 <button onclick="runTrace('veh')">Vehicle</button>
-</div>
-<button class="btn-blue" style="margin-top:15px;" onclick="switchPage('pg-plans')">RECHARGE / PLANS</button>
-<button class="btn-red" style="font-size:10px;" onclick="auth.signOut().then(()=>location.reload())">LOGOUT</button>
+<button onclick="switchPage('pg-plans')">Recharge</button>
 </div>
 </div>
 
+<!-- PLANS -->
 <div id="pg-plans" class="page">
 <div class="container">
-<h1>RECHARGE</h1>
-<div onclick="openPay('50')" style="border:1px solid #333;padding:12px;border-radius:10px;margin-bottom:10px;text-align:left;">
-<span style="float:right; color:var(--p);">₹50</span><strong>BASIC</strong><br><small>10 Searches</small></div>
-<div onclick="openPay('100')" style="border:1px solid #333;padding:12px;border-radius:10px;margin-bottom:10px;text-align:left;">
-<span style="float:right; color:var(--p);">₹100</span><strong>PRO</strong><br><small>30 Searches</small></div>
-<div style="margin-top:15px;border-top:1px solid #333;padding-top:15px;">
-<p style="font-size:11px;color:var(--blue);">UPLOAD PAYMENT SCREENSHOT:</p>
+<h1>Recharge</h1>
+
+<div onclick="openPay(50)">₹50 - 10</div>
+<div onclick="openPay(100)">₹100 - 30</div>
+
 <div class="upload-box">
 <span id="fn">Select Image</span>
-<input type="file" id="p-img" accept="image/*" onchange="document.getElementById('fn').innerText=this.files?.name || 'Select Image'">
+<input type="file" id="p-img" onchange="document.getElementById('fn').innerText=this.files[0]?this.files[0].name:'Select Image'">
 </div>
-<button class="btn-blue" id="up-btn" onclick="uploadImgBB()">SUBMIT PROOF</button>
-</div>
-<button class="btn-red" onclick="switchPage('pg-dash')">BACK</button>
+
+<button id="up-btn" onclick="uploadImgBB()">Submit</button>
+<button onclick="switchPage('pg-dash')">Back</button>
 </div>
 </div>
 
-<div id="pg-load" class="page"><div class="container"><h1>BYPASSING...</h1><div class="bar-bg"><div id="bar" class="bar-f"></div></div></div></div>
+<!-- LOADING -->
+<div id="pg-load" class="page">
+<div class="container">
+<h1>Processing...</h1>
+<div class="bar-bg"><div id="bar" class="bar-f"></div></div>
+</div>
+</div>
 
-<div id="pg-res" class="page"><div class="container" style="max-height:85vh; overflow-y:auto;"><h1>DECRYPTED DATA</h1><div id="data-out"></div><button onclick="switchPage('pg-dash')" style="margin-top:15px;">NEW SEARCH</button></div></div>
+<!-- RESULT -->
+<div id="pg-res" class="page">
+<div class="container">
+<h1>RESULT</h1>
+<div id="data-out"></div>
+<button onclick="switchPage('pg-dash')">Back</button>
+</div>
+</div>
 
 <script>
-const firebaseConfig = {
- apiKey:"AIzaSyB011WYaNhJQx77yO3Ow7l-Z_clhS89Z8A",
- authDomain:"adminpanel-6b862.firebaseapp.com",
- databaseURL:"https://adminpanel-6b862-default-rtdb.firebaseio.com",
- projectId:"adminpanel-6b862"
+const firebaseConfig={
+apiKey:"AIzaSyB011WYaNhJQx77yO3Ow7l-Z_clhS89Z8A",
+authDomain:"adminpanel-6b862.firebaseapp.com",
+databaseURL:"https://adminpanel-6b862-default-rtdb.firebaseio.com",
+projectId:"adminpanel-6b862"
 };
 
 const IMGBB_KEY="47d4ddf5133629b43bb606ec944137f9";
+
 firebase.initializeApp(firebaseConfig);
 const auth=firebase.auth(), db=firebase.database();
-let credits=0, isLogin=true;
 
-// --- Auto Login Session ---
-auth.onAuthStateChanged(user => { if(user) sync(user); else switchPage('pg-auth'); });
+let credits=0,isLogin=true;
 
-function showModal(t,m){ document.getElementById('m-t').innerText=t; document.getElementById('m-m').innerText=m; document.getElementById('modal').style.display='flex'; }
-function closeModal(){ document.getElementById('modal').style.display='none'; }
-function switchPage(id){ document.querySelectorAll('.page').forEach(p=>p.classList.remove('active')); document.getElementById(id).classList.add('active'); }
-function toggleMode(){ isLogin=!isLogin; document.querySelector('#pg-auth h1').innerText=isLogin?"SYSTEM LOGIN":"CREATE ACCOUNT"; }
+auth.onAuthStateChanged(u=>{if(u)sync(u);else switchPage('pg-auth');});
+
+function showModal(t,m){m_t.innerText=t;m_m.innerText=m;modal.style.display='flex';}
+function closeModal(){modal.style.display='none';}
+function switchPage(id){document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));document.getElementById(id).classList.add('active');}
+
+function toggleMode(){isLogin=!isLogin;}
 
 function handleAuth(){
- const e=document.getElementById('email').value, p=document.getElementById('pass').value;
- if(isLogin) auth.signInWithEmailAndPassword(e,p).catch(err=>showModal("ERROR",err.message));
- else auth.createUserWithEmailAndPassword(e,p).then(async r=>{ await r.user.sendEmailVerification(); await db.ref('users/'+r.user.uid).set({email:e,credits:1}); showModal("VERIFY","Email Sent! Verify to Login."); auth.signOut(); });
+const e=email.value,p=pass.value;
+if(isLogin) auth.signInWithEmailAndPassword(e,p).catch(e=>showModal("Error",e.message));
+else auth.createUserWithEmailAndPassword(e,p).then(async r=>{
+await db.ref('users/'+r.user.uid).set({credits:1});
+showModal("Done","Account Created");
+});
 }
 
-function loginGoogle(){ auth.signInWithPopup(new firebase.auth.GoogleAuthProvider()); }
+function loginGoogle(){auth.signInWithPopup(new firebase.auth.GoogleAuthProvider());}
 
-function sync(user){
- db.ref('users/'+user.uid).on('value',snap=>{
-   const d=snap.val(); credits=d?.credits||0;
-   document.getElementById('user-credits').innerText=credits;
-   switchPage('pg-dash');
- });
+function sync(u){
+db.ref('users/'+u.uid).on('value',s=>{
+credits=s.val()?.credits||0;
+document.getElementById('user-credits').innerText=credits;
+switchPage('pg-dash');
+});
 }
 
-function openPay(amt){ window.location.href=`upi://pay?pa=imrankhan17@ptyes&pn=IMRAN&am=${amt}&cu=INR`; }
+function openPay(a){location.href=`upi://pay?pa=imrankhan17@ptyes&pn=IMRAN&am=${a}&cu=INR`;}
 
 async function uploadImgBB(){
- const file=document.getElementById('p-img').files;
- if(!file) return showModal("ERROR","Select screenshot");
- const btn=document.getElementById('up-btn');
- btn.innerText="UPLOADING..."; btn.disabled=true;
+const file=document.getElementById('p-img').files[0];
+if(!file) return showModal("Error","Select image");
 
- const reader=new FileReader();
- reader.onload = async () => {
-    try {
-        const base64 = reader.result.split(',');
-        const fd = new FormData(); fd.append("image", base64);
-        const res = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_KEY}`, { method: "POST", body: fd });
-        const d = await res.json();
-        if(d.success) {
-            await db.ref('recharge_requests/'+Date.now()).set({
-                user: auth.currentUser.email, uid: auth.currentUser.uid, screenshot: d.data.url, status: "pending", time: new Date().toLocaleString()
-            });
-            showModal("SUCCESS","Sent! Wait for approval.");
-            switchPage('pg-dash');
-        } else { throw new Error(); }
-    } catch(e) { showModal("FAILED","Upload Error. Try again."); }
-    btn.innerText="SUBMIT PROOF"; btn.disabled=false;
- };
- reader.readAsDataURL(file);
+const btn=document.getElementById('up-btn');
+btn.innerText="Uploading...";
+
+const reader=new FileReader();
+
+reader.onloadend=async ()=>{
+try{
+const base64=reader.result.split(',')[1];
+const fd=new FormData();
+fd.append("image",base64);
+
+const res=await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_KEY}`,{method:"POST",body:fd});
+const d=await res.json();
+
+await db.ref('recharge_requests/'+Date.now()).set({img:d.data.url,user:auth.currentUser.email});
+
+showModal("Success","Uploaded");
+switchPage('pg-dash');
+
+}catch{showModal("Error","Upload Failed");}
+
+btn.innerText="Submit";
+};
+
+reader.readAsDataURL(file);
 }
 
-function render(data) {
-    const out = document.getElementById('data-out'); out.innerHTML = "";
-    const skip = ["branding", "developer", "processed_by", "owner_contact"];
-    for (let key in data) {
-        if (!skip.includes(key.toLowerCase()) && typeof data[key] !== 'object') {
-            out.innerHTML += `<div class="res-row"><span style="color:var(--p)">${key.toUpperCase()}</span><span style="color:#fff">${data[key]}</span></div>`;
-        }
-    }
+function render(data){
+const out=document.getElementById('data-out');
+out.innerHTML="";
+const skip=["branding","developer","processed_by","owner_contact"];
+
+function walk(o){
+for(let k in o){
+if(typeof o[k]==="object") walk(o[k]);
+else if(!skip.includes(k.toLowerCase())){
+out.innerHTML+=`<div class="res-row"><span>${k}</span><span>${o[k]}</span></div>`;
+}
+}
+}
+walk(data);
 }
 
 async function runTrace(t){
- if(credits<=0) return showModal("NO CREDITS","Please recharge.");
- const v=document.getElementById('target').value.trim();
- if(!v) return;
+if(credits<=0) return showModal("No Credits","Recharge");
 
- switchPage('pg-load');
- let p=0; const bar=document.getElementById('bar');
- const itv = setInterval(() => { p += Math.random()*10; if(p>95) p=95; bar.style.width=p+"%"; }, 150);
+switchPage('pg-load');
 
- try{
-   const api=(t==='mob')?`https://yash-code-with-ai.alphamovies.workers.dev/?num=${v}&key=7189814021`:`https://vehicle-eight-vert.vercel.app/api?rc=${v}`;
-   const res = await fetch(api);
-   const data = await res.json();
-   clearInterval(itv); bar.style.width="100%";
+let p=0;
+const bar=document.getElementById('bar');
+const it=setInterval(()=>{p+=5;if(p<95)bar.style.width=p+"%";},100);
 
-   if(!data || Object.keys(data).length < 2){
-     showModal("NOT FOUND","No data in database."); switchPage('pg-dash'); return;
-   }
+try{
+const v=target.value;
+const url=(t==='mob')?`https://yash-code-with-ai.alphamovies.workers.dev/?num=${v}&key=7189814021`:`https://vehicle-eight-vert.vercel.app/api?rc=${v}`;
 
-   await db.ref('users/'+auth.currentUser.uid).update({credits:credits-1});
-   setTimeout(() => { switchPage('pg-res'); render(data); }, 400);
- } catch(e) { clearInterval(itv); showModal("ERROR","Server Busy."); switchPage('pg-dash'); }
+const res=await fetch(url);
+const data=await res.json();
+
+clearInterval(it);
+bar.style.width="100%";
+
+if(!data || Object.keys(data).length<2){
+showModal("No Data","Try another");
+switchPage('pg-dash');
+return;
+}
+
+await db.ref('users/'+auth.currentUser.uid).update({credits:credits-1});
+
+setTimeout(()=>{
+switchPage('pg-res');
+render(data);
+},400);
+
+}catch{
+showModal("Error","Server issue");
+switchPage('pg-dash');
+}
 }
 </script>
 </body>

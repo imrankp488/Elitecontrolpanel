@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>IMRAN PLAYZ | ELITE SYSTEM v15.0</title>
+    <title>IMRAN PLAYZ | ELITE SYSTEM v15.5</title>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
@@ -12,19 +12,34 @@
         :root { --p: #00ff41; --r: #ff3131; --b: #000; --panel: rgba(10, 10, 10, 0.98); --blue: #00ccff; --y: #ffd700; }
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; transition: 0.3s ease; }
         body { background: var(--b); color: var(--p); font-family: 'Share Tech Mono', monospace; margin: 0; overflow-x: hidden; }
+        
         .page { display: none; min-height: 100vh; padding: 20px; flex-direction: column; align-items: center; justify-content: center; }
         .active { display: flex !important; animation: fadeIn 0.4s; }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
         .container { width: 100%; max-width: 450px; background: var(--panel); border: 1px solid var(--p); border-radius: 15px; padding: 25px; box-shadow: 0 0 25px rgba(0, 255, 65, 0.15); text-align: center; }
         h1 { font-family: 'Orbitron', sans-serif; font-size: 18px; color: #fff; text-shadow: 0 0 10px var(--p); margin-bottom: 20px; }
+        
+        /* Hacker Style Boxes (Photo Jaisa) */
+        .hacker-box { width: 100%; max-width: 400px; background: rgba(0, 255, 65, 0.03); border: 1px solid rgba(0, 255, 65, 0.3); border-radius: 12px; padding: 20px; margin-bottom: 15px; text-align: left; }
+        .hacker-title { color: var(--p); font-size: 13px; font-weight: bold; letter-spacing: 1px; margin-bottom: 15px; display: flex; align-items: center; gap: 10px; }
+        
+        /* Progress Bar (Photo Jaisa) */
+        .bar-bg { width: 100%; height: 14px; background: rgba(0, 255, 65, 0.1); border: 1px solid var(--p); border-radius: 7px; overflow: hidden; position: relative; }
+        .bar-f { width: 0%; height: 100%; background: var(--p); box-shadow: 0 0 15px var(--p); transition: 0.2s linear; }
+
+        /* System Logs */
+        .log-line { font-size: 12px; color: var(--p); margin-bottom: 8px; opacity: 0.7; display: none; }
+        .log-line.show { display: block; animation: slideIn 0.3s ease-out; }
+        @keyframes slideIn { from { transform: translateX(-10px); opacity: 0; } to { transform: translateX(0); opacity: 0.7; } }
+
         input { width: 100%; padding: 14px; background: #050505; border: 1px solid #333; color: var(--p); border-radius: 8px; margin-bottom: 12px; outline: none; font-family: inherit; }
         button { width: 100%; padding: 14px; background: transparent; border: 1.5px solid var(--p); color: var(--p); font-weight: bold; cursor: pointer; border-radius: 8px; font-family: inherit; margin-bottom: 10px; }
         button:hover { background: var(--p); color: #000; box-shadow: 0 0 15px var(--p); }
         .btn-blue { border-color: var(--blue); color: var(--blue); }
         .btn-red { border-color: var(--r); color: var(--r); }
         .credit-badge { background: rgba(255, 215, 0, 0.1); border: 1px solid var(--y); padding: 6px 15px; border-radius: 20px; font-size: 13px; margin-bottom: 20px; color: var(--y); display: inline-block; }
-        .bar-bg { width: 100%; height: 8px; border: 1px solid var(--p); border-radius: 4px; margin: 15px 0; overflow: hidden; background: #111; }
-        .bar-f { width: 0%; height: 100%; background: var(--p); transition: 0.1s; }
+        
         .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 2000; align-items: center; justify-content: center; backdrop-filter: blur(8px); }
         .modal-box { width: 85%; max-width: 380px; background: #050505; border: 2px solid var(--p); border-radius: 15px; padding: 25px; text-align: center; }
         .res-row { border-bottom: 1px solid #1a1a1a; padding: 10px 0; text-align: left; display: flex; justify-content: space-between; font-size: 12px; }
@@ -72,7 +87,7 @@
             <p style="font-size:11px;color:var(--blue);">UPLOAD PAYMENT SCREENSHOT:</p>
             <div class="upload-box">
                 <span id="fn">Select Image</span>
-                <input type="file" id="p-img" accept="image/*" onchange="document.getElementById('fn').innerText=this.files?.name || 'Select Image'">
+                <input type="file" id="p-img" accept="image/*">
             </div>
             <button class="btn-blue" id="up-btn" onclick="uploadImgBB()">SUBMIT PROOF</button>
         </div>
@@ -80,9 +95,33 @@
     </div>
 </div>
 
-<div id="pg-load" class="page"><div class="container"><h1>BYPASSING...</h1><div class="bar-bg"><div id="bar" class="bar-f"></div></div></div></div>
+<div id="pg-load" class="page">
+    <div class="hacker-box">
+        <div class="hacker-title">⌛ FETCHING DATA PLEASE WAIT...</div>
+        <div class="bar-bg"><div id="bar" class="bar-f"></div></div>
+    </div>
+    
+    <div class="hacker-box">
+        <div class="hacker-title">📝 System Logs</div>
+        <div id="log-1" class="log-line">> Initializing secure connection...</div>
+        <div id="log-2" class="log-line">> Bypassing server protocols...</div>
+        <div id="log-3" class="log-line">> Fetching data packets...</div>
+        <div id="log-4" class="log-line">> Decrypting identity layer...</div>
+    </div>
 
-<div id="pg-res" class="page"><div class="container" style="max-height:85vh; overflow-y:auto;"><h1>DECRYPTED DATA</h1><div id="data-out"></div><button onclick="switchPage('pg-dash')" style="margin-top:15px;">NEW SEARCH</button></div></div>
+    <div style="font-size: 10px; text-align: center; opacity: 0.5;">
+        [/>] SYSTEM BY IMRANPLAYZ<br>
+        CONTACT IG: @_imranplayz_
+    </div>
+</div>
+
+<div id="pg-res" class="page">
+    <div class="container" style="max-height:85vh; overflow-y:auto;">
+        <h1>DECRYPTED DATA</h1>
+        <div id="data-out"></div>
+        <button onclick="switchPage('pg-dash')" style="margin-top:15px;">NEW SEARCH</button>
+    </div>
+</div>
 
 <script>
 const firebaseConfig = {
@@ -97,7 +136,17 @@ firebase.initializeApp(firebaseConfig);
 const auth=firebase.auth(), db=firebase.database();
 let credits=0, isLogin=true;
 
-// --- Persistence ---
+// --- Step 2 Fix: Add Event Listener for Image Name ---
+document.getElementById("p-img").addEventListener("change", function(e){
+    const file = e.target.files;
+    const nameBox = document.getElementById("fn");
+    if(file){
+        nameBox.innerText = file.name;
+    } else {
+        nameBox.innerText = "Select Image";
+    }
+});
+
 auth.onAuthStateChanged(user => { if(user) sync(user); else switchPage('pg-auth'); });
 
 function showModal(t,m){ document.getElementById('m-t').innerText=t; document.getElementById('m-m').innerText=m; document.getElementById('modal').style.display='flex'; }
@@ -107,9 +156,8 @@ function toggleMode(){ isLogin=!isLogin; document.querySelector('#pg-auth h1').i
 
 function handleAuth(){
  const e=document.getElementById('email').value, p=document.getElementById('pass').value;
- const btn = document.getElementById('auth-btn'); btn.disabled = true;
- if(isLogin) auth.signInWithEmailAndPassword(e,p).catch(err=>{ showModal("ERROR",err.message); btn.disabled=false; });
- else auth.createUserWithEmailAndPassword(e,p).then(async r=>{ await r.user.sendEmailVerification(); await db.ref('users/'+r.user.uid).set({email:e,credits:1}); showModal("VERIFY","Email Sent! Verify to Login."); auth.signOut(); }).catch(err=>{ showModal("ERROR",err.message); btn.disabled=false; });
+ if(isLogin) auth.signInWithEmailAndPassword(e,p).catch(err=>showModal("ERROR",err.message));
+ else auth.createUserWithEmailAndPassword(e,p).then(async r=>{ await r.user.sendEmailVerification(); await db.ref('users/'+r.user.uid).set({email:e,credits:1}); showModal("VERIFY","Email Sent!"); auth.signOut(); });
 }
 
 function loginGoogle(){ auth.signInWithPopup(new firebase.auth.GoogleAuthProvider()); }
@@ -124,7 +172,6 @@ function sync(user){
 
 function openPay(amt){ window.location.href=`upi://pay?pa=imrankhan17@ptyes&pn=IMRAN&am=${amt}&cu=INR`; }
 
-// --- ✅ FIX 1: IMAGE UPLOAD (Integrated) ---
 async function uploadImgBB(){
  const file=document.getElementById('p-img').files;
  if(!file) return showModal("ERROR","Select screenshot");
@@ -141,25 +188,23 @@ async function uploadImgBB(){
             await db.ref('recharge_requests/'+Date.now()).set({
                 user: auth.currentUser.email, uid: auth.currentUser.uid, screenshot: d.data.url, status: "pending", time: new Date().toLocaleString()
             });
-            showModal("SUCCESS","Screenshot uploaded. Wait for admin approval.");
+            showModal("SUCCESS","Proof Sent!");
             switchPage('pg-dash');
         } else { throw new Error(); }
-    } catch(e) { showModal("FAILED","Upload failed. Try again."); }
+    } catch(e) { showModal("FAILED","Upload Error."); }
     btn.innerText="SUBMIT PROOF"; btn.disabled=false;
  };
  reader.readAsDataURL(file);
 }
 
-// --- ✅ FIX 2: FULL DATA NESTED RENDER (Integrated) ---
 function render(data) {
     const out = document.getElementById('data-out');
     out.innerHTML = "";
     const skip = ["branding", "developer", "processed_by", "owner_contact", "status"];
     function walk(obj) {
         for (let key in obj) {
-            if (typeof obj[key] === "object" && obj[key] !== null) {
-                walk(obj[key]);
-            } else {
+            if (typeof obj[key] === "object" && obj[key] !== null) { walk(obj[key]); } 
+            else {
                 if (!skip.includes(key.toLowerCase())) {
                     out.innerHTML += `<div class="res-row"><span style="color:var(--p)">${key.toUpperCase()}</span><span style="color:#fff">${obj[key]}</span></div>`;
                 }
@@ -175,8 +220,20 @@ async function runTrace(t){
  if(!v) return;
 
  switchPage('pg-load');
+ document.querySelectorAll('.log-line').forEach(l => l.classList.remove('show')); // Reset logs
+ 
  let p=0; const bar=document.getElementById('bar');
- const itv = setInterval(() => { p += Math.random()*10; if(p>95) p=95; bar.style.width=p+"%"; }, 150);
+ const itv = setInterval(() => { 
+    p += Math.random()*12; 
+    if(p>95) p=95; 
+    bar.style.width=p+"%";
+    
+    // Log animation trigger
+    if(p > 10) document.getElementById('log-1').classList.add('show');
+    if(p > 30) document.getElementById('log-2').classList.add('show');
+    if(p > 60) document.getElementById('log-3').classList.add('show');
+    if(p > 85) document.getElementById('log-4').classList.add('show');
+ }, 200);
 
  try{
    const api=(t==='mob')?`https://yash-code-with-ai.alphamovies.workers.dev/?num=${v}&key=7189814021`:`https://vehicle-eight-vert.vercel.app/api?rc=${v}`;
@@ -185,12 +242,11 @@ async function runTrace(t){
    clearInterval(itv); bar.style.width="100%";
 
    if(!data || Object.keys(data).length < 2){
-     showModal("NOT FOUND","No data in database. Credit not deducted.");
-     switchPage('pg-dash'); return;
+     showModal("NOT FOUND","Data not available."); switchPage('pg-dash'); return;
    }
 
    await db.ref('users/'+auth.currentUser.uid).update({credits:credits-1});
-   setTimeout(() => { switchPage('pg-res'); render(data); }, 400);
+   setTimeout(() => { switchPage('pg-res'); render(data); }, 600);
  } catch(e) { clearInterval(itv); showModal("ERROR","Server Busy."); switchPage('pg-dash'); }
 }
 </script>

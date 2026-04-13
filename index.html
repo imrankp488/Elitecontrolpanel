@@ -3,217 +3,214 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Elite Analytics | Imran Playz</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <title>TERMINAL v5.0 | IMRANPLAYZ</title>
+    <link href="https://fonts.googleapis.com/css2?family=Courier+Prime:wght@400;700&display=swap" rel="stylesheet">
     <style>
         :root {
-            --primary: #4f46e5; /* Modern Indigo */
-            --bg: #f9fafb;
-            --card: #ffffff;
-            --text-main: #111827;
-            --text-sub: #6b7280;
-            --border: #e5e7eb;
+            --green: #00ff41;
+            --red: #ff3333;
+            --bg: #000000;
+            --panel: rgba(0, 20, 0, 0.9);
         }
 
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
-
-        body { background-color: var(--bg); color: var(--text-main); line-height: 1.5; }
-
-        /* --- LOGIN PAGE --- */
-        .auth-container {
-            display: flex; align-items: center; justify-content: center;
-            min-height: 100vh; padding: 20px;
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        body {
+            background-color: var(--bg);
+            color: var(--green);
+            font-family: 'Courier Prime', monospace;
+            margin: 0; padding: 0;
+            display: flex; justify-content: center; align-items: center;
+            min-height: 100vh; overflow-x: hidden;
         }
-        .auth-card {
-            background: var(--card); width: 100%; max-width: 400px;
-            padding: 40px 30px; border-radius: 16px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.05); border: 1px solid var(--border);
-        }
-        .auth-card h2 { font-size: 24px; font-weight: 700; margin-bottom: 8px; text-align: center; }
-        .auth-card p { color: var(--text-sub); text-align: center; font-size: 14px; margin-bottom: 30px; }
 
-        /* --- DASHBOARD LAYOUT --- */
-        #dashboard { display: none; }
-        .top-nav {
-            background: var(--card); padding: 15px 20px;
-            border-bottom: 1px solid var(--border);
-            display: flex; justify-content: space-between; align-items: center;
-            position: sticky; top: 0; z-index: 100;
+        /* CRT Scanline Effect */
+        body::after {
+            content: " "; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.1) 50%);
+            z-index: 999; pointer-events: none; background-size: 100% 3px;
         }
-        .logo { font-weight: 700; color: var(--primary); font-size: 18px; letter-spacing: -0.5px; }
 
-        .main-content { padding: 20px; max-width: 800px; margin: 0 auto; }
-
-        /* --- STATS CARDS --- */
-        .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 25px; }
-        .stat-card {
-            background: var(--card); padding: 20px; border-radius: 12px;
-            border: 1px solid var(--border); text-align: center;
+        .terminal-container {
+            width: 95%; max-width: 450px;
+            border: 2px solid var(--green);
+            border-radius: 12px; padding: 25px;
+            background: var(--panel);
+            box-shadow: 0 0 20px rgba(0, 255, 65, 0.15);
         }
-        .stat-card span { display: block; font-size: 12px; color: var(--text-sub); text-transform: uppercase; font-weight: 600; }
-        .stat-card h3 { font-size: 20px; margin-top: 5px; color: var(--primary); }
 
-        /* --- SEARCH BOX --- */
-        .search-section {
-            background: var(--card); padding: 25px; border-radius: 16px;
-            border: 1px solid var(--border); box-shadow: 0 4px 6px rgba(0,0,0,0.02);
-        }
-        .search-section h4 { margin-bottom: 15px; font-size: 16px; }
+        h2 { text-align: center; letter-spacing: 3px; font-size: 20px; text-shadow: 0 0 8px var(--green); }
 
         input {
-            width: 100%; padding: 14px; border-radius: 10px;
-            border: 1px solid var(--border); background: #f3f4f6;
-            margin-bottom: 15px; font-size: 16px; outline: none; transition: 0.2s;
+            width: 100%; padding: 12px; background: #000;
+            border: 1px solid var(--green); color: var(--green);
+            margin-bottom: 15px; border-radius: 5px; outline: none;
+            font-size: 16px; font-family: inherit;
         }
-        input:focus { border-color: var(--primary); background: #fff; box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.1); }
 
-        .btn {
-            width: 100%; padding: 14px; border-radius: 10px; border: none;
-            font-weight: 600; cursor: pointer; transition: 0.2s; font-size: 15px;
+        .btn-box { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        
+        button {
+            padding: 12px; background: transparent; border: 1px solid var(--green);
+            color: var(--green); font-weight: bold; cursor: pointer;
+            transition: 0.3s; font-size: 13px; text-transform: uppercase;
         }
-        .btn-primary { background: var(--primary); color: #fff; }
-        .btn-primary:hover { background: #4338ca; }
-        .btn-outline { background: transparent; border: 1px solid var(--border); color: var(--text-main); margin-top: 10px; }
+        button:active { background: var(--green); color: #000; }
 
-        /* --- RESULT AREA --- */
-        #result-display {
-            margin-top: 25px; display: none;
-            background: #fff; border-radius: 16px; border: 1px solid var(--border); overflow: hidden;
-        }
-        .res-header { background: #f9fafb; padding: 15px 20px; border-bottom: 1px solid var(--border); font-weight: 600; }
-        .res-body { padding: 20px; }
-        .data-row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px dashed #f3f4f6; }
-        .data-row span:first-child { color: var(--text-sub); font-size: 14px; }
-        .data-row span:last-child { font-weight: 600; font-size: 14px; text-align: right; }
+        .btn-red { border-color: var(--red); color: var(--red); margin-top: 15px; width: 100%; }
+        .btn-red:active { background: var(--red); color: #000; }
 
-        /* Mobile specific adjustments */
-        @media (max-width: 480px) {
-            .stats-grid { grid-template-columns: 1fr; }
-            .auth-card { padding: 30px 20px; }
-        }
+        /* Progress Bar */
+        .loader-box { display: none; text-align: center; margin: 20px 0; }
+        .progress-track { width: 100%; height: 12px; border: 1px solid var(--green); margin-top: 10px; }
+        .progress-fill { width: 0%; height: 100%; background: var(--green); transition: width 0.1s linear; box-shadow: 0 0 10px var(--green); }
+
+        /* Results Display */
+        #result-screen { display: none; }
+        .data-card { background: rgba(0, 255, 0, 0.05); border: 1px dashed var(--green); padding: 15px; margin-top: 15px; font-size: 14px; max-height: 250px; overflow-y: auto; }
+        .data-item { margin-bottom: 8px; line-height: 1.4; border-bottom: 1px solid rgba(0,255,0,0.1); padding-bottom: 4px; }
+        .key { color: #fff; font-weight: bold; }
+
+        .footer { margin-top: 25px; font-size: 10px; color: #00aa66; text-align: center; border-top: 1px solid #004400; padding-top: 10px; }
+
+        #login-screen, #main-screen { display: none; }
+        .visible { display: block !important; }
     </style>
 </head>
 <body>
 
-<div id="login-page" class="auth-container">
-    <div class="auth-card">
-        <h2>Welcome Back</h2>
-        <p>Enter your credentials to access the panel</p>
-        <input type="text" id="user" placeholder="Username">
-        <input type="password" id="pass" placeholder="Password">
-        <button class="btn btn-primary" onclick="login()">Sign In</button>
-        <div id="login-err" style="color: #ef4444; font-size: 13px; margin-top: 15px; text-align: center; display: none;">Invalid username or password</div>
+<div class="terminal-container">
+    
+    <div id="login-screen" class="visible">
+        <h2>SECURE LOGIN</h2>
+        <input type="text" id="user" placeholder="USERNAME" autocomplete="off">
+        <input type="password" id="pass" placeholder="ACCESS KEY">
+        <button onclick="login()" style="width: 100%;">AUTHORIZE ACCESS</button>
+        <p id="login-error" style="color: var(--red); font-size: 11px; text-align: center; margin-top: 10px; display: none;">[!] INVALID CREDENTIALS</p>
     </div>
-</div>
 
-<div id="dashboard">
-    <nav class="top-nav">
-        <div class="logo">ELITE ANALYTICS</div>
-        <button class="btn" style="width: auto; padding: 8px 15px; font-size: 12px;" onclick="location.reload()">Logout</button>
-    </nav>
-
-    <div class="main-content">
-        <div class="stats-grid">
-            <div class="stat-card">
-                <span>Total Queries</span>
-                <h3 id="q-count">0</h3>
-            </div>
-            <div class="stat-card">
-                <span>System Status</span>
-                <h3 style="color: #10b981; font-size: 16px;">SECURE</h3>
-            </div>
+    <div id="main-screen">
+        <h2>ELITE TERMINAL</h2>
+        <p style="font-size: 10px; text-align: center; margin-bottom: 20px;">SYSTEM STATUS: <span style="color: #00ff00;">ONLINE</span></p>
+        
+        <input type="text" id="target" placeholder="NUMBER / VEHICLE RC">
+        
+        <div class="btn-box">
+            <button onclick="startHack('mobile')">NUMBER TRACE</button>
+            <button onclick="startHack('vehicle')">VEHICLE RC</button>
         </div>
+        
+        <button class="btn-red" onclick="location.reload()">TERMINATE SESSION</button>
+    </div>
 
-        <div class="search-section">
-            <h4>Data Lookup Module</h4>
-            <input type="text" id="query-input" placeholder="Enter Mobile or Vehicle Number">
-            <div style="display: flex; gap: 10px;">
-                <button class="btn btn-primary" onclick="fetchData('mobile')">Search Mobile</button>
-                <button class="btn btn-primary" style="background: #1f2937;" onclick="fetchData('vehicle')">Search Vehicle</button>
-            </div>
-            <button class="btn btn-outline" onclick="document.getElementById('query-input').value=''">Clear Form</button>
-        </div>
+    <div id="loader-screen" class="loader-box">
+        <h3 id="load-text">BYPASSING...</h3>
+        <div class="progress-track"><div id="bar" class="progress-fill"></div></div>
+        <div style="font-size: 10px; margin-top: 10px; color: #00aa66;" id="log-text">> Proxy initialized...</div>
+    </div>
 
-        <div id="result-display">
-            <div class="res-header" id="res-title">Results</div>
-            <div class="res-body" id="res-content">
-                </div>
-        </div>
+    <div id="result-screen">
+        <h2 id="res-title">DECRYPTED DATA</h2>
+        <div id="res-data" class="data-card"></div>
+        <button onclick="backToMenu()" style="width: 100%; margin-top: 15px;">NEW QUERY</button>
+    </div>
+
+    <div class="footer">
+        [/>] SYSTEM BY IMRANPLAYZ<br>
+        CONTACT IG: @_imranplayz_
     </div>
 </div>
 
 <script>
-    // --- AUTH LOGIC ---
+    // Config
+    const USERS = { "user123": "password18", "imran": "admin786" };
+    // In fields ko result me nahi dikhayenge
+    const BLACKLIST = ["branding", "developer", "processed_by", "owner_contact", "status", "msg", "yash", "flix"];
+
     function login() {
         const u = document.getElementById('user').value.trim();
         const p = document.getElementById('pass').value.trim();
-
-        if (u === "user123" && p === "password18") {
-            document.getElementById('login-page').style.display = 'none';
-            document.getElementById('dashboard').style.display = 'block';
+        if(USERS[u] && USERS[u] === p) {
+            switchPage('main-screen');
         } else {
-            document.getElementById('login-err').style.display = 'block';
+            document.getElementById('login-error').style.display = 'block';
         }
     }
 
-    // --- DATA FETCHING ---
-    async function fetchData(type) {
-        const target = document.getElementById('query-input').value.trim();
-        if (!target) return alert("Please enter a value");
+    async function startHack(type) {
+        const val = document.getElementById('target').value.trim();
+        if(!val) return alert("ENTER INPUT!");
 
-        // UI Reset
-        const resBox = document.getElementById('result-display');
-        const resContent = document.getElementById('res-content');
-        resBox.style.display = 'block';
-        resContent.innerHTML = "<p style='text-align:center; color:gray;'>Processing request...</p>";
+        switchPage('loader-screen');
+        let p = 0;
+        const bar = document.getElementById('bar');
+        const loadText = document.getElementById('load-text');
+        
+        const interval = setInterval(() => {
+            p += Math.random() * 8;
+            if(p >= 95) { p = 95; clearInterval(interval); }
+            bar.style.width = p + "%";
+            if(p > 30) loadText.innerText = "EXTRACTING DATA...";
+            if(p > 70) loadText.innerText = "DECRYPTING PACKETS...";
+        }, 120);
 
         try {
-            const api = (type === 'mobile') 
-                ? `https://yash-code-with-ai.alphamovies.workers.dev/?num=${target}&key=7189814021`
-                : `https://vehicle-eight-vert.vercel.app/api?rc=${target}`;
+            let api = (type === 'mobile') 
+                ? `https://yash-code-with-ai.alphamovies.workers.dev/?num=${val}&key=7189814021`
+                : `https://vehicle-eight-vert.vercel.app/api?rc=${val}`;
             
-            const response = await fetch(api);
-            const data = await response.json();
+            const res = await fetch(api);
+            const data = await res.json();
             
-            renderData(data, type.toUpperCase());
-            updateCount();
-            
-            // Log to console (For now)
-            console.log(`Activity: ${type} search for ${target}`);
-
-        } catch (error) {
-            resContent.innerHTML = "<p style='color:red;'>Service temporarily unavailable.</p>";
+            clearInterval(interval);
+            bar.style.width = "100%";
+            setTimeout(() => showFinalResult(data), 600);
+        } catch(e) {
+            alert("API TIMEOUT!");
+            backToMenu();
         }
     }
 
-    function renderData(data, title) {
-        const resContent = document.getElementById('res-content');
-        document.getElementById('res-title').innerText = title + " INFORMATION";
-        resContent.innerHTML = "";
+    function showFinalResult(data) {
+        switchPage('result-screen');
+        const box = document.getElementById('res-data');
+        box.innerHTML = "";
 
-        if (!data || data.status === false) {
-            resContent.innerHTML = "<p style='text-align:center;'>No records found.</p>";
-            return;
-        }
+        let found = false;
 
-        function buildList(obj) {
-            for (let key in obj) {
-                if (typeof obj[key] === 'object' && obj[key] !== null) {
-                    buildList(obj[key]);
+        function render(obj) {
+            for(let key in obj) {
+                if(typeof obj[key] === 'object' && obj[key] !== null) {
+                    render(obj[key]);
                 } else {
-                    const row = document.createElement('div');
-                    row.className = 'data-row';
-                    row.innerHTML = `<span>${key.toUpperCase()}</span> <span>${obj[key]}</span>`;
-                    resContent.appendChild(row);
+                    // FILTERING LOGIC
+                    let lowerKey = key.toLowerCase();
+                    let valStr = String(obj[key]).toLowerCase();
+                    
+                    let isBlacklisted = BLACKLIST.some(item => lowerKey.includes(item) || valStr.includes(item));
+
+                    if(!isBlacklisted) {
+                        box.innerHTML += `<div class="data-item"><span class="key">${key.toUpperCase()}:</span> ${obj[key]}</div>`;
+                        found = true;
+                    }
                 }
             }
         }
-        buildList(data);
+
+        render(data);
+        if(!found) box.innerHTML = "❌ NO SECURE DATA FOUND.";
     }
 
-    function updateCount() {
-        let count = parseInt(document.getElementById('q-count').innerText);
-        document.getElementById('q-count').innerText = count + 1;
+    function switchPage(id) {
+        ['login-screen', 'main-screen', 'loader-screen', 'result-screen'].forEach(p => {
+            document.getElementById(p).classList.remove('visible');
+        });
+        document.getElementById(id).classList.add('visible');
+    }
+
+    function backToMenu() {
+        document.getElementById('bar').style.width = "0%";
+        document.getElementById('load-text').innerText = "BYPASSING...";
+        switchPage('main-screen');
     }
 </script>
 

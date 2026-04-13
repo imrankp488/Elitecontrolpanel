@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>IMRAN PLAYZ | ELITE SYSTEM v20.0</title>
+    <title>IMRAN PLAYZ | ELITE SYSTEM v21.0</title>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
@@ -32,21 +32,21 @@
         .plan-card { border: 1px solid #333; padding: 15px; border-radius: 10px; margin-bottom: 10px; text-align: left; cursor: pointer; position: relative; }
         .plan-card.selected { border-color: var(--p); background: rgba(0,255,0,0.05); }
 
-        /* Payment UI */
         .pay-options { display: none; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 15px; }
         
-        /* Modal */
         .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 3000; align-items: center; justify-content: center; backdrop-filter: blur(8px); }
         .modal-box { width: 90%; max-width: 400px; background: #050505; border: 2px solid var(--p); border-radius: 15px; padding: 25px; text-align: center; position: relative; }
         .qr-frame { width: 220px; height: 220px; background: #fff; margin: 15px auto; padding: 10px; border-radius: 10px; display: flex; align-items: center; justify-content: center; }
         .qr-frame img { max-width: 100%; border-radius: 5px; }
 
-        .upload-box { border: 2px dashed #444; padding: 20px; border-radius: 10px; margin-top: 20px; position: relative; }
+        .upload-box { border: 2px dashed #444; padding: 20px; border-radius: 10px; margin-top: 20px; position: relative; cursor: pointer; }
         input[type="file"] { position: absolute; width: 100%; height: 100%; top: 0; left: 0; opacity: 0; cursor: pointer; }
 
         .msg-box { background: rgba(0, 204, 255, 0.1); border: 1px solid var(--blue); padding: 12px; border-radius: 8px; margin-bottom: 15px; font-size: 12px; color: #fff; display: none; }
         .bar-bg { width: 100%; height: 8px; border: 1px solid var(--p); border-radius: 4px; margin: 15px 0; overflow: hidden; background: #111; }
         .bar-f { width: 0%; height: 100%; background: var(--p); transition: 0.3s; }
+        
+        .note-text { font-size: 10px; color: var(--y); border-top: 1px dashed #333; padding-top: 10px; margin-top: 10px; }
     </style>
 </head>
 <body>
@@ -56,12 +56,12 @@
             <h2 id="m-t" style="color:#fff; font-family:'Orbitron'; font-size:16px;">NOTIFICATION</h2>
             <div id="qr-wrap" style="display:none;">
                 <div class="qr-frame">
-                    <img src="https://i.ibb.co/mHpkPsc/Screenshot-20251105-201554.png" alt="QR Code">
+                    <img id="live-qr" src="" alt="UPI QR Code">
                 </div>
-                <p style="font-size:11px; color:var(--y);">Scan QR with any UPI App to Pay</p>
+                <p style="font-size:11px; color:var(--y);">Scan this QR using any UPI App</p>
                 <button class="btn-blue" style="font-size:11px; padding:8px;" onclick="copyID()">Copy UPI ID Instead</button>
             </div>
-            <p id="m-m" style="font-size:13px; color:#ccc; margin: 15px 0;"></p>
+            <p id="m-m" style="font-size:13px; color:#ccc; margin: 15px 0; line-height: 1.5;"></p>
             <button onclick="closeModal()">CLOSE</button>
         </div>
     </div>
@@ -71,7 +71,7 @@
             <h1>SYSTEM LOGIN</h1>
             <input type="email" id="email" placeholder="Email Address">
             <input type="password" id="pass" placeholder="Password">
-            <button onclick="handleAuth()">LOGIN ACCESS</button>
+            <button onclick="handleAuth()">LOGIN</button>
             <button style="background:#fff; color:#000; border:none; display:flex; align-items:center; justify-content:center; gap:10px;" onclick="loginGoogle()">
                 <img src="https://cdn1.iconfinder.com/data/icons/google-s-logo/150/Google_Icons-09-512.png" width="18"> GOOGLE LOGIN
             </button>
@@ -89,7 +89,7 @@
                 <button onclick="runTrace('mob')">Trace Mob</button>
                 <button onclick="runTrace('veh')">Trace Veh</button>
             </div>
-            <button class="btn-blue" style="margin-top:15px;" onclick="switchPage('pg-plans')">RECHARGE PLANS</button>
+            <button class="btn-blue" style="margin-top:15px;" onclick="switchPage('pg-plans')">RECHARGE CREDITS</button>
             <button class="btn-red" style="font-size:10px;" onclick="logout()">LOGOUT</button>
         </div>
     </div>
@@ -109,15 +109,19 @@
                 <span id="fn" style="font-size:12px;">Click to Upload Screenshot</span>
                 <input type="file" id="p-img" accept="image/*" onchange="document.getElementById('fn').innerText=this.files.name">
             </div>
+            
+            <p class="note-text">⚠️ NOTE: Credits will be added in 5-10 minutes after Admin verifies your payment screenshot.</p>
+            
             <button class="btn-blue" id="up-btn" onclick="uploadImgBB()">SUBMIT PROOF</button>
             <button class="btn-red" onclick="switchPage('pg-dash')">BACK</button>
         </div>
     </div>
 
-    <div id="pg-load" class="page"><h1>TRACING...</h1><div class="bar-bg"><div id="bar" class="bar-f"></div></div></div>
+    <div id="pg-load" class="page"><div class="container"><h1>TRACING...</h1><div class="bar-bg"><div id="bar" class="bar-f"></div></div></div></div>
     <div id="pg-res" class="page"><div class="container"><h1>DECRYPTED DATA</h1><div id="data-out" style="text-align:left; font-size:12px; background:#050505; padding:15px; border:1px dashed var(--p);"></div><button onclick="switchPage('pg-dash')" style="margin-top:15px;">NEW SEARCH</button></div></div>
 
 <script>
+    // --- 🔑 FIREBASE & KEYS ---
     const firebaseConfig = {
       apiKey: "AIzaSyB011WYaNhJQx77yO3Ow7l-Z_clhS89Z8A",
       authDomain: "adminpanel-6b862.firebaseapp.com",
@@ -131,30 +135,38 @@
     firebase.initializeApp(firebaseConfig);
     const auth = firebase.auth();
     const db = firebase.database();
+    
     const IMGBB_KEY = "47d4ddf5133629b43bb606ec944137f9";
     const MY_UPI = "imrankhan17@ptyes";
     
     let isLogin = true, credits = 0, selectedAmt = 0;
 
-    auth.onAuthStateChanged(user => {
-        if (user) sync(user);
-        else switchPage('pg-auth');
-    });
+    auth.onAuthStateChanged(user => { if (user) sync(user); else switchPage('pg-auth'); });
 
+    // --- MODAL & UI ---
     function showModal(t, m, qr=false) {
         document.getElementById('m-t').innerText = t;
         document.getElementById('m-m').innerText = m;
         document.getElementById('qr-wrap').style.display = qr ? 'block' : 'none';
+        
+        // Generate Live QR based on Selected Amount and UPI ID
+        if(qr) {
+            const upiString = `upi://pay?pa=${MY_UPI}&pn=IMRAN_PLAYZ&am=${selectedAmt}&cu=INR`;
+            document.getElementById('live-qr').src = `https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(upiString)}`;
+        }
+        
         document.getElementById('modal').style.display = 'flex';
     }
+    
     function closeModal() { document.getElementById('modal').style.display = 'none'; }
     function switchPage(id) { document.querySelectorAll('.page').forEach(p=>p.classList.remove('active')); document.getElementById(id).classList.add('active'); }
     function toggleMode() { isLogin=!isLogin; document.querySelector('#pg-auth h1').innerText = isLogin?"SYSTEM LOGIN":"CREATE ACCOUNT"; }
     function logout() { auth.signOut().then(() => location.reload()); }
 
+    // --- AUTH ---
     function handleAuth() {
         const e = document.getElementById('email').value, p = document.getElementById('pass').value;
-        if(isLogin) auth.signInWithEmailAndPassword(e,p).catch(err => alert(err.message));
+        if(isLogin) auth.signInWithEmailAndPassword(e,p).catch(err => showModal("ERROR", err.message));
         else auth.createUserWithEmailAndPassword(e,p).then(r => { db.ref('users/'+r.user.uid).set({email:e,credits:1}); });
     }
     function loginGoogle() { auth.signInWithPopup(new firebase.auth.GoogleAuthProvider()); }
@@ -172,6 +184,7 @@
         });
     }
 
+    // --- PAYMENT & UPLOAD ---
     function selPlan(amt) {
         selectedAmt = amt;
         document.querySelectorAll('.plan-card').forEach(c => c.classList.remove('selected'));
@@ -179,49 +192,78 @@
         document.getElementById('pay-opts').style.display = 'grid';
     }
 
-    function showQR() { showModal("SCAN TO PAY", `Scan & Pay ₹${selectedAmt} via any app.`, true); }
-    function copyID() { navigator.clipboard.writeText(MY_UPI); alert("UPI ID Copied!"); }
+    function showQR() { showModal("SCAN TO PAY", `Scan & Pay ₹${selectedAmt} using any app.`, true); }
+    function copyID() { navigator.clipboard.writeText(MY_UPI); showModal("COPIED", "UPI ID Copied: " + MY_UPI); }
     function payGeneric() { window.location.href = `upi://pay?pa=${MY_UPI}&pn=IMRAN_PLAYZ&am=${selectedAmt}&cu=INR`; }
 
     async function uploadImgBB() {
         const file = document.getElementById('p-img').files;
-        if(!file) return alert("Select screenshot!");
+        if(!file) return showModal("WARNING", "Please select a screenshot first!");
+        
         const btn = document.getElementById('up-btn');
         btn.innerText = "UPLOADING..."; btn.disabled = true;
         
-        const fd = new FormData();
-        fd.append('image', file);
+        const fd = new FormData(); fd.append('image', file);
 
         try {
             const res = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_KEY}`, { method: 'POST', body: fd });
             const d = await res.json();
             if(d.success) {
                 await db.ref('recharge_requests/' + Date.now()).set({ user: auth.currentUser.email, uid: auth.currentUser.uid, screenshot: d.data.url, status: "pending", time: new Date().toLocaleString() });
-                await db.ref('users/' + auth.currentUser.uid).update({ admin_msg: "System: Verification Pending..." });
-                showModal("SUCCESS", "Screenshot submitted! Admin will verify soon.");
+                await db.ref('users/' + auth.currentUser.uid).update({ admin_msg: "System: Proof Received! Verification in progress (5-10 mins)." });
+                showModal("SUCCESS", "Screenshot submitted! Admin will verify and add credits shortly.");
                 switchPage('pg-dash');
-            } else { alert("Upload error."); }
-        } catch(e) { alert("Upload failed."); }
+            } else { showModal("ERROR", "Upload failed. Try again."); }
+        } catch(e) { showModal("ERROR", "Network issue. Please try again."); }
         btn.innerText = "SUBMIT PROOF"; btn.disabled = false;
     }
 
+    // --- TRACE & SMART REFUND LOGIC ---
+    let fetchItv;
     async function runTrace(t) {
-        if(credits <= 0) return showModal("NO CREDITS", "Please recharge your account.");
+        if(credits <= 0) return showModal("NO CREDITS", "You have 0 credits. Please recharge.");
         const v = document.getElementById('target').value.trim();
         if(!v) return;
         switchPage('pg-load');
-        let p=0; const itv = setInterval(()=>{ p+=10; document.getElementById('bar').style.width=p+"%"; if(p>=100) clearInterval(itv);}, 150);
+        
+        let p=0; 
+        fetchItv = setInterval(()=>{ p+=10; document.getElementById('bar').style.width=p+"%"; if(p>=95) clearInterval(fetchItv);}, 200);
+        
         try {
             const api = (t==='mob') ? `https://yash-code-with-ai.alphamovies.workers.dev/?num=${v}&key=7189814021` : `https://vehicle-eight-vert.vercel.app/api?rc=${v}`;
-            const res = await fetch(api); const data = await res.json();
+            const res = await fetch(api); 
+            const data = await res.json();
+            
+            clearInterval(fetchItv);
+            document.getElementById('bar').style.width = "100%";
+
+            // SMART REFUND LOGIC: Check if data is empty or has error
+            const dataStr = JSON.stringify(data).toLowerCase();
+            if(Object.keys(data).length === 0 || dataStr.includes("not found") || dataStr.includes("error") || data.status === false) {
+                showModal("DATA NOT FOUND", "Information is not available in the API database.\n\n✅ YOUR CREDIT WAS NOT DEDUCTED.");
+                switchPage('pg-dash');
+                return; // Stop function here, don't cut credit
+            }
+
+            // DEDUCT CREDIT ONLY IF SUCCESS
             await db.ref('users/'+auth.currentUser.uid).update({credits: credits-1});
-            setTimeout(()=>{ switchPage('pg-res'); render(data); }, 600);
-        } catch(e) { switchPage('pg-dash'); }
+            
+            setTimeout(()=>{ switchPage('pg-res'); render(data); }, 500);
+        } catch(e) { 
+            clearInterval(fetchItv);
+            showModal("API SERVER DOWN", "The API server is currently down.\n\n✅ YOUR CREDIT WAS NOT DEDUCTED.");
+            switchPage('pg-dash'); 
+        }
     }
 
     function render(d) {
         const out = document.getElementById('data-out'); out.innerHTML = "";
-        for(let k in d) if(typeof d[k] !== 'object') out.innerHTML += `<b>${k.toUpperCase()}:</b> ${d[k]}<br>`;
+        const skip = ["branding", "developer", "telegram", "yash", "flix", "http"];
+        for(let k in d) {
+            if(typeof d[k] !== 'object' && !skip.some(s => k.toLowerCase().includes(s))) {
+                out.innerHTML += `<div style="padding: 5px 0; border-bottom: 1px solid #111;"><b style="color:var(--p);">${k.toUpperCase()}:</b> <span style="color:#fff;">${d[k]}</span></div>`;
+            }
+        }
     }
 </script>
 </body>

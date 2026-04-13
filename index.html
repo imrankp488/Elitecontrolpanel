@@ -1,389 +1,180 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>IMRAN PLAYZ | ELITE SYSTEM v10 PRO</title>
-
-<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
-
-<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
-
-<style>
-:root { 
-    --p: #00ff41; 
-    --p-glow: rgba(0, 255, 65, 0.3);
-    --r: #ff3131; 
-    --b: #050505; 
-    --glass: rgba(15, 15, 15, 0.95);
-    --border: #1a1a1a;
-}
-
-body { 
-    background: var(--b); 
-    color: var(--p); 
-    font-family: 'Share Tech Mono', monospace; 
-    margin: 0; 
-    overflow-x: hidden;
-    background-image: linear-gradient(0deg, transparent 24%, rgba(0, 255, 65, .05) 25%, rgba(0, 255, 65, .05) 26%, transparent 27%, transparent 74%, rgba(0, 255, 65, .05) 75%, rgba(0, 255, 65, .05) 76%, transparent 77%, transparent), linear-gradient(90deg, transparent 24%, rgba(0, 255, 65, .05) 25%, rgba(0, 255, 65, .05) 26%, transparent 27%, transparent 74%, rgba(0, 255, 65, .05) 75%, rgba(0, 255, 65, .05) 76%, transparent 77%, transparent);
-    background-size: 50px 50px;
-}
-
-/* Page Overlay for Matrix Vibe */
-body::after {
-    content: " ";
-    position: fixed;
-    top: 0; left: 0; width: 100%; height: 100%;
-    background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
-    background-size: 100% 2px, 3px 100%;
-    pointer-events: none;
-    z-index: 999;
-}
-
-.page { display:none; min-height:100vh; justify-content:center; align-items:center; flex-direction: column; padding: 20px; box-sizing: border-box;}
-.active { display:flex; animation: fadeIn 0.5s ease; }
-
-@keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-
-.container {
-    width: 100%;
-    max-width: 420px;
-    background: var(--glass);
-    border: 1px solid var(--p);
-    border-radius: 15px;
-    padding: 30px;
-    text-align: center;
-    box-shadow: 0 0 20px var(--p-glow);
-    backdrop-filter: blur(10px);
-}
-
-h1 { font-family: 'Orbitron'; color: #fff; font-size: 22px; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 25px; text-shadow: 0 0 10px var(--p-glow); }
-
-/* Input Styling */
-input {
-    width: 100%; padding: 14px;
-    margin: 10px 0;
-    background: #000;
-    border: 1px solid var(--border);
-    color: var(--p);
-    font-family: 'Share Tech Mono';
-    box-sizing: border-box;
-    transition: 0.3s;
-}
-input:focus { border-color: var(--p); outline: none; box-shadow: 0 0 10px var(--p-glow); }
-
-/* Button Styling */
-button {
-    width: 100%; padding: 14px;
-    margin: 10px 0;
-    border: 1px solid var(--p);
-    background: transparent;
-    color: var(--p);
-    font-family: 'Orbitron';
-    font-weight: bold;
-    cursor: pointer;
-    transition: 0.3s;
-    text-transform: uppercase;
-}
-button:hover { background: var(--p); color: #000; box-shadow: 0 0 15px var(--p); }
-
-.google-btn { border-color: #fff; color: #fff; margin-top: 5px; }
-.google-btn:hover { background: #fff; color: #000; }
-
-/* Plan Cards */
-.plan-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 20px 0; }
-.plan-card {
-    border: 1px solid var(--border);
-    padding: 15px;
-    border-radius: 10px;
-    cursor: pointer;
-    background: #0a0a0a;
-    transition: 0.3s;
-}
-.plan-card.selected { border-color: var(--p); background: var(--p-glow); }
-.plan-card:hover { border-color: var(--p); transform: translateY(-3px); }
-.plan-amt { font-size: 18px; color: #fff; font-weight: bold; }
-.plan-credit { font-size: 12px; color: var(--p); }
-
-/* Progress Bar */
-.progress-track { background: #002211; border-radius: 5px; height: 12px; overflow: hidden; width: 100%; margin: 20px 0; display: none; }
-.progress-fill { background: var(--p); height: 100%; width: 0%; box-shadow: 0 0 10px var(--p); transition: width 0.3s linear; }
-
-/* Dashboard Header */
-.user-info {
-    display: flex; justify-content: space-between; align-items: center;
-    background: #001100; padding: 10px 15px; border-radius: 8px; margin-bottom: 20px; border-left: 3px solid var(--p);
-}
-.credits-box { color: #fff; font-weight: bold; }
-
-.footer { margin-top: 25px; font-size: 10px; color: #444; text-transform: uppercase; letter-spacing: 1px; }
-
-/* Modal */
-.modal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); justify-content:center; align-items:center; z-index: 1000; }
-.modal-box { background:#0a0a0a; border:1px solid var(--p); padding:30px; border-radius:10px; text-align:center; max-width: 300px; box-shadow: 0 0 30px #000; }
-
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>IMRAN PLAYZ | ELITE SYSTEM v14.0</title>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    <style>
+        :root { --p: #00ff41; --r: #ff3131; --b: #000; --panel: rgba(10, 10, 10, 0.98); --blue: #00ccff; --y: #ffd700; }
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; transition: 0.3s ease; }
+        body { background: var(--b); color: var(--p); font-family: 'Share Tech Mono', monospace; margin: 0; }
+        .page { display: none; min-height: 100vh; padding: 20px; flex-direction: column; align-items: center; justify-content: center; }
+        .active { display: flex !important; animation: fadeIn 0.4s; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        .container { width: 100%; max-width: 450px; background: var(--panel); border: 1px solid var(--p); border-radius: 15px; padding: 25px; box-shadow: 0 0 25px rgba(0, 255, 65, 0.15); text-align: center; }
+        h1 { font-family: 'Orbitron', sans-serif; font-size: 18px; color: #fff; text-shadow: 0 0 10px var(--p); margin-bottom: 20px; }
+        input { width: 100%; padding: 14px; background: #050505; border: 1px solid #333; color: var(--p); border-radius: 8px; margin-bottom: 12px; outline: none; font-family: inherit; }
+        .upload-box { border: 2px dashed #444; padding: 20px; border-radius: 10px; cursor: pointer; margin-bottom: 15px; position: relative; background: rgba(255,255,255,0.02); }
+        input[type="file"] { position: absolute; width: 100%; height: 100%; top: 0; left: 0; opacity: 0; cursor: pointer; }
+        button { width: 100%; padding: 14px; background: transparent; border: 1.5px solid var(--p); color: var(--p); font-weight: bold; cursor: pointer; border-radius: 8px; font-family: inherit; margin-bottom: 10px; }
+        button:hover { background: var(--p); color: #000; box-shadow: 0 0 15px var(--p); }
+        .btn-blue { border-color: var(--blue); color: var(--blue); }
+        .btn-red { border-color: var(--r); color: var(--r); }
+        .msg-box { background: rgba(0, 204, 255, 0.1); border: 1px solid var(--blue); padding: 12px; border-radius: 8px; margin-bottom: 15px; font-size: 12px; color: #fff; display: none; }
+        .credit-badge { background: rgba(255, 215, 0, 0.1); border: 1px solid var(--y); padding: 6px 15px; border-radius: 20px; font-size: 13px; margin-bottom: 20px; color: var(--y); }
+        .bar-bg { width: 100%; height: 8px; border: 1px solid var(--p); border-radius: 4px; margin: 15px 0; overflow: hidden; background: #111; }
+        .bar-f { width: 0%; height: 100%; background: var(--p); transition: 0.3s; }
+        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 2000; align-items: center; justify-content: center; backdrop-filter: blur(8px); }
+        .modal-box { width: 85%; max-width: 380px; background: #050505; border: 2px solid var(--p); border-radius: 15px; padding: 25px; text-align: center; }
+    </style>
 </head>
-
 <body>
 
-<div id="modal" class="modal">
-    <div class="modal-box">
-        <h2 id="m-title" style="font-family:'Orbitron'; font-size:16px;"></h2>
-        <p id="m-msg" style="font-size:13px; margin: 15px 0;"></p>
-        <button onclick="closeModal()">ACKNOWLEDGE</button>
-    </div>
-</div>
+    <div id="modal" class="modal-overlay"><div class="modal-box"><h2 id="m-t"></h2><p id="m-m" style="font-size:13px; color:#ccc;"></p><button onclick="closeModal()">OKAY</button></div></div>
 
-<div id="auth" class="page active">
-    <div class="container">
-        <h1 id="auth-title">SYSTEM LOGIN</h1>
-        
-        <input id="email" type="email" placeholder="ADMIN_EMAIL@ROOT.COM">
-        <input id="pass" type="password" placeholder="ACCESS_PASSWORD">
-
-        <button onclick="handleAuth()" id="authBtn">INITIALIZE LOGIN</button>
-        <button onclick="googleLogin()" class="google-btn">GOOGLE ACCESS</button>
-
-        <p onclick="toggleMode()" style="cursor:pointer; font-size:12px; margin-top:15px; color:#00aa66;">[CLICK TO SWITCH MODE]</p>
-        
-        <div class="footer">DEVELOPED BY IMRANPLAYZ</div>
-    </div>
-</div>
-
-<div id="dash" class="page">
-    <div class="container">
-        <h1>CONTROL PANEL</h1>
-
-        <div class="user-info">
-            <span style="font-size:12px;">STATUS: <span style="color:var(--p)">ENCRYPTED</span></span>
-            <span class="credits-box">CREDITS: <span id="credits" style="color:var(--p)">0</span></span>
+    <div id="pg-auth" class="page active">
+        <div class="container">
+            <h1>SYSTEM LOGIN</h1>
+            <input type="email" id="email" placeholder="Email Address">
+            <input type="password" id="pass" placeholder="Password">
+            <button onclick="handleAuth()">LOGIN</button>
+            <button style="background:#fff; color:#000; border:none;" onclick="loginGoogle()">SIGN IN WITH GOOGLE</button>
+            <p onclick="toggleMode()" style="font-size:11px; color:#444; cursor:pointer; margin-top:10px;">New User? Create Account</p>
         </div>
+    </div>
 
-        <input id="target" placeholder="ENTER TARGET NUMBER / RC">
-        
-        <div id="hackProgress" class="progress-track">
-            <div id="bar" class="progress-fill"></div>
-        </div>
-
-        <button onclick="trace()">START TRACE</button>
-
-        <hr style="border:0; border-top:1px solid #222; margin:20px 0;">
-
-        <div style="font-size:12px; text-align:left; color:#fff; margin-bottom:10px;">CREDIT TOP-UP:</div>
-        <div class="plan-grid">
-            <div class="plan-card" onclick="selectPlan(this, 50, 10)">
-                <div class="plan-amt">₹50</div>
-                <div class="plan-credit">10 CREDITS</div>
+    <div id="pg-dash" class="page">
+        <div class="container">
+            <h1>DASHBOARD</h1>
+            <div id="admin-notif" class="msg-box"><strong>[ADMIN]:</strong> <span id="admin-txt"></span></div>
+            <div class="credit-badge">CREDITS: <span id="user-credits">0</span></div>
+            <input type="text" id="target" placeholder="98765XXXXX / DL10CXXXX">
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                <button onclick="runTrace('mob')">Mobile</button>
+                <button onclick="runTrace('veh')">Vehicle</button>
             </div>
-            <div class="plan-card" onclick="selectPlan(this, 100, 30)">
-                <div class="plan-amt">₹100</div>
-                <div class="plan-credit">30 CREDITS</div>
-            </div>
+            <button class="btn-blue" style="margin-top:15px;" onclick="switchPage('pg-plans')">RECHARGE / PLANS</button>
+            <button class="btn-red" style="font-size:10px;" onclick="location.reload()">LOGOUT</button>
         </div>
-
-        <button onclick="pay()" style="border-color:var(--y); color:var(--y);">PURCHASE CREDITS</button>
-
-        <div style="margin-top:20px; border: 1px dashed #333; padding: 10px;">
-            <div style="font-size:10px; margin-bottom:10px;">UPLOAD PAYMENT SCREENSHOT</div>
-            <input type="file" id="img" style="font-size:10px; border:none; background:transparent;">
-            <button onclick="upload()" style="font-size:12px; padding:8px;">SUBMIT DATA</button>
-        </div>
-
-        <button onclick="logout()" style="border-color:var(--r); color:var(--r); margin-top:30px; font-size:12px;">TERMINATE SESSION</button>
-        
-        <div class="footer">IMRANPLAYZ SECURITY SYSTEMS v10</div>
     </div>
-</div>
+
+    <div id="pg-plans" class="page">
+        <div class="container">
+            <h1>RECHARGE</h1>
+            <div style="border:1px solid #333; padding:10px; border-radius:8px; margin-bottom:10px; text-align:left;" onclick="openPay('50')"><span style="float:right;">₹50</span><strong>BASIC</strong><br><small>10 Searches</small></div>
+            <div style="border:1px solid #333; padding:10px; border-radius:8px; margin-bottom:10px; text-align:left;" onclick="openPay('100')"><span style="float:right;">₹100</span><strong>PRO</strong><br><small>30 Searches</small></div>
+            
+            <div style="margin-top: 15px; border-top: 1px solid #333; padding-top: 15px;">
+                <p style="font-size: 11px; color: var(--blue);">UPLOAD SCREENSHOT:</p>
+                <div class="upload-box">
+                    <span id="fn">Select Payment Photo</span>
+                    <input type="file" id="p-img" accept="image/*" onchange="document.getElementById('fn').innerText=this.files.name">
+                </div>
+                <button class="btn-blue" id="up-btn" onclick="uploadImgBB()">SUBMIT PROOF</button>
+                <button class="btn-blue" style="font-size:11px; border-style:dashed;" onclick="contactEmail()">EMAIL ADMIN FOR HELP</button>
+            </div>
+            <button class="btn-red" onclick="switchPage('pg-dash')">BACK</button>
+        </div>
+    </div>
+
+    <div id="pg-load" class="page"><div class="container"><h1>BYPASSING...</h1><div class="bar-bg"><div id="bar" class="bar-f"></div></div></div></div>
+    <div id="pg-res" class="page"><div class="container"><h1>DECRYPTED DATA</h1><div id="data-out" style="text-align:left; font-size:11px; background:#050505; padding:15px; border:1px dashed var(--p); max-height:300px; overflow-y:auto;"></div><button onclick="switchPage('pg-dash')" style="margin-top:15px;">NEW SEARCH</button></div></div>
 
 <script>
-// Firebase Initialization (Using your existing config)
-const firebaseConfig = {
- apiKey:"AIzaSyB011WYaNhJQx77yO3Ow7l-Z_clhS89Z8A",
- authDomain:"adminpanel-6b862.firebaseapp.com",
- databaseURL:"https://adminpanel-6b862-default-rtdb.firebaseio.com",
- projectId:"adminpanel-6b862"
-};
+    const firebaseConfig = {
+      apiKey: "AIzaSyB011WYaNhJQx77yO3Ow7l-Z_clhS89Z8A",
+      authDomain: "adminpanel-6b862.firebaseapp.com",
+      databaseURL: "https://adminpanel-6b862-default-rtdb.firebaseio.com",
+      projectId: "adminpanel-6b862",
+      storageBucket: "adminpanel-6b862.firebasestorage.app",
+      messagingSenderId: "220057098294",
+      appId: "1:220057098294:web:9453e948e8817544916097"
+    };
 
-firebase.initializeApp(firebaseConfig);
-const auth=firebase.auth();
-const db=firebase.database();
+    const IMGBB_KEY = "47d4ddf5133629b43bb606ec944137f9";
+    const ADMIN_EMAIL = "ip6675696@gmail.com";
 
-const IMGBB_KEY="47d4ddf5133629b43bb606ec944137f9";
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.database();
+    let isLogin = true, credits = 0;
 
-let isLogin=true;
-let selectedAmt=0;
-let selectedCredits=0;
+    function showModal(t, m) { document.getElementById('m-t').innerText=t; document.getElementById('m-m').innerText=m; document.getElementById('modal').style.display='flex'; }
+    function closeModal() { document.getElementById('modal').style.display='none'; }
+    function switchPage(id) { document.querySelectorAll('.page').forEach(p=>p.classList.remove('active')); document.getElementById(id).classList.add('active'); }
+    function toggleMode() { isLogin=!isLogin; document.querySelector('#pg-auth h1').innerText = isLogin?"SYSTEM LOGIN":"CREATE ACCOUNT"; }
 
-// UI Helpers
-function modal(t,m){
- document.getElementById("m-title").innerText=t;
- document.getElementById("m-msg").innerText=m;
- document.getElementById("modal").style.display="flex";
-}
-function closeModal(){ document.getElementById("modal").style.display="none"; }
-
-function show(id){
- document.querySelectorAll(".page").forEach(p=>p.classList.remove("active"));
- document.getElementById(id).classList.add("active");
-}
-
-function toggleMode(){
- isLogin=!isLogin;
- document.getElementById("auth-title").innerText=isLogin?"SYSTEM LOGIN":"CREATE ACCOUNT";
- document.getElementById("authBtn").innerText=isLogin?"INITIALIZE LOGIN":"REGISTER SYSTEM";
-}
-
-// Auth State
-auth.onAuthStateChanged(user=>{
- if(user){
-   if(!user.emailVerified && user.providerData.providerId === 'password'){
-     modal("Verification Required","Check your email inbox.");
-     auth.signOut();
-     return;
-   }
-   db.ref("users/"+user.uid).on("value",snap=>{
-     document.getElementById("credits").innerText=snap.val()?.credits||0;
-   });
-   show("dash");
- } else show("auth");
-});
-
-// Handlers
-function handleAuth(){
- let e=email.value;
- let p=pass.value;
- if(!e || !p) return modal("Input Missing","Enter credentials");
-
- if(isLogin){
-   auth.signInWithEmailAndPassword(e,p).catch(err=>modal("Access Denied",err.message));
- } else {
-   auth.createUserWithEmailAndPassword(e,p).then(async res=>{
-     await res.user.sendEmailVerification();
-     await db.ref("users/"+res.user.uid).set({ email:e, credits:1 });
-     modal("Verification Sent","Verify your email to activate the system.");
-     auth.signOut();
-   }).catch(err=>modal("Registration Error",err.message));
- }
-}
-
-function googleLogin(){
- const provider=new firebase.auth.GoogleAuthProvider();
- auth.signInWithPopup(provider).then(res=>{
-   db.ref("users/"+res.user.uid).once("value").then(snap=>{
-     if(!snap.exists()){
-       db.ref("users/"+res.user.uid).set({ email:res.user.email, credits:1 });
-     }
-   });
- }).catch(err=>modal("Google Login Error",err.message));
-}
-
-function selectPlan(el, a, c){
- document.querySelectorAll(".plan-card").forEach(card=>card.classList.remove("selected"));
- el.classList.add("selected");
- selectedAmt=a;
- selectedCredits=c;
-}
-
-function pay(){
- if(selectedAmt === 0) return modal("No Plan","Please select a credit plan first.");
- const upi=`upi://pay?pa=imrankhan17@ptyes&pn=IMRAN&am=${selectedAmt}&cu=INR`;
- window.location.href=upi;
-}
-
-async function upload(){
- const file=document.getElementById("img").files;
- if(!file) return modal("Missing File","Please select payment screenshot.");
-
- const reader=new FileReader();
- reader.onloadend=async()=>{
-   const base64=reader.result.split(',');
-   const fd=new FormData();
-   fd.append("image",base64);
-
-   const res=await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_KEY}`,{
-     method:"POST",
-     body:fd
-   });
-
-   const data=await res.json();
-   if(data.success){
-     const utr=prompt("Enter UTR Number / Reference ID");
-     await db.ref("recharge_requests/"+Date.now()).set({
-       user:auth.currentUser.email,
-       uid:auth.currentUser.uid,
-       amount:selectedAmt,
-       credits:selectedCredits,
-       screenshot:data.data.url,
-       utr:utr||"none",
-       status:"pending",
-       time:new Date().toLocaleString()
-     });
-     modal("Success","Screenshot submitted. Credits will be added after verification.");
-   }else{ modal("Upload Failed","Server rejected the image."); }
- };
- reader.readAsDataURL(file);
-}
-
-// TRACE WITH ANIMATION
-async function trace(){
- let val=target.value.trim();
- if(!val) return modal("Target Missing","Enter Number or RC first.");
-
- let ref=db.ref("users/"+auth.currentUser.uid+"/credits");
- let snap=await ref.get();
- let c=snap.val()||0;
-
- if(c<=0) return modal("No Credits","Please recharge your account.");
-
- // Start UI Animation
- document.getElementById("hackProgress").style.display = "block";
- let bar = document.getElementById("bar");
- let p = 0;
- 
- let hackInterval = setInterval(async () => {
-    p += Math.floor(Math.random() * 10) + 5;
-    if(p >= 100) {
-        p = 100;
-        clearInterval(hackInterval);
-        
-        // Asli API Call
-        try {
-            let res=await fetch(`https://vehicle-eight-vert.vercel.app/api?rc=${val}`);
-            let data=await res.json();
-
-            if(!data || Object.keys(data).length===0){
-                modal("No Data","No details found for this target. Credits preserved.");
-                document.getElementById("hackProgress").style.display = "none";
-                bar.style.width = "0%";
-                return;
-            }
-
-            await ref.set(c-1);
-            
-            // Result Display (JSON to String formatted)
-            let resultStr = "";
-            for (let key in data) {
-                if(typeof data[key] !== 'object') resultStr += `➤ ${key.toUpperCase()}: ${data[key]}\n`;
-            }
-            alert("🎯 TRACE SUCCESSFUL\n\n" + resultStr);
-            
-            document.getElementById("hackProgress").style.display = "none";
-            bar.style.width = "0%";
-        } catch {
-            modal("Server Timeout","Please try again later.");
-            document.getElementById("hackProgress").style.display = "none";
-            bar.style.width = "0%";
-        }
+    function handleAuth() {
+        const e = document.getElementById('email').value, p = document.getElementById('pass').value;
+        if(isLogin) auth.signInWithEmailAndPassword(e,p).then(r=>sync(r.user)).catch(e=>alert(e.message));
+        else auth.createUserWithEmailAndPassword(e,p).then(r=>{ db.ref('users/'+r.user.uid).set({email:e,credits:1}); location.reload(); });
     }
-    bar.style.width = p + "%";
- }, 150);
-}
+    function loginGoogle() { auth.signInWithPopup(new firebase.auth.GoogleAuthProvider()).then(r=>sync(r.user)); }
 
-function logout(){ auth.signOut(); }
+    function sync(user) {
+        db.ref('users/' + user.uid).on('value', snap => {
+            const d = snap.val();
+            credits = d?.credits || 0;
+            document.getElementById('user-credits').innerText = credits;
+            if(d?.admin_msg) {
+                document.getElementById('admin-notif').style.display = 'block';
+                document.getElementById('admin-txt').innerText = d.admin_msg;
+            } else { document.getElementById('admin-notif').style.display = 'none'; }
+            switchPage('pg-dash');
+        });
+    }
+
+    async function uploadImgBB() {
+        const file = document.getElementById('p-img').files;
+        if(!file) return alert("Select screenshot!");
+        const btn = document.getElementById('up-btn');
+        btn.innerText = "UPLOADING..."; btn.disabled = true;
+        const fd = new FormData(); fd.append('image', file);
+        try {
+            const res = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_KEY}`, { method: 'POST', body: fd });
+            const d = await res.json();
+            await db.ref('recharge_requests/' + Date.now()).set({ user: auth.currentUser.email, uid: auth.currentUser.uid, screenshot: d.data.url, status: "pending", time: new Date().toLocaleString() });
+            await db.ref('users/' + auth.currentUser.uid).update({ admin_msg: "System: Proof Received! Admin is verifying..." });
+            showModal("SUBMITTED", "Payment proof sent to Admin. Wait 5-10 mins for verification.");
+            switchPage('pg-dash');
+        } catch(e) { alert("Upload Failed!"); }
+        btn.innerText = "SUBMIT FOR VERIFICATION"; btn.disabled = false;
+    }
+
+    function contactEmail() {
+        const sub = encodeURIComponent("Recharge Request | Elite System");
+        const body = encodeURIComponent(`Operator Email: ${auth.currentUser.email}\nI have paid for credits. Please verify.`);
+        window.location.href = `mailto:${ADMIN_EMAIL}?subject=${sub}&body=${body}`;
+    }
+
+    function openPay(amt) {
+        const upi = `upi://pay?pa=imranplayz@upi&pn=IMRAN_PLAYZ&am=${amt}&tn=Elite_Recharge`;
+        if(/Android|iPhone/i.test(navigator.userAgent)) window.location.href = upi;
+        else showModal("PAYMENT", "Pay ₹"+amt+" to: imranplayz@upi and upload screenshot.");
+    }
+
+    async function runTrace(t) {
+        if(credits <= 0) return showModal("NO CREDITS", "Recharge your account.");
+        const v = document.getElementById('target').value.trim();
+        if(!v) return;
+        switchPage('pg-load');
+        let p=0; const itv = setInterval(()=>{ p+=10; document.getElementById('bar').style.width=p+"%"; if(p>=100) clearInterval(itv);}, 150);
+        try {
+            const api = (t==='mob') ? `https://yash-code-with-ai.alphamovies.workers.dev/?num=${v}&key=7189814021` : `https://vehicle-eight-vert.vercel.app/api?rc=${v}`;
+            const res = await fetch(api); const data = await res.json();
+            await db.ref('users/'+auth.currentUser.uid).update({credits: credits-1});
+            setTimeout(()=>{ switchPage('pg-res'); render(data); }, 600);
+        } catch(e) { switchPage('pg-dash'); }
+    }
+
+    function render(d) {
+        const out = document.getElementById('data-out'); out.innerHTML = "";
+        for(let k in d) if(typeof d[k] !== 'object') out.innerHTML += `<b>${k.toUpperCase()}:</b> ${d[k]}<br>`;
+    }
 </script>
-
 </body>
 </html>

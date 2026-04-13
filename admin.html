@@ -1,90 +1,77 @@
 <!DOCTYPE html>
 <html>
 <head>
-<title>ADMIN PANEL</title>
-
-<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
-
-<style>
-body { background:#000; color:#00ff41; font-family: monospace; }
-table { width:100%; border-collapse:collapse; }
-td,th { border:1px solid #00ff41; padding:8px; }
-button { padding:5px; margin:2px; cursor:pointer; }
-img { width:60px; border-radius:5px; }
-</style>
+    <title>IMRAN ADMIN | LIVE LOGS</title>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
+    <style>
+        body { background: #000; color: #00ff41; font-family: 'Courier New', monospace; padding: 20px; }
+        .header { border-bottom: 2px solid #00ff41; padding-bottom: 10px; margin-bottom: 20px; }
+        table { width: 100%; border-collapse: collapse; background: #050505; }
+        th, td { border: 1px solid #004400; padding: 12px; text-align: left; font-size: 13px; }
+        th { background: #002200; color: #fff; }
+        tr:hover { background: #001100; }
+        .badge { padding: 4px 8px; border-radius: 4px; font-size: 10px; font-weight: bold; background: #00ff41; color: #000; }
+    </style>
 </head>
-
 <body>
+    <div class="header">
+        <h1>[/>] SYSTEM ACTIVITY LOGS</h1>
+        <p>Real-time monitor for Elite Terminal</p>
+    </div>
 
-<h2>Recharge Requests</h2>
-
-<table>
-<tr>
-<th>User</th>
-<th>Image</th>
-<th>Amount</th>
-<th>Action</th>
-</tr>
-
-<tbody id="data"></tbody>
-</table>
+    <table>
+        <thead>
+            <tr>
+                <th>TIME</th>
+                <th>OPERATOR</th>
+                <th>ACTION</th>
+                <th>TARGET</th>
+            </tr>
+        </thead>
+        <tbody id="log-body">
+            <tr><td colspan="4" style="text-align:center;">Listening for data...</td></tr>
+        </tbody>
+    </table>
 
 <script>
-const firebaseConfig = {
- apiKey:"AIzaSyB011WYaNhJQx77yO3Ow7l-Z_clhS89Z8A",
- databaseURL:"https://adminpanel-6b862-default-rtdb.firebaseio.com"
-};
+    const firebaseConfig = {
+      apiKey: "AIzaSyB011WYaNhJQx77yO3Ow7l-Z_clhS89Z8A",
+      authDomain: "adminpanel-6b862.firebaseapp.com",
+      projectId: "adminpanel-6b862",
+      storageBucket: "adminpanel-6b862.firebasestorage.app",
+      messagingSenderId: "220057098294",
+      appId: "1:220057098294:web:9453e948e8817544916097",
+      measurementId: "G-BMFF36NP9Z",
+      databaseURL: "https://adminpanel-6b862-default-rtdb.firebaseio.com"
+    };
 
-firebase.initializeApp(firebaseConfig);
-const db=firebase.database();
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
 
-db.ref("recharge_requests").on("value",snap=>{
- const d=snap.val();
- let html="";
+    db.ref('logs').on('value', (snap) => {
+        const data = snap.val();
+        const tbody = document.getElementById('log-body');
+        tbody.innerHTML = "";
+        
+        if(!data) {
+            tbody.innerHTML = "<tr><td colspan='4' style='text-align:center;'>No logs yet.</td></tr>";
+            return;
+        }
 
- if(!d){
-  document.getElementById("data").innerHTML="<tr><td colspan='4'>No requests</td></tr>";
-  return;
- }
-
- Object.keys(d).reverse().forEach(id=>{
-  let r=d[id];
-
-  html+=`
-  <tr>
-   <td>${r.user}</td>
-   <td><img src="${r.screenshot}" onclick="window.open('${r.screenshot}')"></td>
-   <td>${r.amount}</td>
-   <td>
-    <button onclick="approve('${id}','${r.uid}','${r.amount}')">Approve</button>
-    <button onclick="reject('${id}')">Reject</button>
-   </td>
-  </tr>`;
- });
-
- document.getElementById("data").innerHTML=html;
-});
-
-async function approve(id,uid,amt){
- const map={50:10,100:30};
- const add=map[amt]||10;
-
- const ref=db.ref("users/"+uid+"/credits");
- const snap=await ref.get();
- let c=snap.val()||0;
-
- await ref.set(c+add);
- await db.ref("recharge_requests/"+id).update({status:"approved"});
-
- alert("Approved & credits added");
-}
-
-function reject(id){
- db.ref("recharge_requests/"+id).update({status:"rejected"});
- alert("Rejected");
-}
+        // Reverse to show latest first
+        Object.keys(data).reverse().forEach(key => {
+            const l = data[key];
+            tbody.innerHTML += `
+                <tr>
+                    <td>${l.time}</td>
+                    <td><span class="badge">${l.user || "UNKNOWN"}</span></td>
+                    <td>${l.action}</td>
+                    <td>${l.target || "-"}</td>
+                </tr>
+            `;
+        });
+    });
 </script>
-
 </body>
 </html>

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>IMRAN PLAYZ | ELITE SYSTEM v26.0</title>
+    <title>IMRAN PLAYZ | ELITE SYSTEM v27.0</title>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
@@ -11,58 +11,39 @@
     <style>
         :root { --p: #00ff41; --r: #ff3131; --b: #000; --panel: rgba(10, 10, 10, 0.98); --blue: #00ccff; --y: #ffd700; }
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; transition: 0.3s ease; }
-        body { background: var(--b); color: var(--p); font-family: 'Share Tech Mono', monospace; margin: 0; overflow-x: hidden; }
-        
+        body { background: var(--b); color: var(--p); font-family: 'Share Tech Mono', monospace; margin: 0; }
         .page { display: none; min-height: 100vh; padding: 20px; flex-direction: column; align-items: center; justify-content: center; }
         .active { display: flex !important; animation: fadeIn 0.4s; }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-
         .container { width: 100%; max-width: 450px; background: var(--panel); border: 1px solid var(--p); border-radius: 15px; padding: 25px; box-shadow: 0 0 25px rgba(0, 255, 65, 0.15); text-align: center; }
         h1 { font-family: 'Orbitron', sans-serif; font-size: 18px; color: #fff; text-shadow: 0 0 10px var(--p); margin-bottom: 20px; }
-        
         input { width: 100%; padding: 14px; background: #050505; border: 1px solid #333; color: var(--p); border-radius: 8px; margin-bottom: 12px; outline: none; font-family: inherit; font-size: 16px; }
-        
         button { width: 100%; padding: 14px; background: transparent; border: 1.5px solid var(--p); color: var(--p); font-weight: bold; cursor: pointer; border-radius: 8px; font-family: inherit; margin-bottom: 10px; }
-        button:hover { background: var(--p); color: #000; box-shadow: 0 0 15px var(--p); }
+        button:hover { background: var(--p); color: #000; }
         button:disabled { border-color: #444; color: #444; cursor: not-allowed; }
-        
         .btn-blue { border-color: var(--blue); color: var(--blue); }
         .btn-red { border-color: var(--r); color: var(--r); }
-        
-        .credit-badge { background: rgba(255, 215, 0, 0.1); border: 1px solid var(--y); padding: 6px 15px; border-radius: 20px; font-size: 13px; margin-bottom: 20px; color: var(--y); display: inline-block; }
-
-        /* Custom Popup UI */
-        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.96); z-index: 5000; align-items: center; justify-content: center; backdrop-filter: blur(10px); }
-        .modal-box { width: 85%; max-width: 380px; background: #080808; border: 2px solid var(--p); border-radius: 20px; padding: 30px; text-align: center; box-shadow: 0 0 40px rgba(0,255,65,0.2); }
-        .modal-box h2 { font-family: 'Orbitron'; font-size: 16px; margin-top: 0; color: #fff; }
-        .modal-box p { font-size: 13px; color: #bbb; line-height: 1.6; margin: 20px 0; }
-        .modal-box .qr-frame { width: 200px; height: 200px; background: #fff; margin: 0 auto 15px; padding: 10px; border-radius: 10px; }
-        .modal-box .qr-frame img { width: 100%; }
-
-        .plan-card { border: 1px solid #333; padding: 15px; border-radius: 12px; margin-bottom: 10px; text-align: left; cursor: pointer; }
+        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.98); z-index: 5000; align-items: center; justify-content: center; backdrop-filter: blur(8px); }
+        .modal-box { width: 85%; max-width: 380px; background: #080808; border: 2px solid var(--p); border-radius: 15px; padding: 25px; text-align: center; }
+        .plan-card { border: 1px solid #333; padding: 15px; border-radius: 10px; margin-bottom: 10px; text-align: left; cursor: pointer; }
         .plan-card.selected { border-color: var(--p); background: rgba(0,255,0,0.05); }
         .pay-options { display: none; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 15px; }
-
         .upload-box { border: 2px dashed #444; padding: 20px; border-radius: 10px; margin-top: 15px; position: relative; }
-        input[type="file"] { position: absolute; width: 100%; height: 100%; top: 0; left: 0; opacity: 0; cursor: pointer; }
-
+        input[type="file"] { position: absolute; width: 100%; height: 100%; top: 0; left: 0; opacity: 0; }
         .msg-box { background: rgba(0, 204, 255, 0.1); border: 1px solid var(--blue); padding: 12px; border-radius: 8px; margin-bottom: 15px; font-size: 11px; color: #fff; display: none; }
-        .bar-bg { width: 100%; height: 6px; border: 1px solid var(--p); border-radius: 3px; margin: 15px 0; overflow: hidden; background: #111; }
-        .bar-f { width: 0%; height: 100%; background: var(--p); transition: 0.3s; }
     </style>
 </head>
 <body>
 
     <div id="modal" class="modal-overlay">
         <div class="modal-box">
-            <h2 id="m-t">NOTIFICATION</h2>
-            <div id="qr-wrap" style="display:none;">
-                <div class="qr-frame"><img id="live-qr" src="" alt="UPI QR"></div>
-                <p style="font-size:11px; color:var(--y);">Scan & Pay via any UPI App</p>
-                <button class="btn-blue" style="font-size:10px; padding:8px;" onclick="copyID()">Copy UPI ID</button>
+            <h2 id="m-t" style="color:#fff; font-family:'Orbitron'; font-size:16px;">NOTIFICATION</h2>
+            <div id="qr-wrap" style="display:none; margin: 15px 0;">
+                <div style="width:200px; height:200px; background:#fff; margin:0 auto; padding:10px; border-radius:10px;"><img id="live-qr" style="width:100%;"></div>
+                <p style="font-size:10px; color:var(--y); margin-top:10px;">Scan to Pay via any UPI</p>
             </div>
-            <p id="m-m"></p>
-            <button id="modal-close-btn" onclick="closeModal()">OKAY</button>
+            <p id="m-m" style="font-size:13px; color:#ccc; line-height:1.5;"></p>
+            <button onclick="closeModal()">OKAY</button>
         </div>
     </div>
 
@@ -75,21 +56,21 @@
             <button style="background:#fff; color:#000; border:none; display:flex; align-items:center; justify-content:center; gap:10px;" onclick="loginGoogle()">
                 <img src="https://cdn1.iconfinder.com/data/icons/google-s-logo/150/Google_Icons-09-512.png" width="18"> GOOGLE LOGIN
             </button>
-            <p onclick="toggleMode()" id="toggle-t" style="font-size:11px; color:#444; cursor:pointer; margin-top:10px; text-decoration: underline;">New User? Create Account</p>
+            <p onclick="toggleMode()" id="toggle-t" style="font-size:11px; color:#444; cursor:pointer; margin-top:15px; text-decoration: underline;">New? Create Account</p>
         </div>
     </div>
 
     <div id="pg-dash" class="page">
         <div class="container">
-            <h1>ELITE DASHBOARD</h1>
+            <h1>DASHBOARD</h1>
             <div id="admin-notif" class="msg-box"><strong>[ADMIN]:</strong> <span id="admin-txt"></span></div>
-            <div class="credit-badge">CREDITS: <span id="user-credits">0</span></div>
+            <div style="font-size:13px; color:var(--y); margin-bottom:15px;">CREDITS: <span id="user-credits">0</span></div>
             <input type="text" id="target" placeholder="TARGET NUMBER / RC">
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-                <button onclick="runTrace('mob')">Mobile Info</button>
-                <button onclick="runTrace('veh')">Vehicle Info</button>
+                <button onclick="runTrace('mob')">Mobile</button>
+                <button onclick="runTrace('veh')">Vehicle</button>
             </div>
-            <button class="btn-blue" style="margin-top:15px;" onclick="switchPage('pg-plans')">RECHARGE PANEL</button>
+            <button class="btn-blue" onclick="switchPage('pg-plans')" style="margin-top:10px;">RECHARGE</button>
             <button class="btn-red" style="font-size:10px;" onclick="logout()">LOGOUT</button>
         </div>
     </div>
@@ -97,25 +78,23 @@
     <div id="pg-plans" class="page">
         <div class="container">
             <h1>SELECT PLAN</h1>
-            <div class="plan-card" id="p-50" onclick="selPlan('50', this)"><span style="float:right;">₹50</span><strong>BASIC</strong><br><small>10 Searches</small></div>
-            <div class="plan-card" id="p-100" onclick="selPlan('100', this)"><span style="float:right;">₹100</span><strong>PRO</strong><br><small>30 Searches</small></div>
-            
+            <div class="plan-card" onclick="selPlan('50', this)">₹50 - 10 Searches</div>
+            <div class="plan-card" onclick="selPlan('100', this)">₹100 - 30 Searches</div>
             <div id="pay-opts" class="pay-options">
-                <button class="btn-blue" onclick="showQR()">SHOW QR CODE</button>
-                <button class="btn-blue" onclick="payUpi()">OPEN UPI APP</button>
+                <button class="btn-blue" onclick="showQR()">SHOW QR</button>
+                <button class="btn-blue" onclick="window.location.href=`upi://pay?pa=${MY_UPI}&pn=IMRAN_PLAYZ&am=${selectedAmt}&cu=INR` ">OPEN UPI</button>
             </div>
-
             <div class="upload-box">
-                <span id="fn" style="font-size:12px;">Tap to Upload Proof</span>
-                <input type="file" id="p-img" accept="image/*" onchange="document.getElementById('fn').innerText=this.files.name">
+                <span id="fn">Tap to Upload Screenshot</span>
+                <input type="file" id="p-img" onchange="document.getElementById('fn').innerText=this.files.name">
             </div>
             <button class="btn-blue" id="up-btn" style="margin-top:10px;" onclick="uploadImgBB()">SUBMIT PROOF</button>
             <button class="btn-red" onclick="switchPage('pg-dash')">BACK</button>
         </div>
     </div>
 
-    <div id="pg-load" class="page"><div class="container"><h1>BYPASSING...</h1><div class="bar-bg"><div id="bar" class="bar-f"></div></div></div></div>
-    <div id="pg-res" class="page"><div class="container"><h1>DATA FOUND</h1><div id="data-out" style="text-align:left; font-size:11px; background:#050505; padding:15px; border:1px dashed var(--p); max-height:350px; overflow-y:auto;"></div><button onclick="switchPage('pg-dash')" style="margin-top:15px;">NEW SEARCH</button></div></div>
+    <div id="pg-load" class="page"><h1>TRACING...</h1></div>
+    <div id="pg-res" class="page"><div class="container"><h1>RESULT</h1><div id="data-out" style="text-align:left; font-size:11px;"></div><button onclick="switchPage('pg-dash')">NEW SEARCH</button></div></div>
 
 <script>
     const firebaseConfig = {
@@ -136,10 +115,24 @@
 
     let isLogin = true, credits = 0, selectedAmt = 0;
 
-    // --- POPUP SYSTEM ---
-    function showModal(title, message, qr=false) {
-        document.getElementById('m-t').innerText = title;
-        document.getElementById('m-m').innerText = message;
+    // --- 🛡️ THE FINAL AUTH LISTENER ---
+    auth.onAuthStateChanged(user => {
+        if (user) sync(user);
+        else {
+            // Check for redirect result when page loads
+            auth.getRedirectResult().then(result => {
+                if (result.user) sync(result.user);
+                else switchPage('pg-auth');
+            }).catch(err => {
+                console.error(err);
+                switchPage('pg-auth');
+            });
+        }
+    });
+
+    function showModal(t, m, qr=false) {
+        document.getElementById('m-t').innerText = t;
+        document.getElementById('m-m').innerText = m;
         document.getElementById('qr-wrap').style.display = qr ? 'block' : 'none';
         if(qr) {
             const upi = `upi://pay?pa=${MY_UPI}&pn=IMRAN_PLAYZ&am=${selectedAmt}&cu=INR`;
@@ -149,36 +142,40 @@
     }
     function closeModal() { document.getElementById('modal').style.display = 'none'; }
     function switchPage(id) { document.querySelectorAll('.page').forEach(p=>p.classList.remove('active')); document.getElementById(id).classList.add('active'); }
-    function toggleMode() { isLogin=!isLogin; document.getElementById('auth-t').innerText=isLogin?"SYSTEM LOGIN":"CREATE ACCOUNT"; document.getElementById('auth-btn').innerText=isLogin?"LOGIN":"REGISTER NOW"; }
-
-    // --- AUTH LOGIC ---
-    auth.onAuthStateChanged(user => {
-        if (user) sync(user);
-        else {
-            auth.getRedirectResult().then(res => { if(res.user) sync(res.user); else switchPage('pg-auth'); }).catch(() => switchPage('pg-auth'));
-        }
-    });
+    
+    function toggleMode() { 
+        isLogin = !isLogin; 
+        document.getElementById('auth-t').innerText = isLogin ? "SYSTEM LOGIN" : "CREATE ACCOUNT";
+        document.getElementById('auth-btn').innerText = isLogin ? "LOGIN" : "REGISTER NOW";
+        document.getElementById('toggle-t').innerText = isLogin ? "New? Create Account" : "Back to Login";
+        // Reset inputs on toggle to avoid session conflicts
+        document.getElementById('email').value = "";
+        document.getElementById('pass').value = "";
+    }
 
     function handleAuth() {
         const e = document.getElementById('email').value.trim(), p = document.getElementById('pass').value.trim();
-        if(!e || p.length < 6) return showModal("INVALID DATA", "Please enter a valid Email and at least 6-digit Password.");
+        if(!e || p.length < 6) return showModal("INVALID", "Email and 6-digit Password required.");
         
         const btn = document.getElementById('auth-btn');
-        btn.disabled = true; btn.innerText = "PROCESSING...";
+        btn.disabled = true; btn.innerText = "WAITING...";
 
         if(isLogin) {
             auth.signInWithEmailAndPassword(e, p).catch(err => {
-                showModal("LOGIN ERROR", err.message);
+                showModal("LOGIN FAILED", err.message);
                 btn.disabled = false; btn.innerText = "LOGIN";
             });
         } else {
-            auth.createUserWithEmailAndPassword(e, p).then(res => {
-                res.user.sendEmailVerification();
-                db.ref('users/' + res.user.uid).set({ email: e, credits: 1 });
-                showModal("ACCOUNT CREATED", "Registration successful! A verification email has been sent to your inbox. Please verify to continue.");
-            }).catch(err => {
-                showModal("REGISTRATION ERROR", err.message);
-                btn.disabled = false; btn.innerText = "REGISTER NOW";
+            // Check if user is already logged in and sign out before registration
+            auth.signOut().then(() => {
+                auth.createUserWithEmailAndPassword(e, p).then(res => {
+                    db.ref('users/' + res.user.uid).set({ email: e, credits: 1 });
+                    showModal("SUCCESS", "Account Created! Verify your email and login.");
+                    toggleMode(); // Send back to login
+                }).catch(err => {
+                    showModal("ERROR", err.message);
+                    btn.disabled = false; btn.innerText = "REGISTER NOW";
+                });
             });
         }
     }
@@ -200,24 +197,20 @@
         });
     }
 
-    // --- RECHARGE LOGIC ---
     function selPlan(amt, el) {
         selectedAmt = amt;
-        document.querySelectorAll('.plan-card').forEach(c => c.classList.remove('selected'));
-        el.classList.add('selected');
+        document.querySelectorAll('.plan-card').forEach(c => c.style.borderColor = "#333");
+        el.style.borderColor = "var(--p)";
         document.getElementById('pay-opts').style.display = 'grid';
     }
 
-    function showQR() { showModal("SCAN & PAY", `Scan this QR to pay ₹${selectedAmt} for credits.`, true); }
-    function copyID() { navigator.clipboard.writeText(MY_UPI); showModal("COPIED", "UPI ID copied to clipboard."); }
-    function payUpi() { window.location.href = `upi://pay?pa=${MY_UPI}&pn=IMRAN_PLAYZ&am=${selectedAmt}&cu=INR`; }
+    function showQR() { showModal("PAYMENT QR", `Scan to pay ₹${selectedAmt}`, true); }
 
     async function uploadImgBB() {
         const file = document.getElementById('p-img').files;
-        if(!file) return showModal("NO FILE", "Please select a payment screenshot first.");
+        if(!file) return showModal("NO FILE", "Select screenshot first.");
         const btn = document.getElementById('up-btn');
         btn.disabled = true; btn.innerText = "UPLOADING...";
-
         const reader = new FileReader();
         reader.readAsDataURL(file);
         reader.onload = async () => {
@@ -228,41 +221,34 @@
                 const d = await res.json();
                 if(d.success) {
                     await db.ref('recharge_requests/' + Date.now()).set({ user: auth.currentUser.email, uid: auth.currentUser.uid, screenshot: d.data.url, time: new Date().toLocaleString() });
-                    await db.ref('users/' + auth.currentUser.uid).update({ admin_msg: "System: Proof Received! Verifying in 5-10 mins..." });
-                    showModal("UPLOAD SUCCESS", "Payment proof submitted! Credits will be added after Admin verification.");
+                    showModal("SUCCESS", "Proof Sent! Admin will verify in 5 mins.");
                     switchPage('pg-dash');
-                } else { showModal("UPLOAD ERROR", "Failed to upload to server."); }
-            } catch(e) { showModal("NETWORK ERROR", "Check your internet connection."); }
+                }
+            } catch(e) { showModal("ERROR", "Upload Failed."); }
             btn.disabled = false; btn.innerText = "SUBMIT PROOF";
         };
     }
 
-    // --- TRACING LOGIC ---
     async function runTrace(t) {
-        if(credits <= 0) return showModal("NO CREDITS", "Recharge your account to continue tracing.");
+        if(credits <= 0) return showModal("NO CREDITS", "Please recharge.");
         const v = document.getElementById('target').value.trim();
         if(!v) return;
         switchPage('pg-load');
-        let p=0; const itv = setInterval(()=>{ p+=10; document.getElementById('bar').style.width=p+"%"; if(p>=95) clearInterval(itv);}, 200);
-        
         try {
             const api = (t==='mob') ? `https://yash-code-with-ai.alphamovies.workers.dev/?num=${v}&key=7189814021` : `https://vehicle-eight-vert.vercel.app/api?rc=${v}`;
             const res = await fetch(api); const data = await res.json();
-            clearInterval(itv); document.getElementById('bar').style.width="100%";
-
             const ds = JSON.stringify(data).toLowerCase();
-            if(Object.keys(data).length === 0 || ds.includes("not found") || ds.includes("error")) {
-                showModal("DATA NOT FOUND", "The target ID has no records in our database. Credit Refunded.");
-                switchPage('pg-dash'); return;
+            if(Object.keys(data).length === 0 || ds.includes("not found")) {
+                showModal("NOT FOUND", "Refunded."); switchPage('pg-dash'); return;
             }
             await db.ref('users/'+auth.currentUser.uid).update({credits: credits-1});
             setTimeout(()=>{ switchPage('pg-res'); render(data); }, 500);
-        } catch(e) { clearInterval(itv); showModal("SERVER ERROR", "API is currently down. Credits have been refunded."); switchPage('pg-dash'); }
+        } catch(e) { showModal("ERROR", "Refunded."); switchPage('pg-dash'); }
     }
 
     function render(d) {
         const out = document.getElementById('data-out'); out.innerHTML = "";
-        for(let k in d) if(typeof d[k] !== 'object') out.innerHTML += `<div style="padding:5px 0; border-bottom:1px solid #111;"><b style="color:var(--p);">${k.toUpperCase()}:</b> <span style="color:#fff;">${d[k]}</span></div>`;
+        for(let k in d) if(typeof d[k] !== 'object') out.innerHTML += `<div><b>${k.toUpperCase()}:</b> ${d[k]}</div>`;
     }
 </script>
 </body>

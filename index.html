@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>IMRAN PLAYZ | ELITE SYSTEM v18.2</title>
+    <title>IMRAN PLAYZ | ELITE SYSTEM v18.3</title>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
@@ -124,13 +124,18 @@
 <div id="pg-admin" class="page">
     <div class="container">
         <h1>🔧 ADMIN DASHBOARD</h1>
-        <button onclick="loadPendingRequests()" class="btn-blue">Refresh Pending Requests</button>
-        <div id="pending-list" style="margin:15px 0;"></div>
 
-        <h2 style="margin:25px 0 10px 0;">Manual Credit Add</h2>
+        <!-- Manual Credit Section - Top pe -->
+        <h2 style="margin:10px 0 8px 0;">Manual Credit Add / Remove</h2>
         <input type="text" id="manual-uid" placeholder="User UID or Email">
-        <input type="number" id="manual-credits" value="10" placeholder="Credits to add">
-        <button onclick="addManualCredits()" class="btn-blue">ADD CREDITS</button>
+        <input type="number" id="manual-credits" value="10" placeholder="Amount">
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:8px;">
+            <button onclick="addManualCredits(true)" style="background:#0f0; color:#000;">+ ADD CREDITS</button>
+            <button onclick="addManualCredits(false)" class="btn-red">- REMOVE CREDITS</button>
+        </div>
+
+        <button onclick="loadPendingRequests()" class="btn-blue" style="margin-top:20px;">Refresh Pending Requests</button>
+        <div id="pending-list" style="margin:15px 0;"></div>
 
         <button onclick="switchPage('pg-dash')" class="btn-red">BACK TO DASHBOARD</button>
     </div>
@@ -176,9 +181,10 @@ const auth = firebase.auth(), db = firebase.database();
 let credits = 0, isLogin = true;
 let selectedPlan = null;
 
-// === TERA ADMIN EMAIL & UID ===
+// === TERI ADMIN DETAILS ===
 const ADMIN_EMAIL = "imrankp488@gmail.com";
 const ADMIN_UID = "AqVy3n9MDHO2KcN0w8OTcsF76Ti1";
+const ADMIN_PASS = "admin18";
 
 document.getElementById("p-img").addEventListener("change", function(e){
     const file = e.target.files[0];
@@ -188,8 +194,8 @@ document.getElementById("p-img").addEventListener("change", function(e){
 auth.onAuthStateChanged(user => { 
     if(user) {
         sync(user);
-        // Admin button sirf tere account ke liye dikhao
-        if (user.email === ADMIN_EMAIL || user.uid === ADMIN_UID) {
+        // Sirf tere account ke liye Admin button dikhao
+        if (user.email && user.email.toLowerCase() === ADMIN_EMAIL.toLowerCase() || user.uid === ADMIN_UID) {
             document.getElementById('admin-btn').style.display = 'block';
         }
     } else {
@@ -206,10 +212,12 @@ function showModal(title, message, isError = false) {
 }
 
 function closeModal() { document.getElementById('modal').style.display = 'none'; }
+
 function switchPage(id) {
     document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
     document.getElementById(id).classList.add('active');
 }
+
 function toggleMode() {
     isLogin = !isLogin;
     document.querySelector('#pg-auth h1').innerText = isLogin ? "SYSTEM LOGIN" : "CREATE ACCOUNT";
@@ -230,7 +238,7 @@ function handleAuth() {
     }
 }
 
-function loginGoogle() {
+function loginGoogle() { 
     auth.signInWithPopup(new firebase.auth.GoogleAuthProvider())
         .catch(err => showModal("GOOGLE ERROR", err.message, true));
 }
@@ -247,7 +255,7 @@ function sync(user) {
 // ====================== ADMIN PANEL ======================
 function enterAdmin() {
     const pass = prompt("Enter Admin Password:");
-    if (pass === "@admin-panel786") {
+    if (pass === ADMIN_PASS) {
         switchPage('pg-admin');
         loadPendingRequests();
     } else {
@@ -278,7 +286,7 @@ async function loadPendingRequests() {
                 container.appendChild(div);
             }
         });
-        if (!hasAny) container.innerHTML = '<p style="color:#0f0;text-align:center;">No pending requests.</p>';
+        if (!hasAny) container.innerHTML = '<p style="color:#0f0;text-align:center;">No pending requests right now.</p>';
     });
 }
 
@@ -305,9 +313,11 @@ async function approveRequest(requestKey, uid, creditsToAdd) {
     }
 }
 
-async function addManualCredits() {
-    const input = document.getElementById('manual-uid').value.trim();
-    const amt = parseInt(document.getElementById('manual-credits').value);
+// ====================== MANUAL ADD / REMOVE ======================
+async function addManualCredits(isAdd) {
+    let input = document.getElementById('manual-uid').value.trim();
+    let amt = parseInt(document.getElementById('manual-credits').value);
+
     if (!input || !amt) return alert("Please fill both fields");
 
     try {
@@ -315,27 +325,36 @@ async function addManualCredits() {
         if (input.includes('@')) {
             const snap = await db.ref('users').once('value');
             snap.forEach(child => {
-                if (child.val().email === input) uid = child.key;
+                if (child.val().email && child.val().email.toLowerCase() === input.toLowerCase()) {
+                    uid = child.key;
+                }
             });
         }
         const userRef = db.ref('users/' + uid);
         const snap = await userRef.once('value');
-        const current = snap.val()?.credits || 0;
-        await userRef.update({ credits: current + amt });
-        showModal("SUCCESS", `${amt} credits added!`, false);
+        let current = snap.val()?.credits || 0;
+
+        const newCredits = isAdd ? current + amt : Math.max(0, current - amt);
+
+        await userRef.update({ credits: newCredits });
+        showModal("SUCCESS", `${isAdd ? '+' : '-'} ${amt} credits ${isAdd ? 'added' : 'removed'} successfully!`, false);
     } catch(e) {
-        showModal("ERROR", "User not found", true);
+        showModal("ERROR", "User not found or error occurred", true);
     }
 }
 
-// ====================== PLAN, UPLOAD, HISTORY, SEARCH ======================
-// (Yeh tere purane code se same hai - maine sirf admin part add kiya hai)
-
+// ====================== OTHER FUNCTIONS (Plans, Upload, History, Search) ======================
 function selectPlan(amount, name) {
     selectedPlan = {amount, name};
     document.querySelectorAll('.plan-card').forEach(c => c.classList.remove('selected'));
-    document.getElementById('plan-'+name.toLowerCase()).classList.add('selected');
-    document.getElementById('selected-plan').innerHTML = `<strong>Selected: ${name} Plan</strong><br>Amount: ₹${amount}`;
+    if(name === 'BASIC') document.getElementById('plan-basic').classList.add('selected');
+    else if(name === 'PRO') document.getElementById('plan-pro').classList.add('selected');
+    else document.getElementById('plan-unlimited').classList.add('selected');
+
+    document.getElementById('selected-plan').innerHTML = `
+        <strong>Selected: ${name} Plan</strong><br>
+        Amount: ₹${amount}
+    `;
     document.getElementById('confirm-section').style.display = 'block';
 }
 
@@ -347,13 +366,66 @@ function resetPlans() {
 
 function confirmAndPay() {
     if (!selectedPlan) return;
-    window.location.href = `upi://pay?pa=imrankhan17@ptyes&pn=IMRAN%20PLAYZ&am=${selectedPlan.amount}&cu=INR&tn=Elite%20System%20Recharge`;
+    const {amount} = selectedPlan;
+    window.location.href = `upi://pay?pa=imrankhan17@ptyes&pn=IMRAN%20PLAYZ&am=${amount}&cu=INR&tn=Elite%20System%20Recharge`;
 }
 
-async function uploadImgBB() { /* tere purane code wala function paste kar dena */ }
-function loadHistory() { /* tere purane code wala */ }
+async function uploadImgBB() {
+    const fileInput = document.getElementById('p-img');
+    if (!fileInput.files || fileInput.files.length === 0) {
+        return showModal("ERROR", "Please select an image first", true);
+    }
+
+    const btn = document.getElementById('up-btn');
+    btn.innerText = "UPLOADING...";
+    btn.disabled = true;
+
+    try {
+        const fd = new FormData();
+        fd.append("image", fileInput.files[0]);
+
+        const res = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_KEY}`, {
+            method: "POST",
+            body: fd
+        });
+
+        const d = await res.json();
+
+        if (d.success && d.data && d.data.url) {
+            await db.ref('recharge_requests/' + Date.now()).set({
+                user: auth.currentUser ? auth.currentUser.email : "unknown",
+                uid: auth.currentUser ? auth.currentUser.uid : "unknown",
+                screenshot: d.data.url,
+                status: "pending",
+                time: new Date().toLocaleString(),
+                plan: selectedPlan ? selectedPlan.name : "Manual"
+            });
+
+            showModal("UPLOAD SUCCESSFUL", "Screenshot uploaded successfully!\nAdmin will review and add credits shortly.", false);
+            switchPage('pg-dash');
+            
+            fileInput.value = '';
+            document.getElementById("fn").innerText = "Select Image";
+            resetPlans();
+        } else {
+            throw new Error(d.error ? d.error.message : "Upload failed");
+        }
+    } catch (e) {
+        showModal("UPLOAD FAILED", "Failed to upload image. Please try another image or check your network.", true);
+    } finally {
+        btn.innerText = "SUBMIT PROOF";
+        btn.disabled = false;
+    }
+}
+
+function loadHistory() { /* tere purane code wala function yahan paste kar sakta hai */ }
 function render(data) { /* tere purane code wala */ }
-async function runTrace(t) { /* tere purane code wala */ }
+async function runTrace(t) { 
+    if (credits <= 0) return showModal("INSUFFICIENT CREDITS", "You don't have enough credits. Please recharge to continue.", true);
+    /* baaki tere purane runTrace code ko yahan paste kar dena */
+}
+
+// Baaki functions (handleAuth, loginGoogle, sync, etc.) already upar hain
 </script>
 </body>
 </html>

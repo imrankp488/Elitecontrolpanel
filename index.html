@@ -129,8 +129,8 @@
         <button onclick="loadPendingRequests()" class="btn-blue" style="margin-top:20px;">Refresh Pending Requests</button>
         <div id="pending-list" style="margin:15px 0;"></div>
 
-        <button onclick="switchPage('pg-users')" class="btn-blue" style="margin-top:15px;">👥 View All Users</button>
-        <button onclick="switchPage('pg-logs')" class="btn-blue">📜 View All Search Logs</button>
+        <button onclick="switchPage('pg-users'); loadAllUsers()" class="btn-blue" style="margin-top:15px;">👥 View All Users</button>
+        <button onclick="switchPage('pg-logs'); loadAllSearchLogs()" class="btn-blue">📜 View All Search Logs</button>
 
         <button onclick="switchPage('pg-dash')" class="btn-red">BACK TO DASHBOARD</button>
     </div>
@@ -156,18 +156,18 @@
 
 <div id="pg-load" class="page">
     <div class="hacker-box">
-        <div class="hacker-title">⌛ FETCHING DATA PLEASE WAIT...</div>
+        <div class="hacker-title" id="loading-title">PROCESSING SECURE QUERY...</div>
         <div class="bar-bg"><div id="bar" class="bar-f"></div></div>
     </div>
     <div class="hacker-box">
-        <div class="hacker-title">📝 System Logs</div>
-        <div id="log-1" class="log-line">> Initializing secure connection...</div>
-        <div id="log-2" class="log-line">> Bypassing server protocols...</div>
-        <div id="log-3" class="log-line">> Fetching data packets...</div>
-        <div id="log-4" class="log-line">> Decrypting identity layer...</div>
+        <div class="hacker-title">SYSTEM STATUS</div>
+        <div id="log-1" class="log-line">> Establishing encrypted tunnel...</div>
+        <div id="log-2" class="log-line">> Authenticating request...</div>
+        <div id="log-3" class="log-line">> Querying secure database...</div>
+        <div id="log-4" class="log-line">> Decrypting response layer...</div>
     </div>
     <div style="font-size: 10px; text-align: center; opacity: 0.5; margin-top: 20px;">
-        [/>] SYSTEM BY IMRANPLAYZ<br>
+        [/>] SYSTEM BY IMRAN PLAYZ<br>
         CONTACT IG: @_imranplayz_
     </div>
 </div>
@@ -351,7 +351,8 @@ async function loadAllUsers() {
     const container = document.getElementById('users-list');
     container.innerHTML = '<p style="text-align:center;color:#666;">Loading users...</p>';
 
-    db.ref('users').once('value', snap => {
+    try {
+        const snap = await db.ref('users').once('value');
         container.innerHTML = '';
         if (!snap.exists()) {
             container.innerHTML = '<p style="color:#666;">No users found.</p>';
@@ -368,21 +369,27 @@ async function loadAllUsers() {
             `;
             container.appendChild(div);
         });
-    });
+    } catch(e) {
+        container.innerHTML = '<p style="color:var(--r);">Error loading users. Try again.</p>';
+    }
 }
 
 // ====================== ALL SEARCH LOGS ======================
 async function loadAllSearchLogs() {
     const container = document.getElementById('all-logs-list');
-    container.innerHTML = '<p style="text-align:center;color:#666;">Loading logs...</p>';
+    container.innerHTML = '<p style="text-align:center;color:#666;">Loading all search logs...</p>';
 
-    db.ref('users').once('value', async snap => {
+    try {
+        const usersSnap = await db.ref('users').once('value');
         container.innerHTML = '';
         let hasLogs = false;
 
-        for (let [uid, userData] of Object.entries(snap.val() || {})) {
+        for (let [uid, userData] of Object.entries(usersSnap.val() || {})) {
             const email = userData.email || 'Unknown';
-            const historySnap = await db.ref('users/' + uid + '/history').orderByChild('timestamp').limitToLast(30).once('value');
+            const historySnap = await db.ref('users/' + uid + '/history')
+                .orderByChild('timestamp')
+                .limitToLast(30)
+                .once('value');
 
             historySnap.forEach(child => {
                 hasLogs = true;
@@ -402,8 +409,11 @@ async function loadAllSearchLogs() {
                 container.appendChild(div);
             });
         }
-        if (!hasLogs) container.innerHTML = '<p style="color:#666;">No search logs found yet.</p>';
-    });
+        if (!hasLogs) container.innerHTML = '<p style="color:#666;text-align:center;padding:40px 0;">No search logs found yet.</p>';
+    } catch(e) {
+        container.innerHTML = '<p style="color:var(--r);">Error loading logs. Please try again.</p>';
+        console.error(e);
+    }
 }
 
 // ====================== PLAN & PAY ======================
@@ -475,37 +485,39 @@ function loadHistory() {
     const container = document.getElementById('history-list');
     container.innerHTML = '<p style="text-align:center; color:#666;">Loading history...</p>';
 
-    db.ref('users/' + auth.currentUser.uid + '/history')
-        .orderByChild('timestamp')
-        .limitToLast(50)
-        .once('value', snap => {
-            container.innerHTML = '';
-            if (!snap.exists()) {
-                container.innerHTML = '<p style="text-align:center; color:#666; padding:40px 0;">No searches yet.</p>';
-                return;
-            }
-            const entries = [];
-            snap.forEach(child => entries.push(child.val()));
-            entries.reverse();
+    setTimeout(() => {
+        db.ref('users/' + auth.currentUser.uid + '/history')
+            .orderByChild('timestamp')
+            .limitToLast(50)
+            .once('value', snap => {
+                container.innerHTML = '';
+                if (!snap.exists()) {
+                    container.innerHTML = '<p style="text-align:center; color:#666; padding:40px 0;">No searches yet.</p>';
+                    return;
+                }
+                const entries = [];
+                snap.forEach(child => entries.push(child.val()));
+                entries.reverse();
 
-            entries.forEach(entry => {
-                const div = document.createElement('div');
-                div.className = 'history-item';
-                let statusHTML = entry.success 
-                    ? `<span style="color:var(--p)">✅ Data Found • 1 Credit Deducted</span>`
-                    : `<span style="color:var(--r)">❌ ${entry.status === 'no_data' ? 'No Data Found' : 'Search Failed'} • No Credit Deducted</span>`;
-                
-                div.innerHTML = `
-                    <div style="display:flex; justify-content:space-between; margin-bottom:6px;">
-                        <strong>${entry.type} SEARCH</strong>
-                        <small style="color:#888">${new Date(entry.timestamp).toLocaleString('en-IN')}</small>
-                    </div>
-                    <div style="font-size:15px; color:#fff; margin-bottom:8px;">${entry.query}</div>
-                    <div>${statusHTML}</div>
-                `;
-                container.appendChild(div);
+                entries.forEach(entry => {
+                    const div = document.createElement('div');
+                    div.className = 'history-item';
+                    let statusHTML = entry.success 
+                        ? `<span style="color:var(--p)">✅ Data Found • 1 Credit Deducted</span>`
+                        : `<span style="color:var(--r)">❌ ${entry.status === 'no_data' ? 'No Data Found' : 'Search Failed'} • No Credit Deducted</span>`;
+                    
+                    div.innerHTML = `
+                        <div style="display:flex; justify-content:space-between; margin-bottom:6px;">
+                            <strong>${entry.type} SEARCH</strong>
+                            <small style="color:#888">${new Date(entry.timestamp).toLocaleString('en-IN')}</small>
+                        </div>
+                        <div style="font-size:15px; color:#fff; margin-bottom:8px;">${entry.query}</div>
+                        <div>${statusHTML}</div>
+                    `;
+                    container.appendChild(div);
+                });
             });
-        });
+    }, 150);
 }
 
 // ====================== SEARCH FUNCTION ======================
@@ -531,6 +543,8 @@ async function runTrace(t) {
     if (!v) return showModal("INPUT REQUIRED", "Please enter a valid number or vehicle registration.", true);
 
     switchPage('pg-load');
+    document.getElementById('loading-title').innerText = t === 'mob' ? "TRACE MOBILE NUMBER..." : "TRACE VEHICLE REGISTRATION...";
+
     document.querySelectorAll('.log-line').forEach(l => l.classList.remove('show'));
 
     let p = 0;

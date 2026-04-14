@@ -35,6 +35,45 @@
         .plan-card.selected { border-color: var(--p); box-shadow: 0 0 15px var(--p); background: rgba(0,255,65,0.08); }
         .history-item { background: rgba(0,255,65,0.03); border: 1px solid rgba(0,255,65,0.3); border-radius: 10px; padding: 15px; margin-bottom: 12px; text-align: left; }
         .request-card { background: #111; border: 1px solid #444; border-radius: 10px; padding: 12px; margin-bottom: 15px; text-align: left; }
+
+        /* ==================== IMPROVED LOADING SCREEN CSS ==================== */
+        .hacker-box {
+            background: #0a0a0a;
+            border: 2px solid #00ff41;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+            width: 100%;
+            max-width: 420px;
+            box-shadow: 0 0 25px rgba(0, 255, 65, 0.25);
+        }
+        .bar-bg {
+            height: 14px;
+            background: #111;
+            border: 2px solid #00ff41;
+            border-radius: 30px;
+            overflow: hidden;
+            margin-top: 12px;
+        }
+        .bar-f {
+            height: 100%;
+            background: linear-gradient(90deg, #00ff41, #00cc33);
+            width: 0%;
+            transition: width 0.4s ease;
+            box-shadow: 0 0 15px #00ff41;
+        }
+        .log-line {
+            opacity: 0;
+            transform: translateY(8px);
+            transition: all 0.5s ease;
+            margin: 6px 0;
+            font-size: 13.5px;
+            color: #0f0;
+        }
+        .log-line.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
     </style>
 </head>
 <body>
@@ -154,20 +193,27 @@
     </div>
 </div>
 
+<!-- ==================== IMPROVED LOADING SCREEN (EXACTLY LIKE YOUR SCREENSHOT) ==================== -->
 <div id="pg-load" class="page">
     <div class="hacker-box">
-        <div class="hacker-title" id="loading-title">PROCESSING SECURE QUERY...</div>
+        <div style="display:flex; align-items:center; gap:12px; color:#0f0; font-size:17px; margin-bottom:14px;">
+            ⏳ <strong>FETCHING DATA PLEASE WAIT...</strong>
+        </div>
         <div class="bar-bg"><div id="bar" class="bar-f"></div></div>
     </div>
+
     <div class="hacker-box">
-        <div class="hacker-title">SYSTEM STATUS</div>
-        <div id="log-1" class="log-line">> Establishing encrypted tunnel...</div>
-        <div id="log-2" class="log-line">> Authenticating request...</div>
-        <div id="log-3" class="log-line">> Querying secure database...</div>
-        <div id="log-4" class="log-line">> Decrypting response layer...</div>
+        <div style="display:flex; align-items:center; gap:12px; color:#0f0; font-size:17px; margin-bottom:14px;">
+            📝 <strong>System Logs</strong>
+        </div>
+        <div id="log-1" class="log-line">&gt; Initializing secure connection...</div>
+        <div id="log-2" class="log-line">&gt; Bypassing server protocols...</div>
+        <div id="log-3" class="log-line">&gt; Fetching data packets...</div>
+        <div id="log-4" class="log-line">&gt; Decrypting response layer...</div>
     </div>
+
     <div style="font-size: 10px; text-align: center; opacity: 0.5; margin-top: 20px;">
-        [/>] SYSTEM BY IMRAN PLAYZ<br>
+        [/>] SYSTEM BY IMRANPLAYZ<br>
         CONTACT IG: @_imranplayz_
     </div>
 </div>
@@ -388,7 +434,7 @@ async function loadAllSearchLogs() {
             const email = userData.email || 'Unknown';
             const historySnap = await db.ref('users/' + uid + '/history')
                 .orderByChild('timestamp')
-                .limitToLast(30)
+                .limitToLast(50)
                 .once('value');
 
             historySnap.forEach(child => {
@@ -542,22 +588,25 @@ async function runTrace(t) {
     const v = document.getElementById('target').value.trim();
     if (!v) return showModal("INPUT REQUIRED", "Please enter a valid number or vehicle registration.", true);
 
+    // Show improved loading screen
     switchPage('pg-load');
-    document.getElementById('loading-title').innerText = t === 'mob' ? "TRACE MOBILE NUMBER..." : "TRACE VEHICLE REGISTRATION...";
 
+    // Reset logs & bar
     document.querySelectorAll('.log-line').forEach(l => l.classList.remove('show'));
+    const bar = document.getElementById('bar');
+    bar.style.width = "0%";
 
     let p = 0;
-    const bar = document.getElementById('bar');
     const itv = setInterval(() => {
-        p += Math.random() * 15;
-        if (p > 95) p = 95;
+        p += Math.random() * 18 + 4;
+        if (p > 98) p = 98;
         bar.style.width = p + "%";
-        if (p > 15) document.getElementById('log-1').classList.add('show');
-        if (p > 40) document.getElementById('log-2').classList.add('show');
-        if (p > 70) document.getElementById('log-3').classList.add('show');
-        if (p > 88) document.getElementById('log-4').classList.add('show');
-    }, 180);
+
+        if (p > 12) document.getElementById('log-1').classList.add('show');
+        if (p > 38) document.getElementById('log-2').classList.add('show');
+        if (p > 65) document.getElementById('log-3').classList.add('show');
+        if (p > 85) document.getElementById('log-4').classList.add('show');
+    }, 160);
 
     try {
         const api = (t === 'mob') 
@@ -572,32 +621,29 @@ async function runTrace(t) {
         const uid = auth.currentUser.uid;
         const type = t === 'mob' ? 'Mobile' : 'Vehicle';
 
+        // Save to history (this was the missing part for new searches)
+        const historyRef = db.ref('users/' + uid + '/history');
+        await historyRef.push({
+            timestamp: Date.now(),
+            type: type,
+            query: v,
+            success: !(!data || Object.keys(data).length < 2),
+            status: (!data || Object.keys(data).length < 2) ? 'no_data' : 'success'
+        });
+
         if (!data || Object.keys(data).length < 2) {
-            await db.ref('users/' + uid + '/history').push({
-                timestamp: Date.now(),
-                type: type,
-                query: v,
-                success: false,
-                status: 'no_data'
-            });
             showModal("DATA NOT FOUND", "Sorry, we could not find any data for this number.\nYour credits have not been deducted.", true);
             switchPage('pg-dash');
             return;
         }
 
-        await db.ref('users/' + uid + '/history').push({
-            timestamp: Date.now(),
-            type: type,
-            query: v,
-            success: true,
-            status: 'success'
-        });
+        // Deduct credit only on success
         await db.ref('users/' + uid).update({ credits: credits - 1 });
 
         setTimeout(() => {
             switchPage('pg-res');
             render(data);
-        }, 600);
+        }, 700);
 
     } catch (e) {
         clearInterval(itv);
@@ -608,7 +654,7 @@ async function runTrace(t) {
         await db.ref('users/' + uid + '/history').push({
             timestamp: Date.now(),
             type: type,
-            query: document.getElementById('target').value.trim(),
+            query: v,
             success: false,
             status: 'server_error'
         });

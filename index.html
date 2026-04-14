@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>IMRAN PLAYZ | ELITE SYSTEM v17.0</title>
+    <title>IMRAN PLAYZ | ELITE SYSTEM v18.0</title>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
@@ -37,9 +37,10 @@
         .res-row { border-bottom: 1px solid #1a1a1a; padding: 10px 0; text-align: left; display: flex; justify-content: space-between; font-size: 12px; }
         .upload-box { border: 2px dashed #444; padding: 20px; border-radius: 10px; cursor: pointer; margin-bottom: 15px; position: relative; background: rgba(255,255,255,0.02); }
         input[type="file"] { position: absolute; width: 100%; height: 100%; top: 0; left: 0; opacity: 0; cursor: pointer; }
-        .history-item { background: rgba(0,255,65,0.03); border: 1px solid rgba(0,255,65,0.3); border-radius: 10px; padding: 15px; margin-bottom: 12px; text-align: left; font-size: 13px; }
-        .plan-card { border: 2px solid #333; padding: 15px; border-radius: 12px; margin-bottom: 12px; text-align: left; cursor: pointer; }
-        .plan-card.selected { border-color: var(--p); box-shadow: 0 0 15px rgba(0,255,65,0.4); background: rgba(0,255,65,0.08); }
+        .plan-card { border: 2px solid #333; padding: 15px; border-radius: 12px; margin-bottom: 12px; text-align: left; cursor: pointer; transition: all 0.3s; }
+        .plan-card:hover { border-color: #666; }
+        .plan-card.selected { border-color: var(--p); box-shadow: 0 0 15px var(--p); background: rgba(0,255,65,0.08); }
+        .history-item { background: rgba(0,255,65,0.03); border: 1px solid rgba(0,255,65,0.3); border-radius: 10px; padding: 15px; margin-bottom: 12px; text-align: left; }
     </style>
 </head>
 <body>
@@ -90,22 +91,34 @@
     <div class="container">
         <h1>RECHARGE</h1>
         
+        <!-- BASIC -->
         <div id="plan-basic" class="plan-card" onclick="selectPlan(50, 'BASIC')">
             <span style="float:right; color:var(--p);">₹50</span>
             <strong>BASIC</strong><br>
             <small>10 Searches</small>
         </div>
         
+        <!-- PRO -->
         <div id="plan-pro" class="plan-card" onclick="selectPlan(100, 'PRO')">
             <span style="float:right; color:var(--p);">₹100</span>
             <strong>PRO</strong><br>
-            <small>30 Searches</small>
+            <small>30 Searches • Best Value</small>
+        </div>
+
+        <!-- NEW UNLIMITED SUBSCRIPTION -->
+        <div id="plan-unlimited" class="plan-card" onclick="selectPlan(399, 'UNLIMITED')">
+            <span style="float:right; color:var(--p);">₹399</span>
+            <strong>UNLIMITED 28 DAYS</strong><br>
+            <small>Unlimited Searches • 28 Days Validity</small>
         </div>
 
         <div id="confirm-section" style="display:none; margin:20px 0; padding:15px; border:2px solid var(--p); border-radius:12px; background:rgba(0,255,65,0.05);">
             <p id="selected-plan" style="font-size:15px; margin-bottom:12px;"></p>
-            <button onclick="confirmAndPay()" class="btn-blue">CONFIRM & PAY VIA UPI</button>
-            <small style="color:#888;">Android: PhonePe / Paytm / GPay<br>iOS: WhatsApp</small>
+            <button onclick="confirmAndPay()" class="btn-blue">CONFIRM &amp; PAY VIA UPI</button>
+            <small style="color:#888; display:block; text-align:center; margin-top:8px;">
+                Opens your preferred UPI app<br>
+                (PhonePe / Paytm / GPay / WhatsApp etc.)
+            </small>
         </div>
 
         <div style="margin-top:25px; border-top:1px solid #333; padding-top:20px;">
@@ -161,7 +174,7 @@ const auth = firebase.auth(), db = firebase.database();
 let credits = 0, isLogin = true;
 let selectedPlan = null;
 
-// File input clear after upload
+// File name display
 document.getElementById("p-img").addEventListener("change", function(e){
     const file = e.target.files[0];
     document.getElementById("fn").innerText = file ? file.name : "Select Image";
@@ -173,18 +186,11 @@ function showModal(title, message, isError = false) {
     const box = document.getElementById('modal-box');
     document.getElementById('m-t').innerText = title;
     document.getElementById('m-m').innerText = message;
-    
-    if (isError) {
-        box.classList.add('error');
-    } else {
-        box.classList.remove('error');
-    }
+    if (isError) box.classList.add('error'); else box.classList.remove('error');
     document.getElementById('modal').style.display = 'flex';
 }
 
-function closeModal() {
-    document.getElementById('modal').style.display = 'none';
-}
+function closeModal() { document.getElementById('modal').style.display = 'none'; }
 
 function switchPage(id) {
     document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
@@ -211,9 +217,7 @@ function handleAuth() {
     }
 }
 
-function loginGoogle() {
-    auth.signInWithPopup(new firebase.auth.GoogleAuthProvider());
-}
+function loginGoogle() { auth.signInWithPopup(new firebase.auth.GoogleAuthProvider()); }
 
 function sync(user) {
     db.ref('users/'+user.uid).on('value', snap => {
@@ -227,9 +231,11 @@ function sync(user) {
 // ====================== PLAN SELECTION ======================
 function selectPlan(amount, name) {
     selectedPlan = {amount, name};
-    document.getElementById('plan-basic').classList.toggle('selected', name === 'BASIC');
-    document.getElementById('plan-pro').classList.toggle('selected', name === 'PRO');
-    
+    document.querySelectorAll('.plan-card').forEach(c => c.classList.remove('selected'));
+    if(name === 'BASIC') document.getElementById('plan-basic').classList.add('selected');
+    else if(name === 'PRO') document.getElementById('plan-pro').classList.add('selected');
+    else document.getElementById('plan-unlimited').classList.add('selected');
+
     document.getElementById('selected-plan').innerHTML = `
         <strong>Selected: ${name} Plan</strong><br>
         Amount: ₹${amount}
@@ -237,27 +243,22 @@ function selectPlan(amount, name) {
     document.getElementById('confirm-section').style.display = 'block';
 }
 
-function confirmAndPay() {
-    if (!selectedPlan) return;
-    const {amount} = selectedPlan;
-    // Improved UPI link - works better across apps
-    window.location.href = `upi://pay?pa=imrankhan17@ptyes&pn=IMRAN%20PLAYZ&am=${amount}&cu=INR&tn=Elite%20System%20Recharge`;
-}
-
 function resetPlans() {
     selectedPlan = null;
     document.getElementById('confirm-section').style.display = 'none';
-    document.getElementById('plan-basic').classList.remove('selected');
-    document.getElementById('plan-pro').classList.remove('selected');
+    document.querySelectorAll('.plan-card').forEach(c => c.classList.remove('selected'));
+}
+
+function confirmAndPay() {
+    if (!selectedPlan) return;
+    const {amount} = selectedPlan;
+    window.location.href = `upi://pay?pa=imrankhan17@ptyes&pn=IMRAN%20PLAYZ&am=${amount}&cu=INR&tn=Elite%20System%20Recharge`;
 }
 
 // ====================== UPLOAD ======================
 async function uploadImgBB() {
     const fileInput = document.getElementById('p-img');
-    const files = fileInput.files;
-    if (!files || files.length === 0) {
-        return showModal("ERROR", "Please select an image first", true);
-    }
+    if (!fileInput.files.length) return showModal("ERROR", "Please select an image first", true);
 
     const btn = document.getElementById('up-btn');
     btn.innerText = "UPLOADING...";
@@ -265,30 +266,27 @@ async function uploadImgBB() {
 
     try {
         const fd = new FormData();
-        fd.append("image", files[0]);
+        fd.append("image", fileInput.files[0]);
 
         const res = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_KEY}`, { method: "POST", body: fd });
         const d = await res.json();
 
         if (d.success && d.data.url) {
             await db.ref('recharge_requests/' + Date.now()).set({
-                user: auth.currentUser.email || "unknown",
-                uid: auth.currentUser.uid,
+                user: auth.currentUser ? auth.currentUser.email : "unknown",
+                uid: auth.currentUser ? auth.currentUser.uid : "unknown",
                 screenshot: d.data.url,
                 status: "pending",
-                time: new Date().toLocaleString()
+                time: new Date().toLocaleString(),
+                plan: selectedPlan ? selectedPlan.name : "Manual"
             });
 
             showModal("UPLOAD SUCCESSFUL", "Screenshot uploaded successfully!\nAdmin will review and add credits shortly.", false);
             switchPage('pg-dash');
-
-            // ✅ Clear image after successful upload
             fileInput.value = '';
             document.getElementById("fn").innerText = "Select Image";
             resetPlans();
-        } else {
-            throw new Error("Upload failed");
-        }
+        } else throw new Error("Upload failed");
     } catch (e) {
         showModal("UPLOAD FAILED", "Failed to upload image. Please try again or check your connection.", true);
     } finally {
@@ -304,11 +302,11 @@ function loadHistory() {
 
     db.ref('users/' + auth.currentUser.uid + '/history')
         .orderByChild('timestamp')
-        .limitToLast(30)
+        .limitToLast(50)
         .once('value', snap => {
             container.innerHTML = '';
             if (!snap.exists()) {
-                container.innerHTML = '<p style="text-align:center; color:#666; padding:30px 0;">No searches yet.</p>';
+                container.innerHTML = '<p style="text-align:center; color:#666; padding:40px 0;">No searches yet.</p>';
                 return;
             }
             const entries = [];
@@ -318,15 +316,21 @@ function loadHistory() {
             entries.forEach(entry => {
                 const div = document.createElement('div');
                 div.className = 'history-item';
+                let statusHTML = '';
+                if (entry.success) {
+                    statusHTML = `<span style="color:var(--p)">✅ Data Found • 1 Credit Deducted</span>`;
+                } else if (entry.status === 'no_data') {
+                    statusHTML = `<span style="color:#ff9900">❌ No Data Found • No Credit Deducted</span>`;
+                } else {
+                    statusHTML = `<span style="color:var(--r)">⚠️ Search Failed (Server Error) • No Credit Deducted</span>`;
+                }
                 div.innerHTML = `
-                    <div style="display:flex; justify-content:space-between;">
-                        <strong>${entry.type} Search</strong>
-                        <span style="color:#888; font-size:12px;">${new Date(entry.timestamp).toLocaleString('en-IN')}</span>
+                    <div style="display:flex; justify-content:space-between; margin-bottom:6px;">
+                        <strong>${entry.type} SEARCH</strong>
+                        <small style="color:#888">${new Date(entry.timestamp).toLocaleString('en-IN')}</small>
                     </div>
-                    <div style="margin:8px 0; font-size:15px; color:#fff;">${entry.query}</div>
-                    <div style="color: ${entry.creditsDeducted ? 'var(--y)' : '#0f0'}">
-                        ${entry.creditsDeducted ? '✅ 1 Credit Deducted' : '❌ No Credit Deducted'}
-                    </div>
+                    <div style="font-size:15px; color:#fff; margin-bottom:8px;">${entry.query}</div>
+                    <div>${statusHTML}</div>
                 `;
                 container.appendChild(div);
             });
@@ -334,11 +338,26 @@ function loadHistory() {
 }
 
 // ====================== SEARCH ======================
+function render(data) {
+    const out = document.getElementById('data-out');
+    out.innerHTML = "";
+    const skip = ["branding", "developer", "processed_by", "owner_contact", "status"];
+    function walk(obj) {
+        for (let key in obj) {
+            if (typeof obj[key] === "object" && obj[key] !== null) walk(obj[key]);
+            else if (!skip.includes(key.toLowerCase())) {
+                out.innerHTML += `<div class="res-row"><span style="color:var(--p)">${key.toUpperCase()}</span><span style="color:#fff">${obj[key]}</span></div>`;
+            }
+        }
+    }
+    walk(data);
+}
+
 async function runTrace(t) {
     if (credits <= 0) return showModal("NO CREDITS", "Please recharge to continue.", true);
 
     const v = document.getElementById('target').value.trim();
-    if (!v) return showModal("INPUT REQUIRED", "Please enter a valid number.", true);
+    if (!v) return showModal("INPUT REQUIRED", "Please enter a valid number or vehicle registration.", true);
 
     switchPage('pg-load');
     document.querySelectorAll('.log-line').forEach(l => l.classList.remove('show'));
@@ -368,30 +387,28 @@ async function runTrace(t) {
         const uid = auth.currentUser.uid;
         const type = t === 'mob' ? 'Mobile' : 'Vehicle';
 
+        // NO DATA FOUND
         if (!data || Object.keys(data).length < 2) {
-            // Log without deducting credit
             await db.ref('users/' + uid + '/history').push({
                 timestamp: Date.now(),
                 type: type,
                 query: v,
-                creditsDeducted: false
+                success: false,
+                status: 'no_data'
             });
-
-            showModal("DATA NOT FOUND", 
-                "Sorry, we couldn't find any data for this number.\nYour credits have not been deducted.", 
-                true);
+            showModal("DATA NOT FOUND", "Sorry, we could not find any data for this number.\nYour credits have not been deducted.", true);
             switchPage('pg-dash');
             return;
         }
 
-        // Success - Deduct credit
+        // SUCCESS
         await db.ref('users/' + uid + '/history').push({
             timestamp: Date.now(),
             type: type,
             query: v,
-            creditsDeducted: true
+            success: true,
+            status: 'success'
         });
-
         await db.ref('users/' + uid).update({ credits: credits - 1 });
 
         setTimeout(() => {
@@ -404,34 +421,18 @@ async function runTrace(t) {
         bar.style.width = "100%";
 
         const uid = auth.currentUser.uid;
+        const type = t === 'mob' ? 'Mobile' : 'Vehicle';
         await db.ref('users/' + uid + '/history').push({
             timestamp: Date.now(),
-            type: t === 'mob' ? 'Mobile' : 'Vehicle',
-            query: v,
-            creditsDeducted: false
-        }).catch(() => {});
+            type: type,
+            query: document.getElementById('target').value.trim(),
+            success: false,
+            status: 'server_error'
+        });
 
-        showModal("SERVER BUSY", 
-            "The server is currently busy or unable to process your request.\nPlease try again in a few moments.", 
-            true);
+        showModal("SERVER BUSY", "The server is currently busy or unable to process your request.\nPlease try again in a few moments.\nNo credits were deducted.", true);
         switchPage('pg-dash');
     }
-}
-
-function render(data) {
-    const out = document.getElementById('data-out');
-    out.innerHTML = "";
-    const skip = ["branding", "developer", "processed_by", "owner_contact", "status"];
-    
-    function walk(obj) {
-        for (let key in obj) {
-            if (typeof obj[key] === "object" && obj[key] !== null) walk(obj[key]);
-            else if (!skip.includes(key.toLowerCase())) {
-                out.innerHTML += `<div class="res-row"><span style="color:var(--p)">${key.toUpperCase()}</span><span style="color:#fff">${obj[key]}</span></div>`;
-            }
-        }
-    }
-    walk(data);
 }
 </script>
 </body>

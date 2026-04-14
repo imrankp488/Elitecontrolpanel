@@ -36,7 +36,6 @@
         .history-item { background: rgba(0,255,65,0.03); border: 1px solid rgba(0,255,65,0.3); border-radius: 10px; padding: 15px; margin-bottom: 12px; text-align: left; }
         .request-card { background: #111; border: 1px solid #444; border-radius: 10px; padding: 12px; margin-bottom: 15px; text-align: left; }
 
-        /* Improved Loading Screen */
         .hacker-box {
             background: #0a0a0a;
             border: 2px solid #00ff41;
@@ -116,8 +115,8 @@
 <div id="pg-history" class="page">
     <div class="container" style="max-height:85vh; overflow-y:auto;">
         <h1>SEARCH HISTORY</h1>
-        <div id="history-list"></div>
-        <button onclick="switchPage('pg-dash')" class="btn-red" style="margin-top:20px;">BACK TO DASHBOARD</button>
+        <div id="history-list" style="max-height:68vh; overflow-y:auto; margin-bottom:20px;"></div>
+        <button onclick="switchPage('pg-dash')" class="btn-red">BACK TO DASHBOARD</button>
     </div>
 </div>
 
@@ -193,7 +192,6 @@
     </div>
 </div>
 
-<!-- IMPROVED LOADING SCREEN -->
 <div id="pg-load" class="page">
     <div class="hacker-box">
         <div style="display:flex; align-items:center; gap:12px; color:#0f0; font-size:17px; margin-bottom:14px;">
@@ -420,7 +418,7 @@ async function loadAllUsers() {
     }
 }
 
-// ====================== ALL SEARCH LOGS ======================
+// ====================== ALL SEARCH LOGS (Newest first) ======================
 async function loadAllSearchLogs() {
     const container = document.getElementById('all-logs-list');
     container.innerHTML = '<p style="text-align:center;color:#666;">Loading all search logs...</p>';
@@ -429,6 +427,7 @@ async function loadAllSearchLogs() {
         const usersSnap = await db.ref('users').once('value');
         container.innerHTML = '';
         let hasLogs = false;
+        const allLogs = [];
 
         for (let [uid, userData] of Object.entries(usersSnap.val() || {})) {
             const email = userData.email || 'Unknown';
@@ -439,26 +438,31 @@ async function loadAllSearchLogs() {
 
             historySnap.forEach(child => {
                 hasLogs = true;
-                const log = child.val();
-                const div = document.createElement('div');
-                div.className = 'history-item';
-                div.innerHTML = `
-                    <div style="display:flex; justify-content:space-between; margin-bottom:6px;">
-                        <strong style="color:#0ff">${email}</strong>
-                        <small>${new Date(log.timestamp).toLocaleString('en-IN')}</small>
-                    </div>
-                    <div style="font-size:15px; color:#fff;">${log.type} • ${log.query}</div>
-                    <div style="color:${log.success ? 'var(--p)' : 'var(--r)'}">
-                        ${log.success ? '✅ Success (1 credit deducted)' : '❌ Failed (0 credit deducted)'}
-                    </div>
-                `;
-                container.appendChild(div);
+                allLogs.push({email, ...child.val()});
             });
         }
+
+        allLogs.sort((a, b) => b.timestamp - a.timestamp);
+
+        allLogs.forEach(log => {
+            const div = document.createElement('div');
+            div.className = 'history-item';
+            div.innerHTML = `
+                <div style="display:flex; justify-content:space-between; margin-bottom:6px;">
+                    <strong style="color:#0ff">${log.email}</strong>
+                    <small>${new Date(log.timestamp).toLocaleString('en-IN')}</small>
+                </div>
+                <div style="font-size:15px; color:#fff;">${log.type} • ${log.query}</div>
+                <div style="color:${log.success ? 'var(--p)' : 'var(--r)'}">
+                    ${log.success ? '✅ Success (1 credit deducted)' : '❌ Failed (0 credit deducted)'}
+                </div>
+            `;
+            container.appendChild(div);
+        });
+
         if (!hasLogs) container.innerHTML = '<p style="color:#666;text-align:center;padding:40px 0;">No search logs found yet.</p>';
     } catch(e) {
         container.innerHTML = '<p style="color:var(--r);">Error loading logs. Please try again.</p>';
-        console.error(e);
     }
 }
 
@@ -526,88 +530,68 @@ async function uploadImgBB() {
     }
 }
 
-// ====================== SEARCH HISTORY (SIMPLE & CLEAN FROM SCRATCH) ======================
+// ====================== SEARCH HISTORY ======================
 function loadHistory() {
     const container = document.getElementById('history-list');
     container.innerHTML = '<p style="text-align:center; color:#666; padding:30px 0;">Loading your search history...</p>';
 
     const user = auth.currentUser;
-    if (!user) {
-        container.innerHTML = '<p style="color:var(--r);">Please login again.</p>';
-        return;
-    }
+    if (!user) return;
 
     db.ref('users/' + user.uid + '/history')
         .orderByChild('timestamp')
-        .limitToLast(30)
-        .once('value', (snap) => {
+        .limitToLast(50)
+        .once('value', snap => {
             container.innerHTML = '';
-
-            if (!snap.exists() || snap.numChildren() === 0) {
-                container.innerHTML = '<p style="text-align:center; color:#666; padding:60px 0;">No searches performed yet.</p>';
+            if (!snap.exists()) {
+                container.innerHTML = '<p style="text-align:center; color:#666; padding:60px 0;">No searches yet.</p>';
                 return;
             }
-
             const entries = [];
-            snap.forEach((child) => {
-                entries.push(child.val());
-            });
+            snap.forEach(child => entries.push(child.val()));
+            entries.reverse(); // Newest first
 
-            // Reverse to show newest first
-            entries.reverse();
-
-            entries.forEach((entry) => {
+            entries.forEach(entry => {
                 const div = document.createElement('div');
                 div.className = 'history-item';
-
-                const statusHTML = entry.success 
+                let statusHTML = entry.success 
                     ? `<span style="color:var(--p)">✅ Data Found • 1 Credit Deducted</span>`
                     : `<span style="color:var(--r)">❌ ${entry.status === 'no_data' ? 'No Data Found' : 'Search Failed'} • No Credit Deducted</span>`;
-
+                
                 div.innerHTML = `
-                    <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
-                        <strong>${entry.type || 'Unknown'} SEARCH</strong>
+                    <div style="display:flex; justify-content:space-between; margin-bottom:6px;">
+                        <strong>${entry.type} SEARCH</strong>
                         <small style="color:#888">${new Date(entry.timestamp).toLocaleString('en-IN')}</small>
                     </div>
-                    <div style="font-size:15px; color:#fff; margin-bottom:10px;">${entry.query || 'N/A'}</div>
+                    <div style="font-size:15px; color:#fff; margin-bottom:8px;">${entry.query}</div>
                     <div>${statusHTML}</div>
                 `;
                 container.appendChild(div);
             });
-        })
-        .catch((err) => {
-            console.error(err);
-            container.innerHTML = '<p style="color:var(--r); text-align:center;">Failed to load history. Please try again.</p>';
         });
 }
 
-// ====================== SEARCH FUNCTION ======================
+// ====================== FIXED RUNTRACE (Vehicle API Fix) ======================
 async function runTrace(t) {
-    if (credits <= 0) {
-        return showModal("INSUFFICIENT CREDITS", "You don't have enough credits. Please recharge to continue.", true);
-    }
+    if (credits <= 0) return showModal("INSUFFICIENT CREDITS", "You don't have enough credits. Please recharge to continue.", true);
 
-    const v = document.getElementById('target').value.trim();
-    if (!v) {
-        return showModal("INPUT REQUIRED", "Please enter a valid number or vehicle registration.", true);
-    }
+    let v = document.getElementById('target').value.trim().toUpperCase();
+    if (!v) return showModal("INPUT REQUIRED", "Please enter a valid number or vehicle registration.", true);
 
-    // Show loading screen
     switchPage('pg-load');
     document.querySelectorAll('.log-line').forEach(l => l.classList.remove('show'));
     const bar = document.getElementById('bar');
     bar.style.width = "0%";
 
-    let progress = 0;
-    const progressInterval = setInterval(() => {
-        progress += Math.random() * 22 + 6;
-        if (progress > 97) progress = 97;
-        bar.style.width = progress + "%";
-
-        if (progress > 15) document.getElementById('log-1').classList.add('show');
-        if (progress > 45) document.getElementById('log-2').classList.add('show');
-        if (progress > 70) document.getElementById('log-3').classList.add('show');
-        if (progress > 88) document.getElementById('log-4').classList.add('show');
+    let p = 0;
+    const itv = setInterval(() => {
+        p += Math.random() * 22 + 6;
+        if (p > 97) p = 97;
+        bar.style.width = p + "%";
+        if (p > 15) document.getElementById('log-1').classList.add('show');
+        if (p > 45) document.getElementById('log-2').classList.add('show');
+        if (p > 70) document.getElementById('log-3').classList.add('show');
+        if (p > 88) document.getElementById('log-4').classList.add('show');
     }, 140);
 
     try {
@@ -618,14 +602,15 @@ async function runTrace(t) {
         const res = await fetch(api);
         const data = await res.json();
 
-        clearInterval(progressInterval);
+        clearInterval(itv);
         bar.style.width = "100%";
 
         const uid = auth.currentUser.uid;
         const type = t === 'mob' ? 'Mobile' : 'Vehicle';
-        const isSuccess = !(!data || Object.keys(data).length < 2);
 
-        // Save search to history (Simple & Reliable)
+        // Fixed success check for Vehicle API
+        const isSuccess = !!(data && (t === 'mob' ? Object.keys(data).length > 2 : data.details));
+
         await db.ref('users/' + uid + '/history').push({
             timestamp: Date.now(),
             type: type,
@@ -635,27 +620,24 @@ async function runTrace(t) {
         });
 
         if (!isSuccess) {
-            showModal("DATA NOT FOUND", "Sorry, we could not find any data for this number.\nYour credits have not been deducted.", true);
+            showModal("DATA NOT FOUND", "Sorry, we could not find any data for this " + (t==='veh' ? 'vehicle' : 'number') + ".\nYour credits have not been deducted.", true);
             switchPage('pg-dash');
             return;
         }
 
-        // Deduct 1 credit only on success
         await db.ref('users/' + uid).update({ credits: credits - 1 });
 
-        // Show result after short delay
         setTimeout(() => {
             switchPage('pg-res');
             render(data);
-        }, 800);
+        }, 700);
 
     } catch (e) {
-        clearInterval(progressInterval);
+        clearInterval(itv);
         bar.style.width = "100%";
 
         const uid = auth.currentUser.uid;
         const type = t === 'mob' ? 'Mobile' : 'Vehicle';
-
         await db.ref('users/' + uid + '/history').push({
             timestamp: Date.now(),
             type: type,
@@ -664,7 +646,7 @@ async function runTrace(t) {
             status: 'server_error'
         });
 
-        showModal("SERVER BUSY", "The server is currently busy or unable to process your request.\nPlease try again later.\nNo credits were deducted.", true);
+        showModal("SERVER BUSY", "The server is currently busy or unable to process your request.\nPlease try again in a few moments.\nNo credits were deducted.", true);
         switchPage('pg-dash');
     }
 }
@@ -673,15 +655,20 @@ function render(data) {
     const out = document.getElementById('data-out');
     out.innerHTML = "";
     const skip = ["branding", "developer", "processed_by", "owner_contact", "status"];
-    function walk(obj) {
+
+    function walk(obj, prefix = "") {
         for (let key in obj) {
-            if (typeof obj[key] === "object" && obj[key] !== null) walk(obj[key]);
-            else if (!skip.includes(key.toLowerCase())) {
-                out.innerHTML += `<div class="res-row"><span style="color:var(--p)">${key.toUpperCase()}</span><span style="color:#fff">${obj[key]}</span></div>`;
+            if (typeof obj[key] === "object" && obj[key] !== null) {
+                walk(obj[key], key);
+            } else if (!skip.includes(key.toLowerCase())) {
+                const displayKey = prefix ? `${prefix.toUpperCase()} - ${key.toUpperCase()}` : key.toUpperCase();
+                out.innerHTML += `<div class="res-row"><span style="color:var(--p)">${displayKey}</span><span style="color:#fff">${obj[key]}</span></div>`;
             }
         }
     }
-    walk(data);
+
+    if (data && data.details) walk(data.details);
+    else walk(data);
 }
 </script>
 </body>

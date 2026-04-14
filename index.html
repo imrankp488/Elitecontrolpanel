@@ -1,53 +1,168 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>IMRAN PLAYZ | ELITE SYSTEM v16.0</title>
-
-<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
-
-<style>
-/* SAME UI (UNCHANGED) */
-body{background:#000;color:#00ff41;font-family:monospace}
-.upload-box{border:2px dashed #444;padding:20px;position:relative}
-input[type=file]{position:absolute;width:100%;height:100%;opacity:0}
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>IMRAN PLAYZ | ELITE SYSTEM v16.1</title>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    <style>
+        :root { --p: #00ff41; --r: #ff3131; --b: #000; --panel: rgba(10, 10, 10, 0.98); --blue: #00ccff; --y: #ffd700; }
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; transition: 0.3s ease; }
+        body { background: var(--b); color: var(--p); font-family: 'Share Tech Mono', monospace; margin: 0; overflow-x: hidden; }
+        .page { display: none; min-height: 100vh; padding: 20px; flex-direction: column; align-items: center; justify-content: center; }
+        .active { display: flex !important; animation: fadeIn 0.4s; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        .container { width: 100%; max-width: 450px; background: var(--panel); border: 1px solid var(--p); border-radius: 15px; padding: 25px; box-shadow: 0 0 25px rgba(0, 255, 65, 0.15); text-align: center; }
+        h1 { font-family: 'Orbitron', sans-serif; font-size: 18px; color: #fff; text-shadow: 0 0 10px var(--p); margin-bottom: 20px; }
+        .hacker-box { width: 100%; max-width: 400px; background: rgba(0, 255, 65, 0.03); border: 1px solid rgba(0, 255, 65, 0.3); border-radius: 12px; padding: 20px; margin-bottom: 15px; text-align: left; }
+        .hacker-title { color: var(--p); font-size: 13px; font-weight: bold; letter-spacing: 1px; margin-bottom: 15px; display: flex; align-items: center; gap: 10px; }
+        .bar-bg { width: 100%; height: 14px; background: rgba(0, 255, 65, 0.1); border: 1px solid var(--p); border-radius: 7px; overflow: hidden; position: relative; }
+        .bar-f { width: 0%; height: 100%; background: var(--p); box-shadow: 0 0 15px var(--p); transition: 0.2s linear; }
+        .log-line { font-size: 12px; color: var(--p); margin-bottom: 8px; opacity: 0.7; display: none; }
+        .log-line.show { display: block; animation: slideIn 0.3s ease-out; }
+        @keyframes slideIn { from { transform: translateX(-10px); opacity: 0; } to { transform: translateX(0); opacity: 0.7; } }
+        input { width: 100%; padding: 14px; background: #050505; border: 1px solid #333; color: var(--p); border-radius: 8px; margin-bottom: 12px; outline: none; font-family: inherit; }
+        button { width: 100%; padding: 14px; background: transparent; border: 1.5px solid var(--p); color: var(--p); font-weight: bold; cursor: pointer; border-radius: 8px; font-family: inherit; margin-bottom: 10px; }
+        button:hover { background: var(--p); color: #000; box-shadow: 0 0 15px var(--p); }
+        .btn-blue { border-color: var(--blue); color: var(--blue); }
+        .btn-red { border-color: var(--r); color: var(--r); }
+        .credit-badge { background: rgba(255, 215, 0, 0.1); border: 1px solid var(--y); padding: 6px 15px; border-radius: 20px; font-size: 13px; margin-bottom: 20px; color: var(--y); display: inline-block; }
+        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 2000; align-items: center; justify-content: center; backdrop-filter: blur(8px); }
+        .modal-box { width: 85%; max-width: 380px; background: #050505; border: 2px solid var(--p); border-radius: 15px; padding: 25px; text-align: center; }
+        .res-row { border-bottom: 1px solid #1a1a1a; padding: 10px 0; text-align: left; display: flex; justify-content: space-between; font-size: 12px; }
+        .upload-box { border: 2px dashed #444; padding: 20px; border-radius: 10px; cursor: pointer; margin-bottom: 15px; position: relative; background: rgba(255,255,255,0.02); }
+        input[type="file"] { position: absolute; width: 100%; height: 100%; top: 0; left: 0; opacity: 0; cursor: pointer; }
+    </style>
 </head>
 <body>
 
-<div class="upload-box">
-<span id="fn">Select Image</span>
-<input type="file" id="p-img" accept="image/*">
+<div id="modal" class="modal-overlay"><div class="modal-box"><h2 id="m-t"></h2><p id="m-m" style="font-size:13px; color:#ccc;"></p><button onclick="closeModal()">OKAY</button></div></div>
+
+<div id="pg-auth" class="page active">
+    <div class="container">
+        <h1>SYSTEM LOGIN</h1>
+        <input type="email" id="email" placeholder="Email Address">
+        <input type="password" id="pass" placeholder="Password">
+        <button id="auth-btn" onclick="handleAuth()">LOGIN</button>
+        <button style="background:#fff; color:#000; border:none;" onclick="loginGoogle()">SIGN IN WITH GOOGLE</button>
+        <p onclick="toggleMode()" style="font-size:11px; color:#444; cursor:pointer; margin-top:10px;">New User? Create Account</p>
+    </div>
 </div>
 
-<button onclick="uploadImgBB()" id="up-btn">UPLOAD</button>
+<div id="pg-dash" class="page">
+    <div class="container">
+        <h1>DASHBOARD</h1>
+        <div class="credit-badge">CREDITS: <span id="user-credits">0</span></div>
+        <input type="text" id="target" placeholder="98765XXXXX / MH12XXXX">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+            <button onclick="runTrace('mob')">Mobile</button>
+            <button onclick="runTrace('veh')">Vehicle</button>
+        </div>
+        <button class="btn-blue" style="margin-top:15px;" onclick="switchPage('pg-plans')">RECHARGE / PLANS</button>
+        <button class="btn-red" style="font-size:10px;" onclick="auth.signOut().then(()=>location.reload())">LOGOUT</button>
+    </div>
+</div>
+
+<div id="pg-plans" class="page">
+    <div class="container">
+        <h1>RECHARGE</h1>
+        <div onclick="openPay('50')" style="border:1px solid #333;padding:12px;border-radius:10px;margin-bottom:10px;text-align:left;">
+            <span style="float:right; color:var(--p);">₹50</span><strong>BASIC</strong><br><small>10 Searches</small></div>
+        <div onclick="openPay('100')" style="border:1px solid #333;padding:12px;border-radius:10px;margin-bottom:10px;text-align:left;">
+            <span style="float:right; color:var(--p);">₹100</span><strong>PRO</strong><br><small>30 Searches</small></div>
+        <div style="margin-top:15px;border-top:1px solid #333;padding-top:15px;">
+            <p style="font-size:11px;color:var(--blue);">UPLOAD PAYMENT SCREENSHOT:</p>
+            <div class="upload-box">
+                <span id="fn">Select Image</span>
+                <input type="file" id="p-img" accept="image/*">
+            </div>
+            <button class="btn-blue" id="up-btn" onclick="uploadImgBB()">SUBMIT PROOF</button>
+        </div>
+        <button class="btn-red" onclick="switchPage('pg-dash')">BACK</button>
+    </div>
+</div>
+
+<div id="pg-load" class="page">
+    <div class="hacker-box">
+        <div class="hacker-title">⌛ FETCHING DATA PLEASE WAIT...</div>
+        <div class="bar-bg"><div id="bar" class="bar-f"></div></div>
+    </div>
+    <div class="hacker-box">
+        <div class="hacker-title">📝 System Logs</div>
+        <div id="log-1" class="log-line">> Initializing secure connection...</div>
+        <div id="log-2" class="log-line">> Bypassing server protocols...</div>
+        <div id="log-3" class="log-line">> Fetching data packets...</div>
+        <div id="log-4" class="log-line">> Decrypting identity layer...</div>
+    </div>
+    <div style="font-size: 10px; text-align: center; opacity: 0.5; margin-top: 20px;">
+        [/>] SYSTEM BY IMRANPLAYZ<br>
+        CONTACT IG: @_imranplayz_
+    </div>
+</div>
+
+<div id="pg-res" class="page">
+    <div class="container" style="max-height:85vh; overflow-y:auto;">
+        <h1>DECRYPTED DATA</h1>
+        <div id="data-out"></div>
+        <button onclick="switchPage('pg-dash')" style="margin-top:15px;">NEW SEARCH</button>
+    </div>
+</div>
 
 <script>
+const firebaseConfig = {
+ apiKey:"AIzaSyB011WYaNhJQx77yO3Ow7l-Z_clhS89Z8A",
+ authDomain:"adminpanel-6b862.firebaseapp.com",
+ databaseURL:"https://adminpanel-6b862-default-rtdb.firebaseio.com",
+ projectId:"adminpanel-6b862"
+};
+
 const IMGBB_KEY="47d4ddf5133629b43bb606ec944137f9";
+firebase.initializeApp(firebaseConfig);
+const auth=firebase.auth(), db=firebase.database();
+let credits=0, isLogin=true;
 
-/* ✅ FIX 1: IMAGE NAME SHOW */
+// Fix: File Name Display
 document.getElementById("p-img").addEventListener("change", function(e){
-    const file = e.target.files[0];   // ✅ FIX
+    const file = e.target.files;
     const nameBox = document.getElementById("fn");
-
-    if(file){
-        nameBox.innerText = file.name;
-    } else {
-        nameBox.innerText = "Select Image";
-    }
+    if(file){ nameBox.innerText = file.name; } 
+    else { nameBox.innerText = "Select Image"; }
 });
 
+auth.onAuthStateChanged(user => { if(user) sync(user); else switchPage('pg-auth'); });
 
-/* ✅ FIX 2: IMG UPLOAD */
+function showModal(t,m){ document.getElementById('m-t').innerText=t; document.getElementById('m-m').innerText=m; document.getElementById('modal').style.display='flex'; }
+function closeModal(){ document.getElementById('modal').style.display='none'; }
+function switchPage(id){ document.querySelectorAll('.page').forEach(p=>p.classList.remove('active')); document.getElementById(id).classList.add('active'); }
+function toggleMode(){ isLogin=!isLogin; document.querySelector('#pg-auth h1').innerText=isLogin?"SYSTEM LOGIN":"CREATE ACCOUNT"; }
+
+function handleAuth(){
+ const e=document.getElementById('email').value, p=document.getElementById('pass').value;
+ if(isLogin) auth.signInWithEmailAndPassword(e,p).catch(err=>showModal("ERROR",err.message));
+ else auth.createUserWithEmailAndPassword(e,p).then(async r=>{ await r.user.sendEmailVerification(); await db.ref('users/'+r.user.uid).set({email:e,credits:1}); showModal("VERIFY","Email Sent!"); auth.signOut(); });
+}
+
+function loginGoogle(){ auth.signInWithPopup(new firebase.auth.GoogleAuthProvider()); }
+
+function sync(user){
+ db.ref('users/'+user.uid).on('value',snap=>{
+   const d=snap.val(); credits=d?.credits||0;
+   document.getElementById('user-credits').innerText=credits;
+   switchPage('pg-dash');
+ });
+}
+
+function openPay(amt){ window.location.href=`upi://pay?pa=imrankhan17@ptyes&pn=IMRAN&am=${amt}&cu=INR`; }
+
+// ✅ FINAL IMAGE UPLOAD FIX (NO UNDEFINED)
 async function uploadImgBB(){
-
- const file = document.getElementById('p-img').files[0]; // ✅ FIX
+ const file = document.getElementById('p-img').files;
 
  if(!file){
-   alert("Select image first");
+   showModal("ERROR","Please select an image first");
    return;
  }
 
@@ -59,8 +174,7 @@ async function uploadImgBB(){
 
  reader.onloadend = async () => {
    try{
-     const base64 = reader.result.split(',')[1]; // ✅ FIX
-
+     const base64 = reader.result.split(','); 
      const fd=new FormData();
      fd.append("image", base64);
 
@@ -71,23 +185,83 @@ async function uploadImgBB(){
 
      const d=await res.json();
 
-     if(d.success){
-       alert("Upload Success ✅\nURL: "+d.data.url);
+     // Check if 'd.data' and 'd.data.url' exist to prevent undefined error
+     if(d.success && d.data && d.data.url){
+       await db.ref('recharge_requests/'+Date.now()).set({
+         user:auth.currentUser.email,
+         uid:auth.currentUser.uid,
+         screenshot:d.data.url,
+         status:"pending",
+         time:new Date().toLocaleString()
+       });
+
+       showModal("SUCCESS","Screenshot uploaded. Wait for admin approval.");
+       switchPage('pg-dash');
      } else {
-       throw new Error();
+       throw new Error("API Response Error");
      }
 
    }catch(e){
-     alert("Upload Failed ❌");
+     showModal("UPLOAD FAILED","Try again with a different image.");
    }
 
-   btn.innerText="UPLOAD";
+   btn.innerText="SUBMIT PROOF";
    btn.disabled=false;
  };
 
- reader.readAsDataURL(file); // ✅ FIX
+ reader.readAsDataURL(file);
+}
+
+function render(data) {
+    const out = document.getElementById('data-out');
+    out.innerHTML = "";
+    const skip = ["branding", "developer", "processed_by", "owner_contact", "status"];
+    function walk(obj) {
+        for (let key in obj) {
+            if (typeof obj[key] === "object" && obj[key] !== null) { walk(obj[key]); } 
+            else {
+                if (!skip.includes(key.toLowerCase())) {
+                    out.innerHTML += `<div class="res-row"><span style="color:var(--p)">${key.toUpperCase()}</span><span style="color:#fff">${obj[key]}</span></div>`;
+                }
+            }
+        }
+    }
+    walk(data);
+}
+
+async function runTrace(t){
+ if(credits<=0) return showModal("NO CREDITS","Please recharge.");
+ const v=document.getElementById('target').value.trim();
+ if(!v) return;
+
+ switchPage('pg-load');
+ document.querySelectorAll('.log-line').forEach(l => l.classList.remove('show')); 
+ 
+ let p=0; const bar=document.getElementById('bar');
+ const itv = setInterval(() => { 
+    p += Math.random()*15; 
+    if(p>95) p=95; 
+    bar.style.width=p+"%";
+    if(p > 15) document.getElementById('log-1').classList.add('show');
+    if(p > 40) document.getElementById('log-2').classList.add('show');
+    if(p > 70) document.getElementById('log-3').classList.add('show');
+    if(p > 88) document.getElementById('log-4').classList.add('show');
+ }, 200);
+
+ try{
+   const api=(t==='mob')?`https://yash-code-with-ai.alphamovies.workers.dev/?num=${v}&key=7189814021`:`https://vehicle-eight-vert.vercel.app/api?rc=${v}`;
+   const res = await fetch(api);
+   const data = await res.json();
+   clearInterval(itv); bar.style.width="100%";
+
+   if(!data || Object.keys(data).length < 2){
+     showModal("NOT FOUND","Data not available."); switchPage('pg-dash'); return;
+   }
+
+   await db.ref('users/'+auth.currentUser.uid).update({credits:credits-1});
+   setTimeout(() => { switchPage('pg-res'); render(data); }, 600);
+ } catch(e) { clearInterval(itv); showModal("ERROR","Server Busy."); switchPage('pg-dash'); }
 }
 </script>
-
 </body>
 </html>

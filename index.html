@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>IMRAN PLAYZ | ELITE SYSTEM v18.3</title>
+    <title>IMRAN PLAYZ | ELITE SYSTEM v18.4</title>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
@@ -125,7 +125,6 @@
     <div class="container">
         <h1>🔧 ADMIN DASHBOARD</h1>
 
-        <!-- Manual Credit Section - Top pe -->
         <h2 style="margin:10px 0 8px 0;">Manual Credit Add / Remove</h2>
         <input type="text" id="manual-uid" placeholder="User UID or Email">
         <input type="number" id="manual-credits" value="10" placeholder="Amount">
@@ -181,7 +180,6 @@ const auth = firebase.auth(), db = firebase.database();
 let credits = 0, isLogin = true;
 let selectedPlan = null;
 
-// === TERI ADMIN DETAILS ===
 const ADMIN_EMAIL = "imrankp488@gmail.com";
 const ADMIN_UID = "AqVy3n9MDHO2KcN0w8OTcsF76Ti1";
 const ADMIN_PASS = "admin18";
@@ -194,7 +192,6 @@ document.getElementById("p-img").addEventListener("change", function(e){
 auth.onAuthStateChanged(user => { 
     if(user) {
         sync(user);
-        // Sirf tere account ke liye Admin button dikhao
         if (user.email && user.email.toLowerCase() === ADMIN_EMAIL.toLowerCase() || user.uid === ADMIN_UID) {
             document.getElementById('admin-btn').style.display = 'block';
         }
@@ -210,18 +207,12 @@ function showModal(title, message, isError = false) {
     if (isError) box.classList.add('error'); else box.classList.remove('error');
     document.getElementById('modal').style.display = 'flex';
 }
-
 function closeModal() { document.getElementById('modal').style.display = 'none'; }
-
 function switchPage(id) {
     document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
     document.getElementById(id).classList.add('active');
 }
-
-function toggleMode() {
-    isLogin = !isLogin;
-    document.querySelector('#pg-auth h1').innerText = isLogin ? "SYSTEM LOGIN" : "CREATE ACCOUNT";
-}
+function toggleMode() { isLogin = !isLogin; document.querySelector('#pg-auth h1').innerText = isLogin ? "SYSTEM LOGIN" : "CREATE ACCOUNT"; }
 
 function handleAuth() {
     const e = document.getElementById('email').value.trim();
@@ -270,21 +261,26 @@ async function loadPendingRequests() {
     db.ref('recharge_requests').orderByKey().limitToLast(30).once('value', snap => {
         container.innerHTML = '';
         let hasAny = false;
+        const entries = [];
         snap.forEach(child => {
             const req = child.val();
-            if (req.status === "pending") {
-                hasAny = true;
-                const div = document.createElement('div');
-                div.className = 'request-card';
-                div.innerHTML = `
-                    <small>${req.time || ''} • ${req.user}</small><br>
-                    <strong>UID:</strong> ${req.uid}<br><br>
-                    <img src="${req.screenshot}" style="max-width:100%;border-radius:8px;"><br><br>
-                    <input type="number" id="c-${child.key}" value="10" style="width:100%;padding:10px;margin:8px 0;">
-                    <button onclick="approveRequest('${child.key}', '${req.uid}', document.getElementById('c-${child.key}').value)" style="background:#0f0;color:#000;border:none;">✅ APPROVE & ADD CREDITS</button>
-                `;
-                container.appendChild(div);
-            }
+            if (req.status === "pending") entries.push({key: child.key, ...req});
+        });
+        // Newest first
+        entries.reverse();
+
+        entries.forEach(entry => {
+            hasAny = true;
+            const div = document.createElement('div');
+            div.className = 'request-card';
+            div.innerHTML = `
+                <small>${entry.time || ''} • ${entry.user}</small><br>
+                <strong>UID:</strong> ${entry.uid}<br><br>
+                <img src="${entry.screenshot}" style="max-width:100%;border-radius:8px;"><br><br>
+                <input type="number" id="c-${entry.key}" value="10" style="width:100%;padding:10px;margin:8px 0;">
+                <button onclick="approveRequest('${entry.key}', '${entry.uid}', document.getElementById('c-${entry.key}').value)" style="background:#0f0;color:#000;border:none;">✅ APPROVE & ADD CREDITS</button>
+            `;
+            container.appendChild(div);
         });
         if (!hasAny) container.innerHTML = '<p style="color:#0f0;text-align:center;">No pending requests right now.</p>';
     });
@@ -307,17 +303,15 @@ async function approveRequest(requestKey, uid, creditsToAdd) {
         });
 
         showModal("SUCCESS", `${creditsToAdd} credits added successfully!`, false);
-        loadPendingRequests();
+        loadPendingRequests(); // auto refresh + remove approved
     } catch(e) {
         showModal("ERROR", "Failed to add credits", true);
     }
 }
 
-// ====================== MANUAL ADD / REMOVE ======================
 async function addManualCredits(isAdd) {
     let input = document.getElementById('manual-uid').value.trim();
     let amt = parseInt(document.getElementById('manual-credits').value);
-
     if (!input || !amt) return alert("Please fill both fields");
 
     try {
@@ -325,15 +319,12 @@ async function addManualCredits(isAdd) {
         if (input.includes('@')) {
             const snap = await db.ref('users').once('value');
             snap.forEach(child => {
-                if (child.val().email && child.val().email.toLowerCase() === input.toLowerCase()) {
-                    uid = child.key;
-                }
+                if (child.val().email && child.val().email.toLowerCase() === input.toLowerCase()) uid = child.key;
             });
         }
         const userRef = db.ref('users/' + uid);
         const snap = await userRef.once('value');
         let current = snap.val()?.credits || 0;
-
         const newCredits = isAdd ? current + amt : Math.max(0, current - amt);
 
         await userRef.update({ credits: newCredits });
@@ -343,7 +334,7 @@ async function addManualCredits(isAdd) {
     }
 }
 
-// ====================== OTHER FUNCTIONS (Plans, Upload, History, Search) ======================
+// ====================== PLAN, UPLOAD, HISTORY, SEARCH ======================
 function selectPlan(amount, name) {
     selectedPlan = {amount, name};
     document.querySelectorAll('.plan-card').forEach(c => c.classList.remove('selected'));
@@ -351,10 +342,7 @@ function selectPlan(amount, name) {
     else if(name === 'PRO') document.getElementById('plan-pro').classList.add('selected');
     else document.getElementById('plan-unlimited').classList.add('selected');
 
-    document.getElementById('selected-plan').innerHTML = `
-        <strong>Selected: ${name} Plan</strong><br>
-        Amount: ₹${amount}
-    `;
+    document.getElementById('selected-plan').innerHTML = `<strong>Selected: ${name} Plan</strong><br>Amount: ₹${amount}`;
     document.getElementById('confirm-section').style.display = 'block';
 }
 
@@ -372,9 +360,7 @@ function confirmAndPay() {
 
 async function uploadImgBB() {
     const fileInput = document.getElementById('p-img');
-    if (!fileInput.files || fileInput.files.length === 0) {
-        return showModal("ERROR", "Please select an image first", true);
-    }
+    if (!fileInput.files || fileInput.files.length === 0) return showModal("ERROR", "Please select an image first", true);
 
     const btn = document.getElementById('up-btn');
     btn.innerText = "UPLOADING...";
@@ -384,11 +370,7 @@ async function uploadImgBB() {
         const fd = new FormData();
         fd.append("image", fileInput.files[0]);
 
-        const res = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_KEY}`, {
-            method: "POST",
-            body: fd
-        });
-
+        const res = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_KEY}`, { method: "POST", body: fd });
         const d = await res.json();
 
         if (d.success && d.data && d.data.url) {
@@ -403,13 +385,10 @@ async function uploadImgBB() {
 
             showModal("UPLOAD SUCCESSFUL", "Screenshot uploaded successfully!\nAdmin will review and add credits shortly.", false);
             switchPage('pg-dash');
-            
             fileInput.value = '';
             document.getElementById("fn").innerText = "Select Image";
             resetPlans();
-        } else {
-            throw new Error(d.error ? d.error.message : "Upload failed");
-        }
+        } else throw new Error(d.error ? d.error.message : "Upload failed");
     } catch (e) {
         showModal("UPLOAD FAILED", "Failed to upload image. Please try another image or check your network.", true);
     } finally {
@@ -418,14 +397,141 @@ async function uploadImgBB() {
     }
 }
 
-function loadHistory() { /* tere purane code wala function yahan paste kar sakta hai */ }
-function render(data) { /* tere purane code wala */ }
-async function runTrace(t) { 
-    if (credits <= 0) return showModal("INSUFFICIENT CREDITS", "You don't have enough credits. Please recharge to continue.", true);
-    /* baaki tere purane runTrace code ko yahan paste kar dena */
+function loadHistory() {
+    const container = document.getElementById('history-list');
+    container.innerHTML = '<p style="text-align:center; color:#666;">Loading history...</p>';
+
+    db.ref('users/' + auth.currentUser.uid + '/history')
+        .orderByChild('timestamp')
+        .limitToLast(50)
+        .once('value', snap => {
+            container.innerHTML = '';
+            if (!snap.exists()) {
+                container.innerHTML = '<p style="text-align:center; color:#666; padding:40px 0;">No searches yet.</p>';
+                return;
+            }
+            const entries = [];
+            snap.forEach(child => entries.push(child.val()));
+            entries.reverse();
+
+            entries.forEach(entry => {
+                const div = document.createElement('div');
+                div.className = 'history-item';
+                let statusHTML = '';
+                if (entry.success) {
+                    statusHTML = `<span style="color:var(--p)">✅ Data Found • 1 Credit Deducted</span>`;
+                } else if (entry.status === 'no_data') {
+                    statusHTML = `<span style="color:#ff9900">❌ No Data Found • No Credit Deducted</span>`;
+                } else {
+                    statusHTML = `<span style="color:var(--r)">⚠️ Search Failed (Server Error) • No Credit Deducted</span>`;
+                }
+                div.innerHTML = `
+                    <div style="display:flex; justify-content:space-between; margin-bottom:6px;">
+                        <strong>${entry.type} SEARCH</strong>
+                        <small style="color:#888">${new Date(entry.timestamp).toLocaleString('en-IN')}</small>
+                    </div>
+                    <div style="font-size:15px; color:#fff; margin-bottom:8px;">${entry.query}</div>
+                    <div>${statusHTML}</div>
+                `;
+                container.appendChild(div);
+            });
+        });
 }
 
-// Baaki functions (handleAuth, loginGoogle, sync, etc.) already upar hain
+function render(data) {
+    const out = document.getElementById('data-out');
+    out.innerHTML = "";
+    const skip = ["branding", "developer", "processed_by", "owner_contact", "status"];
+    function walk(obj) {
+        for (let key in obj) {
+            if (typeof obj[key] === "object" && obj[key] !== null) walk(obj[key]);
+            else if (!skip.includes(key.toLowerCase())) {
+                out.innerHTML += `<div class="res-row"><span style="color:var(--p)">${key.toUpperCase()}</span><span style="color:#fff">${obj[key]}</span></div>`;
+            }
+        }
+    }
+    walk(data);
+}
+
+async function runTrace(t) {
+    if (credits <= 0) return showModal("INSUFFICIENT CREDITS", "You don't have enough credits. Please recharge to continue.", true);
+
+    const v = document.getElementById('target').value.trim();
+    if (!v) return showModal("INPUT REQUIRED", "Please enter a valid number or vehicle registration.", true);
+
+    switchPage('pg-load');
+    document.querySelectorAll('.log-line').forEach(l => l.classList.remove('show'));
+
+    let p = 0;
+    const bar = document.getElementById('bar');
+    const itv = setInterval(() => {
+        p += Math.random() * 15;
+        if (p > 95) p = 95;
+        bar.style.width = p + "%";
+        if (p > 15) document.getElementById('log-1').classList.add('show');
+        if (p > 40) document.getElementById('log-2').classList.add('show');
+        if (p > 70) document.getElementById('log-3').classList.add('show');
+        if (p > 88) document.getElementById('log-4').classList.add('show');
+    }, 180);
+
+    try {
+        const api = (t === 'mob') 
+            ? `https://yash-code-with-ai.alphamovies.workers.dev/?num=${encodeURIComponent(v)}&key=7189814021`
+            : `https://vehicle-eight-vert.vercel.app/api?rc=${encodeURIComponent(v)}`;
+
+        const res = await fetch(api);
+        const data = await res.json();
+        clearInterval(itv);
+        bar.style.width = "100%";
+
+        const uid = auth.currentUser.uid;
+        const type = t === 'mob' ? 'Mobile' : 'Vehicle';
+
+        if (!data || Object.keys(data).length < 2) {
+            await db.ref('users/' + uid + '/history').push({
+                timestamp: Date.now(),
+                type: type,
+                query: v,
+                success: false,
+                status: 'no_data'
+            });
+            showModal("DATA NOT FOUND", "Sorry, we could not find any data for this number.\nYour credits have not been deducted.", true);
+            switchPage('pg-dash');
+            return;
+        }
+
+        await db.ref('users/' + uid + '/history').push({
+            timestamp: Date.now(),
+            type: type,
+            query: v,
+            success: true,
+            status: 'success'
+        });
+        await db.ref('users/' + uid).update({ credits: credits - 1 });
+
+        setTimeout(() => {
+            switchPage('pg-res');
+            render(data);
+        }, 600);
+
+    } catch (e) {
+        clearInterval(itv);
+        bar.style.width = "100%";
+
+        const uid = auth.currentUser.uid;
+        const type = t === 'mob' ? 'Mobile' : 'Vehicle';
+        await db.ref('users/' + uid + '/history').push({
+            timestamp: Date.now(),
+            type: type,
+            query: document.getElementById('target').value.trim(),
+            success: false,
+            status: 'server_error'
+        });
+
+        showModal("SERVER BUSY", "The server is currently busy or unable to process your request.\nPlease try again in a few moments.\nNo credits were deducted.", true);
+        switchPage('pg-dash');
+    }
+}
 </script>
 </body>
 </html>

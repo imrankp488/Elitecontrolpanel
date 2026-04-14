@@ -30,32 +30,25 @@
         .btn-blue { border-color: var(--blue); color: var(--blue); }
         .btn-red { border-color: var(--r); color: var(--r); }
         .credit-badge { background: rgba(255, 215, 0, 0.1); border: 1px solid var(--y); padding: 6px 15px; border-radius: 20px; font-size: 13px; margin-bottom: 20px; color: var(--y); display: inline-block; }
-        
-        /* Modal Colors */
         .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 2000; align-items: center; justify-content: center; backdrop-filter: blur(8px); }
         .modal-box { width: 85%; max-width: 380px; background: #050505; border: 2px solid var(--p); border-radius: 15px; padding: 25px; text-align: center; }
         .modal-box.error { border-color: var(--r); }
-        .modal-box.error h2 { color: var(--r); text-shadow: 0 0 5px var(--r); }
-
+        .modal-box.error h2 { color: var(--r); }
         .res-row { border-bottom: 1px solid #1a1a1a; padding: 10px 0; text-align: left; display: flex; justify-content: space-between; font-size: 12px; }
         .upload-box { border: 2px dashed #444; padding: 20px; border-radius: 10px; cursor: pointer; margin-bottom: 15px; position: relative; background: rgba(255,255,255,0.02); }
         input[type="file"] { position: absolute; width: 100%; height: 100%; top: 0; left: 0; opacity: 0; cursor: pointer; }
-        
-        /* History Items */
-        .history-item { border: 1px solid #222; padding: 10px; border-radius: 8px; margin-bottom: 10px; text-align: left; background: #050505; }
-        .history-item small { color: #555; }
+        .history-item { background: rgba(0,255,65,0.03); border: 1px solid rgba(0,255,65,0.3); border-radius: 10px; padding: 15px; margin-bottom: 12px; text-align: left; font-size: 13px; }
+        .plan-card { border: 2px solid #333; padding: 15px; border-radius: 12px; margin-bottom: 12px; text-align: left; cursor: pointer; }
+        .plan-card.selected { border-color: var(--p); box-shadow: 0 0 15px rgba(0,255,65,0.4); background: rgba(0,255,65,0.08); }
     </style>
 </head>
 <body>
 
 <div id="modal" class="modal-overlay">
-    <div id="modal-content" class="modal-box">
+    <div class="modal-box" id="modal-box">
         <h2 id="m-t"></h2>
-        <p id="m-m" style="font-size:13px; color:#ccc;"></p>
-        <div id="pay-confirm-box" style="display:none;">
-            <button class="btn-blue" onclick="confirmPayment()">CONFIRM & PAY</button>
-        </div>
-        <button onclick="closeModal()">CLOSE</button>
+        <p id="m-m" style="font-size:13px; color:#ccc; line-height:1.5;"></p>
+        <button onclick="closeModal()">OKAY</button>
     </div>
 </div>
 
@@ -64,7 +57,7 @@
         <h1>SYSTEM LOGIN</h1>
         <input type="email" id="email" placeholder="Email Address">
         <input type="password" id="pass" placeholder="Password">
-        <button id="auth-btn" onclick="handleAuth()">LOGIN</button>
+        <button onclick="handleAuth()">LOGIN</button>
         <button style="background:#fff; color:#000; border:none;" onclick="loginGoogle()">SIGN IN WITH GOOGLE</button>
         <p onclick="toggleMode()" style="font-size:11px; color:#444; cursor:pointer; margin-top:10px;">New User? Create Account</p>
     </div>
@@ -79,30 +72,9 @@
             <button onclick="runTrace('mob')">Mobile</button>
             <button onclick="runTrace('veh')">Vehicle</button>
         </div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px; margin-top:10px;">
-            <button class="btn-blue" onclick="switchPage('pg-plans')">RECHARGE</button>
-            <button class="btn-blue" onclick="showHistory()">HISTORY</button>
-        </div>
-        <button class="btn-red" style="font-size:10px; margin-top:10px;" onclick="auth.signOut().then(()=>location.reload())">LOGOUT</button>
-    </div>
-</div>
-
-<div id="pg-plans" class="page">
-    <div class="container">
-        <h1>RECHARGE</h1>
-        <div onclick="initPay('50')" style="border:1px solid #333;padding:12px;border-radius:10px;margin-bottom:10px;text-align:left; cursor:pointer;">
-            <span style="float:right; color:var(--p);">₹50</span><strong>BASIC</strong><br><small>10 Searches</small></div>
-        <div onclick="initPay('100')" style="border:1px solid #333;padding:12px;border-radius:10px;margin-bottom:10px;text-align:left; cursor:pointer;">
-            <span style="float:right; color:var(--p);">₹100</span><strong>PRO</strong><br><small>30 Searches</small></div>
-        <div style="margin-top:15px;border-top:1px solid #333;padding-top:15px;">
-            <p style="font-size:11px;color:var(--blue);">UPLOAD PAYMENT SCREENSHOT:</p>
-            <div class="upload-box">
-                <span id="fn">Select Image</span>
-                <input type="file" id="p-img" accept="image/*">
-            </div>
-            <button class="btn-blue" id="up-btn" onclick="uploadImgBB()">SUBMIT PROOF</button>
-        </div>
-        <button class="btn-red" onclick="switchPage('pg-dash')">BACK</button>
+        <button onclick="switchPage('pg-history'); loadHistory()" style="margin-top:12px;" class="btn-blue">VIEW SEARCH HISTORY</button>
+        <button class="btn-blue" style="margin-top:8px;" onclick="switchPage('pg-plans')">RECHARGE / PLANS</button>
+        <button class="btn-red" style="font-size:10px;" onclick="auth.signOut().then(()=>location.reload())">LOGOUT</button>
     </div>
 </div>
 
@@ -110,7 +82,42 @@
     <div class="container" style="max-height:85vh; overflow-y:auto;">
         <h1>SEARCH HISTORY</h1>
         <div id="history-list"></div>
-        <button class="btn-red" onclick="switchPage('pg-dash')">BACK</button>
+        <button onclick="switchPage('pg-dash')" class="btn-red" style="margin-top:20px;">BACK TO DASHBOARD</button>
+    </div>
+</div>
+
+<div id="pg-plans" class="page">
+    <div class="container">
+        <h1>RECHARGE</h1>
+        
+        <div id="plan-basic" class="plan-card" onclick="selectPlan(50, 'BASIC')">
+            <span style="float:right; color:var(--p);">₹50</span>
+            <strong>BASIC</strong><br>
+            <small>10 Searches</small>
+        </div>
+        
+        <div id="plan-pro" class="plan-card" onclick="selectPlan(100, 'PRO')">
+            <span style="float:right; color:var(--p);">₹100</span>
+            <strong>PRO</strong><br>
+            <small>30 Searches</small>
+        </div>
+
+        <div id="confirm-section" style="display:none; margin:20px 0; padding:15px; border:2px solid var(--p); border-radius:12px; background:rgba(0,255,65,0.05);">
+            <p id="selected-plan" style="font-size:15px; margin-bottom:12px;"></p>
+            <button onclick="confirmAndPay()" class="btn-blue">CONFIRM & PAY VIA UPI</button>
+            <small style="color:#888;">Android: PhonePe / Paytm / GPay<br>iOS: WhatsApp</small>
+        </div>
+
+        <div style="margin-top:25px; border-top:1px solid #333; padding-top:20px;">
+            <p style="font-size:11px;color:var(--blue);">ALREADY PAID? UPLOAD SCREENSHOT</p>
+            <div class="upload-box">
+                <span id="fn">Select Image</span>
+                <input type="file" id="p-img" accept="image/*">
+            </div>
+            <button class="btn-blue" id="up-btn" onclick="uploadImgBB()">SUBMIT PROOF</button>
+        </div>
+        
+        <button class="btn-red" onclick="switchPage('pg-dash'); resetPlans()">BACK</button>
     </div>
 </div>
 
@@ -142,183 +149,289 @@
 
 <script>
 const firebaseConfig = {
- apiKey:"AIzaSyB011WYaNhJQx77yO3Ow7l-Z_clhS89Z8A",
- authDomain:"adminpanel-6b862.firebaseapp.com",
- databaseURL:"https://adminpanel-6b862-default-rtdb.firebaseio.com",
- projectId:"adminpanel-6b862"
+    apiKey: "AIzaSyB011WYaNhJQx77yO3Ow7l-Z_clhS89Z8A",
+    authDomain: "adminpanel-6b862.firebaseapp.com",
+    databaseURL: "https://adminpanel-6b862-default-rtdb.firebaseio.com",
+    projectId: "adminpanel-6b862"
 };
 
-const IMGBB_KEY="47d4ddf5133629b43bb606ec944137f9";
+const IMGBB_KEY = "47d4ddf5133629b43bb606ec944137f9";
 firebase.initializeApp(firebaseConfig);
-const auth=firebase.auth(), db=firebase.database();
-let credits=0, isLogin=true, pendingAmt = 0;
+const auth = firebase.auth(), db = firebase.database();
+let credits = 0, isLogin = true;
+let selectedPlan = null;
 
-// File Selection Handler
+// File input clear after upload
 document.getElementById("p-img").addEventListener("change", function(e){
-    const file = e.target.files;
-    const nameBox = document.getElementById("fn");
-    if(file){ nameBox.innerText = file.name; } 
-    else { nameBox.innerText = "Select Image"; }
+    const file = e.target.files[0];
+    document.getElementById("fn").innerText = file ? file.name : "Select Image";
 });
 
 auth.onAuthStateChanged(user => { if(user) sync(user); else switchPage('pg-auth'); });
 
-function showModal(t, m, type = 'success'){ 
-    const modal = document.getElementById('modal-content');
-    modal.className = type === 'error' ? 'modal-box error' : 'modal-box';
-    document.getElementById('m-t').innerText = t; 
-    document.getElementById('m-m').innerText = m; 
-    document.getElementById('pay-confirm-box').style.display = 'none';
-    document.getElementById('modal').style.display = 'flex'; 
+function showModal(title, message, isError = false) {
+    const box = document.getElementById('modal-box');
+    document.getElementById('m-t').innerText = title;
+    document.getElementById('m-m').innerText = message;
+    
+    if (isError) {
+        box.classList.add('error');
+    } else {
+        box.classList.remove('error');
+    }
+    document.getElementById('modal').style.display = 'flex';
 }
 
-function closeModal(){ document.getElementById('modal').style.display='none'; }
-function switchPage(id){ document.querySelectorAll('.page').forEach(p=>p.classList.remove('active')); document.getElementById(id).classList.add('active'); }
-function toggleMode(){ isLogin=!isLogin; document.querySelector('#pg-auth h1').innerText=isLogin?"SYSTEM LOGIN":"CREATE ACCOUNT"; }
-
-function handleAuth(){
- const e=document.getElementById('email').value, p=document.getElementById('pass').value;
- if(isLogin) auth.signInWithEmailAndPassword(e,p).catch(err=>showModal("ERROR",err.message, 'error'));
- else auth.createUserWithEmailAndPassword(e,p).then(async r=>{ await r.user.sendEmailVerification(); await db.ref('users/'+r.user.uid).set({email:e,credits:1}); showModal("VERIFY","Email Sent!"); auth.signOut(); });
+function closeModal() {
+    document.getElementById('modal').style.display = 'none';
 }
 
-function loginGoogle(){ auth.signInWithPopup(new firebase.auth.GoogleAuthProvider()); }
-
-function sync(user){
- db.ref('users/'+user.uid).on('value',snap=>{
-   const d=snap.val(); credits=d?.credits||0;
-   document.getElementById('user-credits').innerText=credits;
-   if(document.getElementById('pg-auth').classList.contains('active')) switchPage('pg-dash');
- });
+function switchPage(id) {
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
 }
 
-// Payment Confirmation Feature
-function initPay(amt){
-    pendingAmt = amt;
-    showModal("PAYMENT CONFIRMATION", `Are you sure you want to recharge for ₹${amt}?`);
-    document.getElementById('pay-confirm-box').style.display = 'block';
+function toggleMode() {
+    isLogin = !isLogin;
+    document.querySelector('#pg-auth h1').innerText = isLogin ? "SYSTEM LOGIN" : "CREATE ACCOUNT";
 }
 
-function confirmPayment(){
-    // Multi-App UPI Intent
-    const upi = `upi://pay?pa=imrankhan17@ptyes&pn=IMRAN&am=${pendingAmt}&cu=INR&mode=02&purpose=00`;
-    window.location.href = upi;
-    closeModal();
+function handleAuth() {
+    const e = document.getElementById('email').value.trim();
+    const p = document.getElementById('pass').value;
+    if(isLogin) {
+        auth.signInWithEmailAndPassword(e, p).catch(err => showModal("LOGIN ERROR", err.message, true));
+    } else {
+        auth.createUserWithEmailAndPassword(e, p).then(async r => {
+            await r.user.sendEmailVerification();
+            await db.ref('users/'+r.user.uid).set({email:e, credits:1});
+            showModal("ACCOUNT CREATED", "Verification email sent!", false);
+            auth.signOut();
+        }).catch(err => showModal("SIGNUP ERROR", err.message, true));
+    }
 }
 
-async function uploadImgBB(){
- const fileInput = document.getElementById('p-img');
- const file = fileInput.files;
- if(!file) return showModal("ERROR","Please select an image first", 'error');
- const btn=document.getElementById('up-btn');
- btn.innerText="UPLOADING..."; btn.disabled=true;
- const reader=new FileReader();
- reader.onloadend = async () => {
+function loginGoogle() {
+    auth.signInWithPopup(new firebase.auth.GoogleAuthProvider());
+}
+
+function sync(user) {
+    db.ref('users/'+user.uid).on('value', snap => {
+        const d = snap.val();
+        credits = d?.credits || 0;
+        document.getElementById('user-credits').innerText = credits;
+        switchPage('pg-dash');
+    });
+}
+
+// ====================== PLAN SELECTION ======================
+function selectPlan(amount, name) {
+    selectedPlan = {amount, name};
+    document.getElementById('plan-basic').classList.toggle('selected', name === 'BASIC');
+    document.getElementById('plan-pro').classList.toggle('selected', name === 'PRO');
+    
+    document.getElementById('selected-plan').innerHTML = `
+        <strong>Selected: ${name} Plan</strong><br>
+        Amount: ₹${amount}
+    `;
+    document.getElementById('confirm-section').style.display = 'block';
+}
+
+function confirmAndPay() {
+    if (!selectedPlan) return;
+    const {amount} = selectedPlan;
+    // Improved UPI link - works better across apps
+    window.location.href = `upi://pay?pa=imrankhan17@ptyes&pn=IMRAN%20PLAYZ&am=${amount}&cu=INR&tn=Elite%20System%20Recharge`;
+}
+
+function resetPlans() {
+    selectedPlan = null;
+    document.getElementById('confirm-section').style.display = 'none';
+    document.getElementById('plan-basic').classList.remove('selected');
+    document.getElementById('plan-pro').classList.remove('selected');
+}
+
+// ====================== UPLOAD ======================
+async function uploadImgBB() {
+    const fileInput = document.getElementById('p-img');
+    const files = fileInput.files;
+    if (!files || files.length === 0) {
+        return showModal("ERROR", "Please select an image first", true);
+    }
+
+    const btn = document.getElementById('up-btn');
+    btn.innerText = "UPLOADING...";
+    btn.disabled = true;
+
     try {
-        const base64 = reader.result.split(',');
-        const fd = new FormData(); fd.append("image", base64);
+        const fd = new FormData();
+        fd.append("image", files[0]);
+
         const res = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_KEY}`, { method: "POST", body: fd });
         const d = await res.json();
-        if(d.success) {
-            await db.ref('recharge_requests/'+Date.now()).set({
-                user: auth.currentUser.email, uid: auth.currentUser.uid, screenshot: d.data.url, status: "pending", time: new Date().toLocaleString()
+
+        if (d.success && d.data.url) {
+            await db.ref('recharge_requests/' + Date.now()).set({
+                user: auth.currentUser.email || "unknown",
+                uid: auth.currentUser.uid,
+                screenshot: d.data.url,
+                status: "pending",
+                time: new Date().toLocaleString()
             });
-            showModal("SUCCESS","Proof Sent! Admin will verify soon.");
-            fileInput.value = ""; // Fix: Clear selection
-            document.getElementById('fn').innerText = "Select Image";
+
+            showModal("UPLOAD SUCCESSFUL", "Screenshot uploaded successfully!\nAdmin will review and add credits shortly.", false);
             switchPage('pg-dash');
-        } else { throw new Error(); }
-    } catch(e) { showModal("FAILED","Upload Error. Try a smaller file.", 'error'); }
-    btn.innerText="SUBMIT PROOF"; btn.disabled=false;
- };
- reader.readAsDataURL(file);
+
+            // ✅ Clear image after successful upload
+            fileInput.value = '';
+            document.getElementById("fn").innerText = "Select Image";
+            resetPlans();
+        } else {
+            throw new Error("Upload failed");
+        }
+    } catch (e) {
+        showModal("UPLOAD FAILED", "Failed to upload image. Please try again or check your connection.", true);
+    } finally {
+        btn.innerText = "SUBMIT PROOF";
+        btn.disabled = false;
+    }
 }
 
-// History Feature
-function showHistory(){
-    const list = document.getElementById('history-list');
-    list.innerHTML = "Fetching history...";
-    switchPage('pg-history');
-    
-    db.ref('users/' + auth.currentUser.uid + '/history').limitToLast(10).once('value', snap => {
-        list.innerHTML = "";
-        const data = snap.val();
-        if(!data) { list.innerHTML = "No recent searches found."; return; }
-        
-        Object.keys(data).reverse().forEach(id => {
-            const h = data[id];
-            list.innerHTML += `<div class="history-item">
-                <span style="color:var(--p)">${h.target}</span><br>
-                <small>${h.time}</small><br>
-                <span style="color:${h.deducted ? 'var(--r)' : 'var(--blue)'}">${h.deducted ? 'Credits Deducted' : 'Free Search / Failed'}</span>
-            </div>`;
+// ====================== HISTORY ======================
+function loadHistory() {
+    const container = document.getElementById('history-list');
+    container.innerHTML = '<p style="text-align:center; color:#666;">Loading history...</p>';
+
+    db.ref('users/' + auth.currentUser.uid + '/history')
+        .orderByChild('timestamp')
+        .limitToLast(30)
+        .once('value', snap => {
+            container.innerHTML = '';
+            if (!snap.exists()) {
+                container.innerHTML = '<p style="text-align:center; color:#666; padding:30px 0;">No searches yet.</p>';
+                return;
+            }
+            const entries = [];
+            snap.forEach(child => entries.push(child.val()));
+            entries.reverse();
+
+            entries.forEach(entry => {
+                const div = document.createElement('div');
+                div.className = 'history-item';
+                div.innerHTML = `
+                    <div style="display:flex; justify-content:space-between;">
+                        <strong>${entry.type} Search</strong>
+                        <span style="color:#888; font-size:12px;">${new Date(entry.timestamp).toLocaleString('en-IN')}</span>
+                    </div>
+                    <div style="margin:8px 0; font-size:15px; color:#fff;">${entry.query}</div>
+                    <div style="color: ${entry.creditsDeducted ? 'var(--y)' : '#0f0'}">
+                        ${entry.creditsDeducted ? '✅ 1 Credit Deducted' : '❌ No Credit Deducted'}
+                    </div>
+                `;
+                container.appendChild(div);
+            });
         });
-    });
+}
+
+// ====================== SEARCH ======================
+async function runTrace(t) {
+    if (credits <= 0) return showModal("NO CREDITS", "Please recharge to continue.", true);
+
+    const v = document.getElementById('target').value.trim();
+    if (!v) return showModal("INPUT REQUIRED", "Please enter a valid number.", true);
+
+    switchPage('pg-load');
+    document.querySelectorAll('.log-line').forEach(l => l.classList.remove('show'));
+
+    let p = 0;
+    const bar = document.getElementById('bar');
+    const itv = setInterval(() => {
+        p += Math.random() * 15;
+        if (p > 95) p = 95;
+        bar.style.width = p + "%";
+        if (p > 15) document.getElementById('log-1').classList.add('show');
+        if (p > 40) document.getElementById('log-2').classList.add('show');
+        if (p > 70) document.getElementById('log-3').classList.add('show');
+        if (p > 88) document.getElementById('log-4').classList.add('show');
+    }, 180);
+
+    try {
+        const api = (t === 'mob') 
+            ? `https://yash-code-with-ai.alphamovies.workers.dev/?num=${encodeURIComponent(v)}&key=7189814021`
+            : `https://vehicle-eight-vert.vercel.app/api?rc=${encodeURIComponent(v)}`;
+
+        const res = await fetch(api);
+        const data = await res.json();
+        clearInterval(itv);
+        bar.style.width = "100%";
+
+        const uid = auth.currentUser.uid;
+        const type = t === 'mob' ? 'Mobile' : 'Vehicle';
+
+        if (!data || Object.keys(data).length < 2) {
+            // Log without deducting credit
+            await db.ref('users/' + uid + '/history').push({
+                timestamp: Date.now(),
+                type: type,
+                query: v,
+                creditsDeducted: false
+            });
+
+            showModal("DATA NOT FOUND", 
+                "Sorry, we couldn't find any data for this number.\nYour credits have not been deducted.", 
+                true);
+            switchPage('pg-dash');
+            return;
+        }
+
+        // Success - Deduct credit
+        await db.ref('users/' + uid + '/history').push({
+            timestamp: Date.now(),
+            type: type,
+            query: v,
+            creditsDeducted: true
+        });
+
+        await db.ref('users/' + uid).update({ credits: credits - 1 });
+
+        setTimeout(() => {
+            switchPage('pg-res');
+            render(data);
+        }, 600);
+
+    } catch (e) {
+        clearInterval(itv);
+        bar.style.width = "100%";
+
+        const uid = auth.currentUser.uid;
+        await db.ref('users/' + uid + '/history').push({
+            timestamp: Date.now(),
+            type: t === 'mob' ? 'Mobile' : 'Vehicle',
+            query: v,
+            creditsDeducted: false
+        }).catch(() => {});
+
+        showModal("SERVER BUSY", 
+            "The server is currently busy or unable to process your request.\nPlease try again in a few moments.", 
+            true);
+        switchPage('pg-dash');
+    }
 }
 
 function render(data) {
     const out = document.getElementById('data-out');
     out.innerHTML = "";
     const skip = ["branding", "developer", "processed_by", "owner_contact", "status"];
+    
     function walk(obj) {
         for (let key in obj) {
-            if (typeof obj[key] === "object" && obj[key] !== null) { walk(obj[key]); } 
-            else {
-                if (!skip.includes(key.toLowerCase())) {
-                    out.innerHTML += `<div class="res-row"><span style="color:var(--p)">${key.toUpperCase()}</span><span style="color:#fff">${obj[key]}</span></div>`;
-                }
+            if (typeof obj[key] === "object" && obj[key] !== null) walk(obj[key]);
+            else if (!skip.includes(key.toLowerCase())) {
+                out.innerHTML += `<div class="res-row"><span style="color:var(--p)">${key.toUpperCase()}</span><span style="color:#fff">${obj[key]}</span></div>`;
             }
         }
     }
     walk(data);
-}
-
-async function runTrace(t){
- if(credits<=0) return showModal("NO CREDITS","Insufficient balance. Please recharge.", 'error');
- const v=document.getElementById('target').value.trim();
- if(!v) return;
-
- switchPage('pg-load');
- document.querySelectorAll('.log-line').forEach(l => l.classList.remove('show')); 
- 
- let p=0; const bar=document.getElementById('bar');
- const itv = setInterval(() => { 
-    p += Math.random()*15; 
-    if(p>95) p=95; 
-    bar.style.width=p+"%";
-    if(p > 15) document.getElementById('log-1').classList.add('show');
-    if(p > 40) document.getElementById('log-2').classList.add('show');
-    if(p > 70) document.getElementById('log-3').classList.add('show');
-    if(p > 88) document.getElementById('log-4').classList.add('show');
- }, 200);
-
- try{
-   const api=(t==='mob')?`https://yash-code-with-ai.alphamovies.workers.dev/?num=${v}&key=7189814021`:`https://vehicle-eight-vert.vercel.app/api?rc=${v}`;
-   const res = await fetch(api);
-   const data = await res.json();
-   clearInterval(itv); bar.style.width="100%";
-
-   // Log history before results
-   const historyNode = db.ref('users/' + auth.currentUser.uid + '/history').push();
-   const logData = { target: v, time: new Date().toLocaleString(), deducted: false };
-
-   if(!data || Object.keys(data).length < 2 || (data.status === "error") || JSON.stringify(data).toLowerCase().includes("not found")){
-     showModal("RECORD NOT FOUND", "DATABASE SYNC ERROR: Information for this entry is currently unavailable. No credits have been deducted.", 'error'); 
-     historyNode.set(logData);
-     switchPage('pg-dash'); return;
-   }
-
-   // Successful Search
-   await db.ref('users/'+auth.currentUser.uid).update({credits:credits-1});
-   logData.deducted = true;
-   historyNode.set(logData);
-   
-   setTimeout(() => { switchPage('pg-res'); render(data); }, 600);
- } catch(e) { 
-   clearInterval(itv); 
-   showModal("SYSTEM BUSY", "ENCRYPTION TIMEOUT: The secure server is currently under heavy load. Your search credits have been preserved.", 'error'); 
-   switchPage('pg-dash'); 
- }
 }
 </script>
 </body>

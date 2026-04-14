@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>IMRAN PLAYZ | ELITE SYSTEM v18.1</title>
+    <title>IMRAN PLAYZ | ELITE SYSTEM v18.2</title>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
@@ -54,7 +54,6 @@
     </div>
 </div>
 
-<!-- AUTH PAGE -->
 <div id="pg-auth" class="page active">
     <div class="container">
         <h1>SYSTEM LOGIN</h1>
@@ -66,7 +65,6 @@
     </div>
 </div>
 
-<!-- DASHBOARD -->
 <div id="pg-dash" class="page">
     <div class="container">
         <h1>DASHBOARD</h1>
@@ -78,12 +76,11 @@
         </div>
         <button onclick="switchPage('pg-history'); loadHistory()" style="margin-top:12px;" class="btn-blue">VIEW SEARCH HISTORY</button>
         <button class="btn-blue" style="margin-top:8px;" onclick="switchPage('pg-plans')">RECHARGE / PLANS</button>
-        <button onclick="enterAdmin()" class="btn-blue" style="margin-top:8px;">🔧 ADMIN PANEL</button>
+        <button onclick="enterAdmin()" id="admin-btn" class="btn-blue" style="margin-top:8px; display:none;">🔧 ADMIN PANEL</button>
         <button class="btn-red" style="font-size:10px;" onclick="auth.signOut().then(()=>location.reload())">LOGOUT</button>
     </div>
 </div>
 
-<!-- HISTORY -->
 <div id="pg-history" class="page">
     <div class="container" style="max-height:85vh; overflow-y:auto;">
         <h1>SEARCH HISTORY</h1>
@@ -92,28 +89,26 @@
     </div>
 </div>
 
-<!-- PLANS -->
 <div id="pg-plans" class="page">
     <div class="container">
         <h1>RECHARGE</h1>
-        
         <div id="plan-basic" class="plan-card" onclick="selectPlan(50, 'BASIC')">
             <span style="float:right; color:var(--p);">₹50</span><strong>BASIC</strong><br><small>10 Searches</small>
         </div>
         <div id="plan-pro" class="plan-card" onclick="selectPlan(100, 'PRO')">
-            <span style="float:right; color:var(--p);">₹100</span><strong>PRO</strong><br><small>30 Searches</small>
+            <span style="float:right; color:var(--p);">₹100</span><strong>PRO</strong><br><small>30 Searches • Best Value</small>
         </div>
         <div id="plan-unlimited" class="plan-card" onclick="selectPlan(399, 'UNLIMITED')">
-            <span style="float:right; color:var(--p);">₹399</span><strong>UNLIMITED 28 DAYS</strong><br><small>Unlimited Searches</small>
+            <span style="float:right; color:var(--p);">₹399</span><strong>UNLIMITED 28 DAYS</strong><br><small>Unlimited Searches • 28 Days Validity</small>
         </div>
 
         <div id="confirm-section" style="display:none; margin:20px 0; padding:15px; border:2px solid var(--p); border-radius:12px; background:rgba(0,255,65,0.05);">
             <p id="selected-plan" style="font-size:15px; margin-bottom:12px;"></p>
-            <button onclick="confirmAndPay()" class="btn-blue">CONFIRM & PAY VIA UPI</button>
-            <small style="color:#888;">PhonePe / Paytm / GPay / WhatsApp etc.</small>
+            <button onclick="confirmAndPay()" class="btn-blue">CONFIRM &amp; PAY VIA UPI</button>
+            <small style="color:#888; display:block; text-align:center; margin-top:8px;">Opens your preferred UPI app (PhonePe / Paytm / GPay / WhatsApp etc.)</small>
         </div>
 
-        <div style="margin-top:25px;border-top:1px solid #333;padding-top:20px;">
+        <div style="margin-top:25px; border-top:1px solid #333; padding-top:20px;">
             <p style="font-size:11px;color:var(--blue);">ALREADY PAID? UPLOAD SCREENSHOT</p>
             <div class="upload-box">
                 <span id="fn">Select Image</span>
@@ -121,7 +116,6 @@
             </div>
             <button class="btn-blue" id="up-btn" onclick="uploadImgBB()">SUBMIT PROOF</button>
         </div>
-        
         <button class="btn-red" onclick="switchPage('pg-dash'); resetPlans()">BACK</button>
     </div>
 </div>
@@ -131,24 +125,44 @@
     <div class="container">
         <h1>🔧 ADMIN DASHBOARD</h1>
         <button onclick="loadPendingRequests()" class="btn-blue">Refresh Pending Requests</button>
-        
         <div id="pending-list" style="margin:15px 0;"></div>
 
-        <h2 style="margin:20px 0 10px;">Manual Credit Add</h2>
+        <h2 style="margin:25px 0 10px 0;">Manual Credit Add</h2>
         <input type="text" id="manual-uid" placeholder="User UID or Email">
-        <input type="number" id="manual-credits" placeholder="Credits to add" value="10">
+        <input type="number" id="manual-credits" value="10" placeholder="Credits to add">
         <button onclick="addManualCredits()" class="btn-blue">ADD CREDITS</button>
 
         <button onclick="switchPage('pg-dash')" class="btn-red">BACK TO DASHBOARD</button>
     </div>
 </div>
 
-<!-- LOAD & RESULT PAGES (same as before) -->
-<div id="pg-load" class="page"> ... (loading screen same) </div>
-<div id="pg-res" class="page"> ... (result screen same) </div>
+<div id="pg-load" class="page">
+    <div class="hacker-box">
+        <div class="hacker-title">⌛ FETCHING DATA PLEASE WAIT...</div>
+        <div class="bar-bg"><div id="bar" class="bar-f"></div></div>
+    </div>
+    <div class="hacker-box">
+        <div class="hacker-title">📝 System Logs</div>
+        <div id="log-1" class="log-line">> Initializing secure connection...</div>
+        <div id="log-2" class="log-line">> Bypassing server protocols...</div>
+        <div id="log-3" class="log-line">> Fetching data packets...</div>
+        <div id="log-4" class="log-line">> Decrypting identity layer...</div>
+    </div>
+    <div style="font-size: 10px; text-align: center; opacity: 0.5; margin-top: 20px;">
+        [/>] SYSTEM BY IMRANPLAYZ<br>
+        CONTACT IG: @_imranplayz_
+    </div>
+</div>
+
+<div id="pg-res" class="page">
+    <div class="container" style="max-height:85vh; overflow-y:auto;">
+        <h1>DECRYPTED DATA</h1>
+        <div id="data-out"></div>
+        <button onclick="switchPage('pg-dash')" style="margin-top:15px;">NEW SEARCH</button>
+    </div>
+</div>
 
 <script>
-// ================== FIREBASE CONFIG ==================
 const firebaseConfig = {
     apiKey: "AIzaSyB011WYaNhJQx77yO3Ow7l-Z_clhS89Z8A",
     authDomain: "adminpanel-6b862.firebaseapp.com",
@@ -159,56 +173,81 @@ const firebaseConfig = {
 const IMGBB_KEY = "47d4ddf5133629b43bb606ec944137f9";
 firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth(), db = firebase.database();
-
 let credits = 0, isLogin = true;
 let selectedPlan = null;
-const ADMIN_PASSWORD = "imranplayz123";   // ← Change this password
 
-// File name display
-document.getElementById("p-img").addEventListener("change", e => {
+// === TERA ADMIN EMAIL & UID ===
+const ADMIN_EMAIL = "imrankp488@gmail.com";
+const ADMIN_UID = "AqVy3n9MDHO2KcN0w8OTcsF76Ti1";
+
+document.getElementById("p-img").addEventListener("change", function(e){
     const file = e.target.files[0];
     document.getElementById("fn").innerText = file ? file.name : "Select Image";
 });
 
-auth.onAuthStateChanged(user => { if(user) sync(user); else switchPage('pg-auth'); });
+auth.onAuthStateChanged(user => { 
+    if(user) {
+        sync(user);
+        // Admin button sirf tere account ke liye dikhao
+        if (user.email === ADMIN_EMAIL || user.uid === ADMIN_UID) {
+            document.getElementById('admin-btn').style.display = 'block';
+        }
+    } else {
+        switchPage('pg-auth');
+    }
+});
 
 function showModal(title, message, isError = false) {
     const box = document.getElementById('modal-box');
     document.getElementById('m-t').innerText = title;
     document.getElementById('m-m').innerText = message;
-    box.classList.toggle('error', isError);
+    if (isError) box.classList.add('error'); else box.classList.remove('error');
     document.getElementById('modal').style.display = 'flex';
 }
+
 function closeModal() { document.getElementById('modal').style.display = 'none'; }
 function switchPage(id) {
     document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
     document.getElementById(id).classList.add('active');
 }
-function toggleMode() { isLogin = !isLogin; document.querySelector('#pg-auth h1').innerText = isLogin ? "SYSTEM LOGIN" : "CREATE ACCOUNT"; }
+function toggleMode() {
+    isLogin = !isLogin;
+    document.querySelector('#pg-auth h1').innerText = isLogin ? "SYSTEM LOGIN" : "CREATE ACCOUNT";
+}
 
-// Auth functions (same as before)
-function handleAuth() { /* same as previous version */ }
-function loginGoogle() { auth.signInWithPopup(new firebase.auth.GoogleAuthProvider()); }
-function sync(user) { /* same */ }
+function handleAuth() {
+    const e = document.getElementById('email').value.trim();
+    const p = document.getElementById('pass').value;
+    if(isLogin) {
+        auth.signInWithEmailAndPassword(e, p).catch(err => showModal("LOGIN ERROR", err.message, true));
+    } else {
+        auth.createUserWithEmailAndPassword(e, p).then(async r => {
+            await r.user.sendEmailVerification();
+            await db.ref('users/'+r.user.uid).set({email:e, credits:1});
+            showModal("ACCOUNT CREATED", "Verification email sent!", false);
+            auth.signOut();
+        }).catch(err => showModal("SIGNUP ERROR", err.message, true));
+    }
+}
 
-// ================== PLAN & PAY ==================
-function selectPlan(amount, name) { /* same as previous */ }
-function resetPlans() { /* same */ }
-function confirmAndPay() { /* same */ }
+function loginGoogle() {
+    auth.signInWithPopup(new firebase.auth.GoogleAuthProvider())
+        .catch(err => showModal("GOOGLE ERROR", err.message, true));
+}
 
-// ================== UPLOAD ==================
-async function uploadImgBB() { /* same as previous version */ }
+function sync(user) {
+    db.ref('users/'+user.uid).on('value', snap => {
+        const d = snap.val();
+        credits = d?.credits || 0;
+        document.getElementById('user-credits').innerText = credits;
+        switchPage('pg-dash');
+    });
+}
 
-// ================== HISTORY ==================
-function loadHistory() { /* same as previous */ }
-
-// ================== SEARCH ==================
-async function runTrace(t) { /* same as previous - with proper no_data and server_error handling */ }
-
-// ================== ADMIN PANEL ==================
+// ====================== ADMIN PANEL ======================
 function enterAdmin() {
     const pass = prompt("Enter Admin Password:");
-    if (pass === ADMIN_PASSWORD) {
+    if (pass === "@admin-panel786") {
         switchPage('pg-admin');
         loadPendingRequests();
     } else {
@@ -222,30 +261,30 @@ async function loadPendingRequests() {
 
     db.ref('recharge_requests').orderByKey().limitToLast(30).once('value', snap => {
         container.innerHTML = '';
-        let found = false;
+        let hasAny = false;
         snap.forEach(child => {
             const req = child.val();
             if (req.status === "pending") {
-                found = true;
+                hasAny = true;
                 const div = document.createElement('div');
                 div.className = 'request-card';
                 div.innerHTML = `
-                    <small>${req.time} • ${req.user}</small><br>
+                    <small>${req.time || ''} • ${req.user}</small><br>
                     <strong>UID:</strong> ${req.uid}<br><br>
                     <img src="${req.screenshot}" style="max-width:100%;border-radius:8px;"><br><br>
                     <input type="number" id="c-${child.key}" value="10" style="width:100%;padding:10px;margin:8px 0;">
-                    <button onclick="approveRequest('${child.key}', '${req.uid}', document.getElementById('c-${child.key}').value)" style="background:#0f0;color:#000;">APPROVE & ADD CREDITS</button>
+                    <button onclick="approveRequest('${child.key}', '${req.uid}', document.getElementById('c-${child.key}').value)" style="background:#0f0;color:#000;border:none;">✅ APPROVE & ADD CREDITS</button>
                 `;
                 container.appendChild(div);
             }
         });
-        if (!found) container.innerHTML = '<p style="color:#0f0;text-align:center;">No pending requests.</p>';
+        if (!hasAny) container.innerHTML = '<p style="color:#0f0;text-align:center;">No pending requests.</p>';
     });
 }
 
 async function approveRequest(requestKey, uid, creditsToAdd) {
     creditsToAdd = parseInt(creditsToAdd);
-    if (!creditsToAdd) return alert("Enter credits");
+    if (!creditsToAdd) return alert("Enter valid credits");
 
     try {
         const userRef = db.ref('users/' + uid);
@@ -268,8 +307,8 @@ async function approveRequest(requestKey, uid, creditsToAdd) {
 
 async function addManualCredits() {
     const input = document.getElementById('manual-uid').value.trim();
-    const creditsAdd = parseInt(document.getElementById('manual-credits').value);
-    if (!input || !creditsAdd) return alert("Fill both fields");
+    const amt = parseInt(document.getElementById('manual-credits').value);
+    if (!input || !amt) return alert("Please fill both fields");
 
     try {
         let uid = input;
@@ -282,14 +321,39 @@ async function addManualCredits() {
         const userRef = db.ref('users/' + uid);
         const snap = await userRef.once('value');
         const current = snap.val()?.credits || 0;
-        await userRef.update({ credits: current + creditsAdd });
-        showModal("SUCCESS", `${creditsAdd} credits added!`, false);
+        await userRef.update({ credits: current + amt });
+        showModal("SUCCESS", `${amt} credits added!`, false);
     } catch(e) {
         showModal("ERROR", "User not found", true);
     }
 }
 
-// Placeholder for load & result pages (add your previous loading and result code here if needed)
+// ====================== PLAN, UPLOAD, HISTORY, SEARCH ======================
+// (Yeh tere purane code se same hai - maine sirf admin part add kiya hai)
+
+function selectPlan(amount, name) {
+    selectedPlan = {amount, name};
+    document.querySelectorAll('.plan-card').forEach(c => c.classList.remove('selected'));
+    document.getElementById('plan-'+name.toLowerCase()).classList.add('selected');
+    document.getElementById('selected-plan').innerHTML = `<strong>Selected: ${name} Plan</strong><br>Amount: ₹${amount}`;
+    document.getElementById('confirm-section').style.display = 'block';
+}
+
+function resetPlans() {
+    selectedPlan = null;
+    document.getElementById('confirm-section').style.display = 'none';
+    document.querySelectorAll('.plan-card').forEach(c => c.classList.remove('selected'));
+}
+
+function confirmAndPay() {
+    if (!selectedPlan) return;
+    window.location.href = `upi://pay?pa=imrankhan17@ptyes&pn=IMRAN%20PLAYZ&am=${selectedPlan.amount}&cu=INR&tn=Elite%20System%20Recharge`;
+}
+
+async function uploadImgBB() { /* tere purane code wala function paste kar dena */ }
+function loadHistory() { /* tere purane code wala */ }
+function render(data) { /* tere purane code wala */ }
+async function runTrace(t) { /* tere purane code wala */ }
 </script>
 </body>
 </html>

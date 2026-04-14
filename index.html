@@ -124,12 +124,15 @@ firebase.initializeApp(firebaseConfig);
 const auth=firebase.auth(), db=firebase.database();
 let credits=0, isLogin=true;
 
-// Fix: File Name Display
+// ✅ FIXED: File Name Display
 document.getElementById("p-img").addEventListener("change", function(e){
-    const file = e.target.files;
+    const file = e.target.files[0];
     const nameBox = document.getElementById("fn");
-    if(file){ nameBox.innerText = file.name; } 
-    else { nameBox.innerText = "Select Image"; }
+    if(file){ 
+        nameBox.innerText = file.name; 
+    } else { 
+        nameBox.innerText = "Select Image"; 
+    }
 });
 
 auth.onAuthStateChanged(user => { if(user) sync(user); else switchPage('pg-auth'); });
@@ -157,59 +160,59 @@ function sync(user){
 
 function openPay(amt){ window.location.href=`upi://pay?pa=imrankhan17@ptyes&pn=IMRAN&am=${amt}&cu=INR`; }
 
-// ✅ FINAL IMAGE UPLOAD FIX (NO UNDEFINED)
+// ✅ FIXED & IMPROVED: uploadImgBB Function
 async function uploadImgBB(){
- const file = document.getElementById('p-img').files;
+    const fileInput = document.getElementById('p-img');
+    const files = fileInput.files;
 
- if(!file){
-   showModal("ERROR","Please select an image first");
-   return;
- }
+    if(!files || files.length === 0){
+        showModal("ERROR", "Please select an image first");
+        return;
+    }
 
- const btn=document.getElementById('up-btn');
- btn.innerText="UPLOADING...";
- btn.disabled=true;
+    const file = files[0];
+    const btn = document.getElementById('up-btn');
 
- const reader=new FileReader();
+    btn.innerText = "UPLOADING...";
+    btn.disabled = true;
 
- reader.onloadend = async () => {
-   try{
-     const base64 = reader.result.split(','); 
-     const fd=new FormData();
-     fd.append("image", base64);
+    try {
+        const fd = new FormData();
+        fd.append("image", file);
 
-     const res=await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_KEY}`,{
-       method:"POST",
-       body:fd
-     });
+        const res = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_KEY}`, {
+            method: "POST",
+            body: fd
+        });
 
-     const d=await res.json();
+        const d = await res.json();
 
-     // Check if 'd.data' and 'd.data.url' exist to prevent undefined error
-     if(d.success && d.data && d.data.url){
-       await db.ref('recharge_requests/'+Date.now()).set({
-         user:auth.currentUser.email,
-         uid:auth.currentUser.uid,
-         screenshot:d.data.url,
-         status:"pending",
-         time:new Date().toLocaleString()
-       });
+        if(d.success && d.data && d.data.url){
+            await db.ref('recharge_requests/' + Date.now()).set({
+                user: auth.currentUser ? auth.currentUser.email : "unknown",
+                uid: auth.currentUser ? auth.currentUser.uid : "unknown",
+                screenshot: d.data.url,
+                status: "pending",
+                time: new Date().toLocaleString()
+            });
 
-       showModal("SUCCESS","Screenshot uploaded. Wait for admin approval.");
-       switchPage('pg-dash');
-     } else {
-       throw new Error("API Response Error");
-     }
+            showModal("SUCCESS", "Screenshot uploaded successfully!\nWait for admin approval.");
+            switchPage('pg-dash');
+            
+            // Clear file input after successful upload
+            fileInput.value = '';
+            document.getElementById("fn").innerText = "Select Image";
+        } else {
+            throw new Error(d.error ? d.error.message : "Unknown API error");
+        }
 
-   }catch(e){
-     showModal("UPLOAD FAILED","Try again with a different image.");
-   }
-
-   btn.innerText="SUBMIT PROOF";
-   btn.disabled=false;
- };
-
- reader.readAsDataURL(file);
+    } catch(e) {
+        console.error("Upload Error:", e);
+        showModal("UPLOAD FAILED", "Image upload nahi ho paaya.\nDusri image try karo ya network check karo.");
+    } finally {
+        btn.innerText = "SUBMIT PROOF";
+        btn.disabled = false;
+    }
 }
 
 function render(data) {

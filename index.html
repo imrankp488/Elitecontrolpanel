@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>IMRAN PLAYZ | ELITE SYSTEM v16.1</title>
+    <title>IMRAN PLAYZ | ELITE SYSTEM v17.0</title>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
@@ -30,16 +30,34 @@
         .btn-blue { border-color: var(--blue); color: var(--blue); }
         .btn-red { border-color: var(--r); color: var(--r); }
         .credit-badge { background: rgba(255, 215, 0, 0.1); border: 1px solid var(--y); padding: 6px 15px; border-radius: 20px; font-size: 13px; margin-bottom: 20px; color: var(--y); display: inline-block; }
+        
+        /* Modal Colors */
         .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 2000; align-items: center; justify-content: center; backdrop-filter: blur(8px); }
         .modal-box { width: 85%; max-width: 380px; background: #050505; border: 2px solid var(--p); border-radius: 15px; padding: 25px; text-align: center; }
+        .modal-box.error { border-color: var(--r); }
+        .modal-box.error h2 { color: var(--r); text-shadow: 0 0 5px var(--r); }
+
         .res-row { border-bottom: 1px solid #1a1a1a; padding: 10px 0; text-align: left; display: flex; justify-content: space-between; font-size: 12px; }
         .upload-box { border: 2px dashed #444; padding: 20px; border-radius: 10px; cursor: pointer; margin-bottom: 15px; position: relative; background: rgba(255,255,255,0.02); }
         input[type="file"] { position: absolute; width: 100%; height: 100%; top: 0; left: 0; opacity: 0; cursor: pointer; }
+        
+        /* History Items */
+        .history-item { border: 1px solid #222; padding: 10px; border-radius: 8px; margin-bottom: 10px; text-align: left; background: #050505; }
+        .history-item small { color: #555; }
     </style>
 </head>
 <body>
 
-<div id="modal" class="modal-overlay"><div class="modal-box"><h2 id="m-t"></h2><p id="m-m" style="font-size:13px; color:#ccc;"></p><button onclick="closeModal()">OKAY</button></div></div>
+<div id="modal" class="modal-overlay">
+    <div id="modal-content" class="modal-box">
+        <h2 id="m-t"></h2>
+        <p id="m-m" style="font-size:13px; color:#ccc;"></p>
+        <div id="pay-confirm-box" style="display:none;">
+            <button class="btn-blue" onclick="confirmPayment()">CONFIRM & PAY</button>
+        </div>
+        <button onclick="closeModal()">CLOSE</button>
+    </div>
+</div>
 
 <div id="pg-auth" class="page active">
     <div class="container">
@@ -61,17 +79,20 @@
             <button onclick="runTrace('mob')">Mobile</button>
             <button onclick="runTrace('veh')">Vehicle</button>
         </div>
-        <button class="btn-blue" style="margin-top:15px;" onclick="switchPage('pg-plans')">RECHARGE / PLANS</button>
-        <button class="btn-red" style="font-size:10px;" onclick="auth.signOut().then(()=>location.reload())">LOGOUT</button>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px; margin-top:10px;">
+            <button class="btn-blue" onclick="switchPage('pg-plans')">RECHARGE</button>
+            <button class="btn-blue" onclick="showHistory()">HISTORY</button>
+        </div>
+        <button class="btn-red" style="font-size:10px; margin-top:10px;" onclick="auth.signOut().then(()=>location.reload())">LOGOUT</button>
     </div>
 </div>
 
 <div id="pg-plans" class="page">
     <div class="container">
         <h1>RECHARGE</h1>
-        <div onclick="openPay('50')" style="border:1px solid #333;padding:12px;border-radius:10px;margin-bottom:10px;text-align:left;">
+        <div onclick="initPay('50')" style="border:1px solid #333;padding:12px;border-radius:10px;margin-bottom:10px;text-align:left; cursor:pointer;">
             <span style="float:right; color:var(--p);">₹50</span><strong>BASIC</strong><br><small>10 Searches</small></div>
-        <div onclick="openPay('100')" style="border:1px solid #333;padding:12px;border-radius:10px;margin-bottom:10px;text-align:left;">
+        <div onclick="initPay('100')" style="border:1px solid #333;padding:12px;border-radius:10px;margin-bottom:10px;text-align:left; cursor:pointer;">
             <span style="float:right; color:var(--p);">₹100</span><strong>PRO</strong><br><small>30 Searches</small></div>
         <div style="margin-top:15px;border-top:1px solid #333;padding-top:15px;">
             <p style="font-size:11px;color:var(--blue);">UPLOAD PAYMENT SCREENSHOT:</p>
@@ -81,6 +102,14 @@
             </div>
             <button class="btn-blue" id="up-btn" onclick="uploadImgBB()">SUBMIT PROOF</button>
         </div>
+        <button class="btn-red" onclick="switchPage('pg-dash')">BACK</button>
+    </div>
+</div>
+
+<div id="pg-history" class="page">
+    <div class="container" style="max-height:85vh; overflow-y:auto;">
+        <h1>SEARCH HISTORY</h1>
+        <div id="history-list"></div>
         <button class="btn-red" onclick="switchPage('pg-dash')">BACK</button>
     </div>
 </div>
@@ -122,29 +151,34 @@ const firebaseConfig = {
 const IMGBB_KEY="47d4ddf5133629b43bb606ec944137f9";
 firebase.initializeApp(firebaseConfig);
 const auth=firebase.auth(), db=firebase.database();
-let credits=0, isLogin=true;
+let credits=0, isLogin=true, pendingAmt = 0;
 
-// ✅ FIXED: File Name Display
+// File Selection Handler
 document.getElementById("p-img").addEventListener("change", function(e){
-    const file = e.target.files[0];
+    const file = e.target.files;
     const nameBox = document.getElementById("fn");
-    if(file){ 
-        nameBox.innerText = file.name; 
-    } else { 
-        nameBox.innerText = "Select Image"; 
-    }
+    if(file){ nameBox.innerText = file.name; } 
+    else { nameBox.innerText = "Select Image"; }
 });
 
 auth.onAuthStateChanged(user => { if(user) sync(user); else switchPage('pg-auth'); });
 
-function showModal(t,m){ document.getElementById('m-t').innerText=t; document.getElementById('m-m').innerText=m; document.getElementById('modal').style.display='flex'; }
+function showModal(t, m, type = 'success'){ 
+    const modal = document.getElementById('modal-content');
+    modal.className = type === 'error' ? 'modal-box error' : 'modal-box';
+    document.getElementById('m-t').innerText = t; 
+    document.getElementById('m-m').innerText = m; 
+    document.getElementById('pay-confirm-box').style.display = 'none';
+    document.getElementById('modal').style.display = 'flex'; 
+}
+
 function closeModal(){ document.getElementById('modal').style.display='none'; }
 function switchPage(id){ document.querySelectorAll('.page').forEach(p=>p.classList.remove('active')); document.getElementById(id).classList.add('active'); }
 function toggleMode(){ isLogin=!isLogin; document.querySelector('#pg-auth h1').innerText=isLogin?"SYSTEM LOGIN":"CREATE ACCOUNT"; }
 
 function handleAuth(){
  const e=document.getElementById('email').value, p=document.getElementById('pass').value;
- if(isLogin) auth.signInWithEmailAndPassword(e,p).catch(err=>showModal("ERROR",err.message));
+ if(isLogin) auth.signInWithEmailAndPassword(e,p).catch(err=>showModal("ERROR",err.message, 'error'));
  else auth.createUserWithEmailAndPassword(e,p).then(async r=>{ await r.user.sendEmailVerification(); await db.ref('users/'+r.user.uid).set({email:e,credits:1}); showModal("VERIFY","Email Sent!"); auth.signOut(); });
 }
 
@@ -154,65 +188,72 @@ function sync(user){
  db.ref('users/'+user.uid).on('value',snap=>{
    const d=snap.val(); credits=d?.credits||0;
    document.getElementById('user-credits').innerText=credits;
-   switchPage('pg-dash');
+   if(document.getElementById('pg-auth').classList.contains('active')) switchPage('pg-dash');
  });
 }
 
-function openPay(amt){ window.location.href=`upi://pay?pa=imrankhan17@ptyes&pn=IMRAN&am=${amt}&cu=INR`; }
+// Payment Confirmation Feature
+function initPay(amt){
+    pendingAmt = amt;
+    showModal("PAYMENT CONFIRMATION", `Are you sure you want to recharge for ₹${amt}?`);
+    document.getElementById('pay-confirm-box').style.display = 'block';
+}
 
-// ✅ FIXED & IMPROVED: uploadImgBB Function
+function confirmPayment(){
+    // Multi-App UPI Intent
+    const upi = `upi://pay?pa=imrankhan17@ptyes&pn=IMRAN&am=${pendingAmt}&cu=INR&mode=02&purpose=00`;
+    window.location.href = upi;
+    closeModal();
+}
+
 async function uploadImgBB(){
-    const fileInput = document.getElementById('p-img');
-    const files = fileInput.files;
-
-    if(!files || files.length === 0){
-        showModal("ERROR", "Please select an image first");
-        return;
-    }
-
-    const file = files[0];
-    const btn = document.getElementById('up-btn');
-
-    btn.innerText = "UPLOADING...";
-    btn.disabled = true;
-
+ const fileInput = document.getElementById('p-img');
+ const file = fileInput.files;
+ if(!file) return showModal("ERROR","Please select an image first", 'error');
+ const btn=document.getElementById('up-btn');
+ btn.innerText="UPLOADING..."; btn.disabled=true;
+ const reader=new FileReader();
+ reader.onloadend = async () => {
     try {
-        const fd = new FormData();
-        fd.append("image", file);
-
-        const res = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_KEY}`, {
-            method: "POST",
-            body: fd
-        });
-
+        const base64 = reader.result.split(',');
+        const fd = new FormData(); fd.append("image", base64);
+        const res = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_KEY}`, { method: "POST", body: fd });
         const d = await res.json();
-
-        if(d.success && d.data && d.data.url){
-            await db.ref('recharge_requests/' + Date.now()).set({
-                user: auth.currentUser ? auth.currentUser.email : "unknown",
-                uid: auth.currentUser ? auth.currentUser.uid : "unknown",
-                screenshot: d.data.url,
-                status: "pending",
-                time: new Date().toLocaleString()
+        if(d.success) {
+            await db.ref('recharge_requests/'+Date.now()).set({
+                user: auth.currentUser.email, uid: auth.currentUser.uid, screenshot: d.data.url, status: "pending", time: new Date().toLocaleString()
             });
-
-            showModal("SUCCESS", "Screenshot uploaded successfully!\nWait for admin approval.");
+            showModal("SUCCESS","Proof Sent! Admin will verify soon.");
+            fileInput.value = ""; // Fix: Clear selection
+            document.getElementById('fn').innerText = "Select Image";
             switchPage('pg-dash');
-            
-            // Clear file input after successful upload
-            fileInput.value = '';
-            document.getElementById("fn").innerText = "Select Image";
-        } else {
-            throw new Error(d.error ? d.error.message : "Unknown API error");
-        }
+        } else { throw new Error(); }
+    } catch(e) { showModal("FAILED","Upload Error. Try a smaller file.", 'error'); }
+    btn.innerText="SUBMIT PROOF"; btn.disabled=false;
+ };
+ reader.readAsDataURL(file);
+}
 
-    } catch(e) {
-        console.error("Upload Error:", e);
-        showModal("UPLOAD FAILED", "Image upload nahi ho paaya.\nDusri image try karo ya network check karo.");
-    } finally {
-        btn.innerText = "SUBMIT PROOF";
-        btn.disabled = false;
-    }
+// History Feature
+function showHistory(){
+    const list = document.getElementById('history-list');
+    list.innerHTML = "Fetching history...";
+    switchPage('pg-history');
+    
+    db.ref('users/' + auth.currentUser.uid + '/history').limitToLast(10).once('value', snap => {
+        list.innerHTML = "";
+        const data = snap.val();
+        if(!data) { list.innerHTML = "No recent searches found."; return; }
+        
+        Object.keys(data).reverse().forEach(id => {
+            const h = data[id];
+            list.innerHTML += `<div class="history-item">
+                <span style="color:var(--p)">${h.target}</span><br>
+                <small>${h.time}</small><br>
+                <span style="color:${h.deducted ? 'var(--r)' : 'var(--blue)'}">${h.deducted ? 'Credits Deducted' : 'Free Search / Failed'}</span>
+            </div>`;
+        });
+    });
 }
 
 function render(data) {
@@ -233,7 +274,7 @@ function render(data) {
 }
 
 async function runTrace(t){
- if(credits<=0) return showModal("NO CREDITS","Please recharge.");
+ if(credits<=0) return showModal("NO CREDITS","Insufficient balance. Please recharge.", 'error');
  const v=document.getElementById('target').value.trim();
  if(!v) return;
 
@@ -257,13 +298,27 @@ async function runTrace(t){
    const data = await res.json();
    clearInterval(itv); bar.style.width="100%";
 
-   if(!data || Object.keys(data).length < 2){
-     showModal("NOT FOUND","Data not available."); switchPage('pg-dash'); return;
+   // Log history before results
+   const historyNode = db.ref('users/' + auth.currentUser.uid + '/history').push();
+   const logData = { target: v, time: new Date().toLocaleString(), deducted: false };
+
+   if(!data || Object.keys(data).length < 2 || (data.status === "error") || JSON.stringify(data).toLowerCase().includes("not found")){
+     showModal("RECORD NOT FOUND", "DATABASE SYNC ERROR: Information for this entry is currently unavailable. No credits have been deducted.", 'error'); 
+     historyNode.set(logData);
+     switchPage('pg-dash'); return;
    }
 
+   // Successful Search
    await db.ref('users/'+auth.currentUser.uid).update({credits:credits-1});
+   logData.deducted = true;
+   historyNode.set(logData);
+   
    setTimeout(() => { switchPage('pg-res'); render(data); }, 600);
- } catch(e) { clearInterval(itv); showModal("ERROR","Server Busy."); switchPage('pg-dash'); }
+ } catch(e) { 
+   clearInterval(itv); 
+   showModal("SYSTEM BUSY", "ENCRYPTION TIMEOUT: The secure server is currently under heavy load. Your search credits have been preserved.", 'error'); 
+   switchPage('pg-dash'); 
+ }
 }
 </script>
 </body>

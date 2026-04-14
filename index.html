@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>IMRAN PLAYZ | ELITE SYSTEM v15.5</title>
+    <title>IMRAN PLAYZ | ELITE SYSTEM v16.0</title>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
@@ -20,11 +20,11 @@
         .container { width: 100%; max-width: 450px; background: var(--panel); border: 1px solid var(--p); border-radius: 15px; padding: 25px; box-shadow: 0 0 25px rgba(0, 255, 65, 0.15); text-align: center; }
         h1 { font-family: 'Orbitron', sans-serif; font-size: 18px; color: #fff; text-shadow: 0 0 10px var(--p); margin-bottom: 20px; }
         
-        /* Hacker Style Boxes (Photo Jaisa) */
+        /* Hacker Style Boxes */
         .hacker-box { width: 100%; max-width: 400px; background: rgba(0, 255, 65, 0.03); border: 1px solid rgba(0, 255, 65, 0.3); border-radius: 12px; padding: 20px; margin-bottom: 15px; text-align: left; }
         .hacker-title { color: var(--p); font-size: 13px; font-weight: bold; letter-spacing: 1px; margin-bottom: 15px; display: flex; align-items: center; gap: 10px; }
         
-        /* Progress Bar (Photo Jaisa) */
+        /* Progress Bar */
         .bar-bg { width: 100%; height: 14px; background: rgba(0, 255, 65, 0.1); border: 1px solid var(--p); border-radius: 7px; overflow: hidden; position: relative; }
         .bar-f { width: 0%; height: 100%; background: var(--p); box-shadow: 0 0 15px var(--p); transition: 0.2s linear; }
 
@@ -38,10 +38,12 @@
         button:hover { background: var(--p); color: #000; box-shadow: 0 0 15px var(--p); }
         .btn-blue { border-color: var(--blue); color: var(--blue); }
         .btn-red { border-color: var(--r); color: var(--r); }
+        
         .credit-badge { background: rgba(255, 215, 0, 0.1); border: 1px solid var(--y); padding: 6px 15px; border-radius: 20px; font-size: 13px; margin-bottom: 20px; color: var(--y); display: inline-block; }
         
         .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 2000; align-items: center; justify-content: center; backdrop-filter: blur(8px); }
         .modal-box { width: 85%; max-width: 380px; background: #050505; border: 2px solid var(--p); border-radius: 15px; padding: 25px; text-align: center; }
+        
         .res-row { border-bottom: 1px solid #1a1a1a; padding: 10px 0; text-align: left; display: flex; justify-content: space-between; font-size: 12px; }
         .upload-box { border: 2px dashed #444; padding: 20px; border-radius: 10px; cursor: pointer; margin-bottom: 15px; position: relative; background: rgba(255,255,255,0.02); }
         input[type="file"] { position: absolute; width: 100%; height: 100%; top: 0; left: 0; opacity: 0; cursor: pointer; }
@@ -57,7 +59,7 @@
         <input type="email" id="email" placeholder="Email Address">
         <input type="password" id="pass" placeholder="Password">
         <button id="auth-btn" onclick="handleAuth()">LOGIN</button>
-        <button style="background:#fff; color:#000; border:none;" onclick="loginGoogle()">SIGN IN WITH GOOGLE</button>
+        <button style="background:#fff; color:#000; border:none;" onclick="loginGoogle()">SIGN IN WITH Google</button>
         <p onclick="toggleMode()" style="font-size:11px; color:#444; cursor:pointer; margin-top:10px;">New User? Create Account</p>
     </div>
 </div>
@@ -109,7 +111,7 @@
         <div id="log-4" class="log-line">> Decrypting identity layer...</div>
     </div>
 
-    <div style="font-size: 10px; text-align: center; opacity: 0.5;">
+    <div style="font-size: 10px; text-align: center; opacity: 0.5; margin-top: 20px;">
         [/>] SYSTEM BY IMRANPLAYZ<br>
         CONTACT IG: @_imranplayz_
     </div>
@@ -136,7 +138,7 @@ firebase.initializeApp(firebaseConfig);
 const auth=firebase.auth(), db=firebase.database();
 let credits=0, isLogin=true;
 
-// --- Step 2 Fix: Add Event Listener for Image Name ---
+// --- Step 2 Fix: Event Listener for Image Selection ---
 document.getElementById("p-img").addEventListener("change", function(e){
     const file = e.target.files;
     const nameBox = document.getElementById("fn");
@@ -147,6 +149,7 @@ document.getElementById("p-img").addEventListener("change", function(e){
     }
 });
 
+// --- Auto-Login Logic ---
 auth.onAuthStateChanged(user => { if(user) sync(user); else switchPage('pg-auth'); });
 
 function showModal(t,m){ document.getElementById('m-t').innerText=t; document.getElementById('m-m').innerText=m; document.getElementById('modal').style.display='flex'; }
@@ -157,7 +160,7 @@ function toggleMode(){ isLogin=!isLogin; document.querySelector('#pg-auth h1').i
 function handleAuth(){
  const e=document.getElementById('email').value, p=document.getElementById('pass').value;
  if(isLogin) auth.signInWithEmailAndPassword(e,p).catch(err=>showModal("ERROR",err.message));
- else auth.createUserWithEmailAndPassword(e,p).then(async r=>{ await r.user.sendEmailVerification(); await db.ref('users/'+r.user.uid).set({email:e,credits:1}); showModal("VERIFY","Email Sent!"); auth.signOut(); });
+ else auth.createUserWithEmailAndPassword(e,p).then(async r=>{ await r.user.sendEmailVerification(); await db.ref('users/'+r.user.uid).set({email:e,credits:1}); showModal("VERIFY","Email Sent! Verify to Login."); auth.signOut(); });
 }
 
 function loginGoogle(){ auth.signInWithPopup(new firebase.auth.GoogleAuthProvider()); }
@@ -172,31 +175,62 @@ function sync(user){
 
 function openPay(amt){ window.location.href=`upi://pay?pa=imrankhan17@ptyes&pn=IMRAN&am=${amt}&cu=INR`; }
 
+// --- ✅ FIX: IMAGE UPLOAD (Files Fix) ---
 async function uploadImgBB(){
- const file=document.getElementById('p-img').files;
- if(!file) return showModal("ERROR","Select screenshot");
+ const file = document.getElementById('p-img').files; // ✅ FIX APPLIED
+
+ if(!file){
+   showModal("ERROR","Please select an image first");
+   return;
+ }
+
  const btn=document.getElementById('up-btn');
- btn.innerText="UPLOADING..."; btn.disabled=true;
+ btn.innerText="UPLOADING...";
+ btn.disabled=true;
+
  const reader=new FileReader();
+
  reader.onloadend = async () => {
-    try {
-        const base64 = reader.result.split(',');
-        const fd = new FormData(); fd.append("image", base64);
-        const res = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_KEY}`, { method: "POST", body: fd });
-        const d = await res.json();
-        if(d.success) {
-            await db.ref('recharge_requests/'+Date.now()).set({
-                user: auth.currentUser.email, uid: auth.currentUser.uid, screenshot: d.data.url, status: "pending", time: new Date().toLocaleString()
-            });
-            showModal("SUCCESS","Proof Sent!");
-            switchPage('pg-dash');
-        } else { throw new Error(); }
-    } catch(e) { showModal("FAILED","Upload Error."); }
-    btn.innerText="SUBMIT PROOF"; btn.disabled=false;
+    try{
+     const base64 = reader.result.split(','); 
+
+     const fd=new FormData();
+     fd.append("image", base64);
+
+     const res=await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_KEY}`,{
+       method:"POST",
+       body:fd
+     });
+
+     const d=await res.json();
+
+     if(d.success){
+       await db.ref('recharge_requests/'+Date.now()).set({
+         user:auth.currentUser.email,
+         uid:auth.currentUser.uid,
+         screenshot:d.data.url,
+         status:"pending",
+         time:new Date().toLocaleString()
+       });
+
+       showModal("SUCCESS","Screenshot uploaded. Wait for admin approval.");
+       switchPage('pg-dash');
+     } else {
+       throw new Error();
+     }
+
+   }catch(e){
+     showModal("UPLOAD FAILED","Try again with a different image.");
+   }
+
+   btn.innerText="SUBMIT PROOF";
+   btn.disabled=false;
  };
+
  reader.readAsDataURL(file);
 }
 
+// --- Data Render Logic (No Branding) ---
 function render(data) {
     const out = document.getElementById('data-out');
     out.innerHTML = "";
@@ -214,25 +248,25 @@ function render(data) {
     walk(data);
 }
 
+// --- Trace Logic with Progress Bar & Logs ---
 async function runTrace(t){
  if(credits<=0) return showModal("NO CREDITS","Please recharge.");
  const v=document.getElementById('target').value.trim();
  if(!v) return;
 
  switchPage('pg-load');
- document.querySelectorAll('.log-line').forEach(l => l.classList.remove('show')); // Reset logs
+ document.querySelectorAll('.log-line').forEach(l => l.classList.remove('show')); 
  
  let p=0; const bar=document.getElementById('bar');
  const itv = setInterval(() => { 
-    p += Math.random()*12; 
+    p += Math.random()*15; 
     if(p>95) p=95; 
     bar.style.width=p+"%";
     
-    // Log animation trigger
-    if(p > 10) document.getElementById('log-1').classList.add('show');
-    if(p > 30) document.getElementById('log-2').classList.add('show');
-    if(p > 60) document.getElementById('log-3').classList.add('show');
-    if(p > 85) document.getElementById('log-4').classList.add('show');
+    if(p > 15) document.getElementById('log-1').classList.add('show');
+    if(p > 40) document.getElementById('log-2').classList.add('show');
+    if(p > 70) document.getElementById('log-3').classList.add('show');
+    if(p > 88) document.getElementById('log-4').classList.add('show');
  }, 200);
 
  try{
@@ -242,7 +276,7 @@ async function runTrace(t){
    clearInterval(itv); bar.style.width="100%";
 
    if(!data || Object.keys(data).length < 2){
-     showModal("NOT FOUND","Data not available."); switchPage('pg-dash'); return;
+     showModal("NOT FOUND","Data not available. Credit not deducted."); switchPage('pg-dash'); return;
    }
 
    await db.ref('users/'+auth.currentUser.uid).update({credits:credits-1});

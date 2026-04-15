@@ -305,12 +305,28 @@ function loginGoogle() {
 }
 
 function sync(user) {
-    db.ref('users/'+user.uid).on('value', snap => {
+    const userRef = db.ref('users/' + user.uid);
+
+    userRef.once('value').then(snap => {
+        if (!snap.exists()) {
+            userRef.set({
+                email: user.email || "No Email",
+                credits: 0
+            });
+        } else {
+            userRef.update({
+                email: user.email || "No Email"
+            });
+        }
+    });
+
+    userRef.on('value', snap => {
         const d = snap.val();
         credits = d?.credits || 0;
         document.getElementById('user-credits').innerText = credits;
         switchPage('pg-dash');
     });
+}
 }
 
 function enterAdmin() { 

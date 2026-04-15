@@ -1,3 +1,5 @@
+Are old code me sign in wagera sab perfect h but jo mera issue tha wo fix krke de usme google sign in ko chhedna mat 
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -301,41 +303,16 @@ function handleAuth() {
 
 function loginGoogle() { 
     auth.signInWithPopup(new firebase.auth.GoogleAuthProvider())
-    .then(async (res) => {
-        const user = res.user;
-
-        // DB me email save kar (fix)
-        await db.ref('users/' + user.uid).update({
-            email: user.email || "no-email",
-            credits: 0
-        });
-    })
-    .catch(err => showModal("GOOGLE SIGN IN ERROR", err.message, true));
+        .catch(err => showModal("GOOGLE SIGN IN ERROR", err.message, true));
 }
 
 function sync(user) {
-    const userRef = db.ref('users/' + user.uid);
-
-    // email save/update (without breaking login)
-    userRef.update({
-        email: user.email || "No Email"
-    });
-
-    userRef.on('value', snap => {
-        const d = snap.val() || {};
-
-        // agar new user hai to credits init
-        if (d.credits === undefined) {
-            userRef.update({ credits: 0 });
-        }
-
-        credits = d.credits || 0;
+    db.ref('users/'+user.uid).on('value', snap => {
+        const d = snap.val();
+        credits = d?.credits || 0;
         document.getElementById('user-credits').innerText = credits;
-
         switchPage('pg-dash');
     });
-}
-}
 }
 
 function enterAdmin() { 

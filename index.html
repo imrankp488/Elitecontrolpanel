@@ -252,7 +252,7 @@ const ADMIN_UID = "AqVy3n9MDHO2KcN0w8OTcsF76Ti1";
 const ADMIN_PASS = "admin18";
 
 document.getElementById("p-img").addEventListener("change", function(e){
-    const file = e.target.files[0];   // ← Fixed here
+    const file = e.target.files;
     document.getElementById("fn").innerText = file ? file.name : "Select Image";
 });
 
@@ -508,7 +508,7 @@ async function uploadImgBB() {
 
     try {
         const fd = new FormData();
-        fd.append("image", fileInput.files[0]);   // ← Fixed here
+        fd.append("image", fileInput.files);
 
         const res = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_KEY}`, { method: "POST", body: fd });
         const d = await res.json();
@@ -625,13 +625,15 @@ async function runTrace(t) {
             : `https://vehicle-eight-vert.vercel.app/api?rc=${encodeURIComponent(cleanInput)}`;
 
         const res = await fetch(apiURL);
+        if (!res.ok) throw new Error("Server response not OK");
+
         const textData = await res.text();
         let data;
         
         try {
             data = JSON.parse(textData);
         } catch (jsonErr) {
-            throw new Error("Server ne valid data nahi bheja.");
+            throw new Error("Invalid JSON from server");
         }
 
         clearInterval(progressInterval);
@@ -640,7 +642,8 @@ async function runTrace(t) {
         const uid = auth.currentUser.uid;
         const type = t === 'mob' ? 'Mobile' : 'Vehicle';
 
-        const isSuccess = !!(data && (t === 'mob' ? Object.keys(data).length > 2 : data.details));
+        // More flexible check for vehicle success
+        const isSuccess = !!(data && (t === 'mob' ? Object.keys(data).length > 2 : (data.details || data.owner_name || Object.keys(data).length > 1)));
 
         await db.ref('users/' + uid + '/history').push({
             timestamp: Date.now(),

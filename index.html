@@ -35,44 +35,8 @@
         .plan-card.selected { border-color: var(--p); box-shadow: 0 0 15px var(--p); background: rgba(0,255,65,0.08); }
         .history-item { background: rgba(0,255,65,0.03); border: 1px solid rgba(0,255,65,0.3); border-radius: 10px; padding: 15px; margin-bottom: 12px; text-align: left; }
         .request-card { background: #111; border: 1px solid #444; border-radius: 10px; padding: 12px; margin-bottom: 15px; text-align: left; }
-
-        .hacker-box {
-            background: #0a0a0a;
-            border: 2px solid #00ff41;
-            border-radius: 12px;
-            padding: 20px;
-            margin-bottom: 20px;
-            width: 100%;
-            max-width: 420px;
-            box-shadow: 0 0 25px rgba(0, 255, 65, 0.25);
-        }
-        .bar-bg {
-            height: 14px;
-            background: #111;
-            border: 2px solid #00ff41;
-            border-radius: 30px;
-            overflow: hidden;
-            margin-top: 12px;
-        }
-        .bar-f {
-            height: 100%;
-            background: linear-gradient(90deg, #00ff41, #00cc33);
-            width: 0%;
-            transition: width 0.4s ease;
-            box-shadow: 0 0 15px #00ff41;
-        }
-        .log-line {
-            opacity: 0;
-            transform: translateY(8px);
-            transition: all 0.5s ease;
-            margin: 6px 0;
-            font-size: 13.5px;
-            color: #0f0;
-        }
-        .log-line.show {
-            opacity: 1;
-            transform: translateY(0);
-        }
+        .qr-container { text-align: center; margin: 20px 0; }
+        .qr-container img { max-width: 260px; border: 3px solid var(--p); border-radius: 12px; }
     </style>
 </head>
 <body>
@@ -82,6 +46,16 @@
         <h2 id="m-t"></h2>
         <p id="m-m" style="font-size:13px; color:#ccc; line-height:1.5;"></p>
         <button onclick="closeModal()">OKAY</button>
+    </div>
+</div>
+
+<!-- QR Code Modal -->
+<div id="qr-modal" class="modal-overlay">
+    <div class="modal-box" style="max-width:360px;">
+        <h2 style="color:var(--y);">SCAN TO PAY</h2>
+        <div class="qr-container" id="qr-image"></div>
+        <p style="font-size:13px; color:#aaa;">Scan with PhonePe, GPay, Paytm or any UPI app</p>
+        <button onclick="closeQRModal()" class="btn-red">CLOSE</button>
     </div>
 </div>
 
@@ -108,6 +82,7 @@
         <button onclick="switchPage('pg-history'); loadHistory()" style="margin-top:12px;" class="btn-blue">VIEW SEARCH HISTORY</button>
         <button class="btn-blue" style="margin-top:8px;" onclick="switchPage('pg-plans')">RECHARGE / PLANS</button>
         <button onclick="enterAdmin()" id="admin-btn" class="btn-blue" style="margin-top:8px; display:none;">🔧 ADMIN PANEL</button>
+        <button onclick="showHelp()" class="btn-blue" style="margin-top:8px;">NEED HELP? CONTACT SUPPORT</button>
         <button class="btn-red" style="font-size:10px;" onclick="auth.signOut().then(()=>location.reload())">LOGOUT</button>
     </div>
 </div>
@@ -123,6 +98,12 @@
 <div id="pg-plans" class="page">
     <div class="container">
         <h1>RECHARGE</h1>
+        
+        <!-- Trial Plan -->
+        <div id="plan-trial" class="plan-card" onclick="selectPlan(10, 'TRIAL')">
+            <span style="float:right; color:var(--p);">₹10</span><strong>TRIAL PLAN</strong><br><small>2 Credits • Perfect for Beginners</small>
+        </div>
+        
         <div id="plan-basic" class="plan-card" onclick="selectPlan(50, 'BASIC')">
             <span style="float:right; color:var(--p);">₹50</span><strong>BASIC</strong><br><small>10 Searches</small>
         </div>
@@ -135,8 +116,9 @@
 
         <div id="confirm-section" style="display:none; margin:20px 0; padding:15px; border:2px solid var(--p); border-radius:12px; background:rgba(0,255,65,0.05);">
             <p id="selected-plan" style="font-size:15px; margin-bottom:12px;"></p>
-            <button onclick="confirmAndPay()" class="btn-blue">CONFIRM &amp; PAY VIA UPI</button>
-            <small style="color:#888; display:block; text-align:center; margin-top:8px;">Opens your preferred UPI app (PhonePe / Paytm / GPay / WhatsApp etc.)</small>
+            <button onclick="confirmAndPay()" class="btn-blue">CONFIRM &amp; PAY VIA UPI APP</button>
+            <button onclick="showQRCode()" class="btn-blue" style="margin-top:8px;">PAY VIA QR CODE</button>
+            <small style="color:#888; display:block; text-align:center; margin-top:10px;">Scan QR with any UPI app</small>
         </div>
 
         <div style="margin-top:25px; border-top:1px solid #333; padding-top:20px;">
@@ -155,7 +137,6 @@
 <div id="pg-admin" class="page">
     <div class="container">
         <h1>🔧 ADMIN DASHBOARD</h1>
-
         <h2 style="margin:10px 0 8px 0;">Manual Credit Add / Remove</h2>
         <input type="text" id="manual-uid" placeholder="User UID or Email">
         <input type="number" id="manual-credits" value="10" placeholder="Amount">
@@ -163,13 +144,10 @@
             <button onclick="addManualCredits(true)" style="background:#0f0; color:#000;">+ ADD CREDITS</button>
             <button onclick="addManualCredits(false)" class="btn-red">- REMOVE CREDITS</button>
         </div>
-
         <button onclick="loadPendingRequests()" class="btn-blue" style="margin-top:20px;">Refresh Pending Requests</button>
         <div id="pending-list" style="margin:15px 0;"></div>
-
         <button onclick="switchPage('pg-users'); loadAllUsers()" class="btn-blue" style="margin-top:15px;">👥 View All Users</button>
         <button onclick="switchPage('pg-logs'); loadAllSearchLogs()" class="btn-blue">📜 View All Search Logs</button>
-
         <button onclick="switchPage('pg-dash')" class="btn-red">BACK TO DASHBOARD</button>
     </div>
 </div>
@@ -197,7 +175,6 @@
         </div>
         <div class="bar-bg"><div id="bar" class="bar-f"></div></div>
     </div>
-
     <div class="hacker-box">
         <div style="display:flex; align-items:center; gap:12px; color:#0f0; font-size:17px; margin-bottom:14px;">
             📝 <strong>System Logs</strong>
@@ -207,7 +184,6 @@
         <div id="log-3" class="log-line">&gt; Fetching data packets...</div>
         <div id="log-4" class="log-line">&gt; Decrypting response layer...</div>
     </div>
-
     <div style="font-size: 10px; text-align: center; opacity: 0.5; margin-top: 20px;">
         [/>] SYSTEM BY IMRANPLAYZ<br>
         CONTACT IG: @_imranplayz_
@@ -281,8 +257,12 @@ function handleAuth() {
     } else {
         auth.createUserWithEmailAndPassword(e, p).then(async r => {
             await r.user.sendEmailVerification();
-            await db.ref('users/'+r.user.uid).set({email:e, credits:1});
-            showModal("ACCOUNT CREATED", "Verification email sent!", false);
+            await db.ref('users/'+r.user.uid).set({ 
+                email: e, 
+                credits: 0,           // No free credit
+                joinedAt: Date.now()
+            });
+            showModal("ACCOUNT CREATED", "Verification email sent!\nPlease recharge to get credits.", false);
             auth.signOut();
         }).catch(err => showModal("SIGNUP ERROR", err.message, true));
     }
@@ -302,8 +282,30 @@ function sync(user) {
     });
 }
 
-// ADMIN FUNCTIONS (unchanged)
-function enterAdmin() { /* same as your original */ 
+// QR Code Functions
+function showQRCode() {
+    if (!selectedPlan) return;
+    const amount = selectedPlan.amount;
+    const upiLink = `upi://pay?pa=imrankhan17@ptyes&pn=IMRAN%20PLAYZ&am=${amount}&cu=INR&tn=Elite%20System%20Recharge`;
+
+    const qrHTML = `<img src="https://chart.googleapis.com/chart?chs=300x300&cht=qr&chl=${encodeURIComponent(upiLink)}" alt="UPI QR">`;
+    document.getElementById('qr-image').innerHTML = qrHTML;
+    document.getElementById('qr-modal').style.display = 'flex';
+}
+
+function closeQRModal() {
+    document.getElementById('qr-modal').style.display = 'none';
+}
+
+// Help Button
+function showHelp() {
+    const subject = encodeURIComponent("Help Request - IMRAN PLAYZ Elite System");
+    const body = encodeURIComponent("Hello Sir,\n\nI need help with:\n\n");
+    window.location.href = `mailto:ip6675696@gmail.com?subject=${subject}&body=${body}`;
+}
+
+// ====================== ADMIN FUNCTIONS ======================
+function enterAdmin() {
     const pass = prompt("Enter Admin Password:");
     if (pass === ADMIN_PASS) {
         switchPage('pg-admin');
@@ -313,7 +315,7 @@ function enterAdmin() { /* same as your original */
     }
 }
 
-async function loadPendingRequests() { /* your original code */ 
+async function loadPendingRequests() {
     const container = document.getElementById('pending-list');
     container.innerHTML = '<p style="text-align:center;color:#666;">Loading...</p>';
 
@@ -344,7 +346,7 @@ async function loadPendingRequests() { /* your original code */
     });
 }
 
-async function approveRequest(requestKey, uid, creditsToAdd) { /* original */ 
+async function approveRequest(requestKey, uid, creditsToAdd) {
     creditsToAdd = parseInt(creditsToAdd);
     if (!creditsToAdd) return alert("Enter valid credits");
 
@@ -363,7 +365,7 @@ async function approveRequest(requestKey, uid, creditsToAdd) { /* original */
     }
 }
 
-async function addManualCredits(isAdd) { /* original */ 
+async function addManualCredits(isAdd) {
     let input = document.getElementById('manual-uid').value.trim();
     let amt = parseInt(document.getElementById('manual-credits').value);
     if (!input || !amt) return alert("Please fill both fields");
@@ -388,7 +390,7 @@ async function addManualCredits(isAdd) { /* original */
     }
 }
 
-async function loadAllUsers() { /* original */ 
+async function loadAllUsers() {
     const container = document.getElementById('users-list');
     container.innerHTML = '<p style="text-align:center;color:#666;">Loading users...</p>';
 
@@ -412,7 +414,6 @@ async function loadAllUsers() { /* original */
     });
 }
 
-// Fixed loadAllSearchLogs - Newest first
 async function loadAllSearchLogs() {
     const container = document.getElementById('all-logs-list');
     container.innerHTML = '<p style="text-align:center;color:#666;">Loading all search logs...</p>';
@@ -456,15 +457,16 @@ async function loadAllSearchLogs() {
 
         if (!hasLogs) container.innerHTML = '<p style="color:#666;text-align:center;padding:40px 0;">No search logs found yet.</p>';
     } catch(e) {
-        container.innerHTML = '<p style="color:var(--r);">Error loading logs.</p>';
+        container.innerHTML = '<p style="color:var(--r);">Error loading logs. Please try again.</p>';
     }
 }
 
-// Plan & Upload functions (unchanged from your original)
-function selectPlan(amount, name) { /* your original */ 
+// ====================== PLAN & PAY ======================
+function selectPlan(amount, name) {
     selectedPlan = {amount, name};
     document.querySelectorAll('.plan-card').forEach(c => c.classList.remove('selected'));
-    if(name === 'BASIC') document.getElementById('plan-basic').classList.add('selected');
+    if(name === 'TRIAL') document.getElementById('plan-trial').classList.add('selected');
+    else if(name === 'BASIC') document.getElementById('plan-basic').classList.add('selected');
     else if(name === 'PRO') document.getElementById('plan-pro').classList.add('selected');
     else document.getElementById('plan-unlimited').classList.add('selected');
 
@@ -472,19 +474,20 @@ function selectPlan(amount, name) { /* your original */
     document.getElementById('confirm-section').style.display = 'block';
 }
 
-function resetPlans() { /* original */ 
+function resetPlans() {
     selectedPlan = null;
     document.getElementById('confirm-section').style.display = 'none';
     document.querySelectorAll('.plan-card').forEach(c => c.classList.remove('selected'));
 }
 
-function confirmAndPay() { /* original */ 
+function confirmAndPay() {
     if (!selectedPlan) return;
     const {amount} = selectedPlan;
     window.location.href = `upi://pay?pa=imrankhan17@ptyes&pn=IMRAN%20PLAYZ&am=${amount}&cu=INR&tn=Elite%20System%20Recharge`;
 }
 
-async function uploadImgBB() { /* your original */ 
+// ====================== UPLOAD ======================
+async function uploadImgBB() {
     const fileInput = document.getElementById('p-img');
     if (!fileInput.files || fileInput.files.length === 0) return showModal("ERROR", "Please select an image first", true);
 
@@ -523,86 +526,68 @@ async function uploadImgBB() { /* your original */
     }
 }
 
-// ====================== FIXED SEARCH HISTORY (Newest on top) ======================
+// ====================== SEARCH HISTORY ======================
 function loadHistory() {
     const container = document.getElementById('history-list');
     container.innerHTML = '<p style="text-align:center; color:#666; padding:30px 0;">Loading your search history...</p>';
 
     const user = auth.currentUser;
-    if (!user) {
-        container.innerHTML = '<p style="color:var(--r);">Please login again.</p>';
-        return;
-    }
+    if (!user) return;
 
     db.ref('users/' + user.uid + '/history')
         .orderByChild('timestamp')
         .limitToLast(50)
-        .once('value', (snap) => {
+        .once('value', snap => {
             container.innerHTML = '';
-
-            if (!snap.exists() || snap.numChildren() === 0) {
-                container.innerHTML = '<p style="text-align:center; color:#666; padding:60px 0;">No searches performed yet.</p>';
+            if (!snap.exists()) {
+                container.innerHTML = '<p style="text-align:center; color:#666; padding:60px 0;">No searches yet.</p>';
                 return;
             }
-
             const entries = [];
-            snap.forEach((child) => {
-                entries.push(child.val());
-            });
+            snap.forEach(child => entries.push(child.val()));
+            entries.reverse();
 
-            entries.reverse();   // ← Yeh line sabse important hai (Newest first)
-
-            entries.forEach((entry) => {
+            entries.forEach(entry => {
                 const div = document.createElement('div');
                 div.className = 'history-item';
-
-                const statusHTML = entry.success 
+                let statusHTML = entry.success 
                     ? `<span style="color:var(--p)">✅ Data Found • 1 Credit Deducted</span>`
                     : `<span style="color:var(--r)">❌ ${entry.status === 'no_data' ? 'No Data Found' : 'Search Failed'} • No Credit Deducted</span>`;
-
+                
                 div.innerHTML = `
-                    <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
-                        <strong>${entry.type || 'Unknown'} SEARCH</strong>
+                    <div style="display:flex; justify-content:space-between; margin-bottom:6px;">
+                        <strong>${entry.type} SEARCH</strong>
                         <small style="color:#888">${new Date(entry.timestamp).toLocaleString('en-IN')}</small>
                     </div>
-                    <div style="font-size:15px; color:#fff; margin-bottom:10px;">${entry.query || 'N/A'}</div>
+                    <div style="font-size:15px; color:#fff; margin-bottom:8px;">${entry.query}</div>
                     <div>${statusHTML}</div>
                 `;
                 container.appendChild(div);
             });
-        })
-        .catch((err) => {
-            console.error(err);
-            container.innerHTML = '<p style="color:var(--r); text-align:center;">Failed to load history. Please try again.</p>';
         });
 }
 
-// ====================== FIXED RUNTRACE (Vehicle API + History) ======================
+// ====================== SEARCH FUNCTION ======================
 async function runTrace(t) {
-    if (credits <= 0) {
-        return showModal("INSUFFICIENT CREDITS", "You don't have enough credits. Please recharge to continue.", true);
-    }
+    if (credits <= 0) return showModal("INSUFFICIENT CREDITS", "You don't have enough credits. Please recharge to continue.", true);
 
     const v = document.getElementById('target').value.trim();
-    if (!v) {
-        return showModal("INPUT REQUIRED", "Please enter a valid number or vehicle registration.", true);
-    }
+    if (!v) return showModal("INPUT REQUIRED", "Please enter a valid number or vehicle registration.", true);
 
     switchPage('pg-load');
     document.querySelectorAll('.log-line').forEach(l => l.classList.remove('show'));
     const bar = document.getElementById('bar');
     bar.style.width = "0%";
 
-    let progress = 0;
-    const progressInterval = setInterval(() => {
-        progress += Math.random() * 22 + 6;
-        if (progress > 97) progress = 97;
-        bar.style.width = progress + "%";
-
-        if (progress > 15) document.getElementById('log-1').classList.add('show');
-        if (progress > 45) document.getElementById('log-2').classList.add('show');
-        if (progress > 70) document.getElementById('log-3').classList.add('show');
-        if (progress > 88) document.getElementById('log-4').classList.add('show');
+    let p = 0;
+    const itv = setInterval(() => {
+        p += Math.random() * 22 + 6;
+        if (p > 97) p = 97;
+        bar.style.width = p + "%";
+        if (p > 15) document.getElementById('log-1').classList.add('show');
+        if (p > 45) document.getElementById('log-2').classList.add('show');
+        if (p > 70) document.getElementById('log-3').classList.add('show');
+        if (p > 88) document.getElementById('log-4').classList.add('show');
     }, 140);
 
     try {
@@ -613,16 +598,13 @@ async function runTrace(t) {
         const res = await fetch(api);
         const data = await res.json();
 
-        clearInterval(progressInterval);
+        clearInterval(itv);
         bar.style.width = "100%";
 
         const uid = auth.currentUser.uid;
         const type = t === 'mob' ? 'Mobile' : 'Vehicle';
-
-        // Fixed success check for Vehicle API
         const isSuccess = !!(data && (t === 'mob' ? Object.keys(data).length > 2 : data.details));
 
-        // Save to history
         await db.ref('users/' + uid + '/history').push({
             timestamp: Date.now(),
             type: type,
@@ -632,7 +614,7 @@ async function runTrace(t) {
         });
 
         if (!isSuccess) {
-            showModal("DATA NOT FOUND", "Sorry, we could not find any data for this " + (t==='veh'?'vehicle':'number') + ".\nYour credits have not been deducted.", true);
+            showModal("DATA NOT FOUND", "Sorry, we could not find any data.\nCredits not deducted.", true);
             switchPage('pg-dash');
             return;
         }
@@ -642,15 +624,14 @@ async function runTrace(t) {
         setTimeout(() => {
             switchPage('pg-res');
             render(data);
-        }, 800);
+        }, 700);
 
     } catch (e) {
-        clearInterval(progressInterval);
+        clearInterval(itv);
         bar.style.width = "100%";
 
         const uid = auth.currentUser.uid;
         const type = t === 'mob' ? 'Mobile' : 'Vehicle';
-
         await db.ref('users/' + uid + '/history').push({
             timestamp: Date.now(),
             type: type,
@@ -659,7 +640,7 @@ async function runTrace(t) {
             status: 'server_error'
         });
 
-        showModal("SERVER BUSY", "The server is currently busy or unable to process your request.\nPlease try again later.\nNo credits were deducted.", true);
+        showModal("SERVER BUSY", "Server is busy. Please try again later.\nNo credits deducted.", true);
         switchPage('pg-dash');
     }
 }
@@ -668,11 +649,12 @@ function render(data) {
     const out = document.getElementById('data-out');
     out.innerHTML = "";
     const skip = ["branding", "developer", "processed_by", "owner_contact", "status"];
-    function walk(obj) {
+    function walk(obj, prefix = "") {
         for (let key in obj) {
-            if (typeof obj[key] === "object" && obj[key] !== null) walk(obj[key]);
+            if (typeof obj[key] === "object" && obj[key] !== null) walk(obj[key], key);
             else if (!skip.includes(key.toLowerCase())) {
-                out.innerHTML += `<div class="res-row"><span style="color:var(--p)">${key.toUpperCase()}</span><span style="color:#fff">${obj[key]}</span></div>`;
+                const displayKey = prefix ? `${prefix.toUpperCase()} - ${key.toUpperCase()}` : key.toUpperCase();
+                out.innerHTML += `<div class="res-row"><span style="color:var(--p)">${displayKey}</span><span style="color:#fff">${obj[key]}</span></div>`;
             }
         }
     }

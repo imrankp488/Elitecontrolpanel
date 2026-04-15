@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>IMX CORE | ELITE SYSTEM v18.5</title>
+    <title>IMRAN PLAYZ | ELITE SYSTEM v18.5</title>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
@@ -220,8 +220,8 @@
     </div>
 
     <div style="font-size: 10px; text-align: center; opacity: 0.5; margin-top: 20px;">
-        [/>] SYSTEM BY IMX Core<br>
-        Contact email: ip6675696@gmail.com
+        [/>] SYSTEM BY IMRANPLAYZ<br>
+        CONTACT IG: @_imranplayz_
     </div>
 </div>
 
@@ -624,12 +624,7 @@ async function runTrace(t) {
             ? `https://yash-code-with-ai.alphamovies.workers.dev/?num=${encodeURIComponent(cleanInput)}&key=7189814021`
             : `https://vehicle-eight-vert.vercel.app/api?rc=${encodeURIComponent(cleanInput)}`;
 
-        let res;
-try {
-    res = await fetch(apiURL); // same API (original)
-} catch (e) {
-    res = await fetch("https://corsproxy.io/?" + encodeURIComponent(apiURL)); // backup
-}
+        const res = await fetch(apiURL);
         const textData = await res.text();
         let data;
         

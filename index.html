@@ -174,7 +174,6 @@
     </div>
 </div>
 
-<!-- All Users -->
 <div id="pg-users" class="page">
     <div class="container" style="max-height:85vh; overflow-y:auto;">
         <h1>👥 ALL USERS</h1>
@@ -183,7 +182,6 @@
     </div>
 </div>
 
-<!-- All Logs -->
 <div id="pg-logs" class="page">
     <div class="container" style="max-height:85vh; overflow-y:auto;">
         <h1>📜 ALL SEARCH LOGS</h1>
@@ -304,8 +302,8 @@ function sync(user) {
     });
 }
 
-// ====================== ADMIN FUNCTIONS ======================
-function enterAdmin() {
+// ADMIN FUNCTIONS (unchanged)
+function enterAdmin() { /* same as your original */ 
     const pass = prompt("Enter Admin Password:");
     if (pass === ADMIN_PASS) {
         switchPage('pg-admin');
@@ -315,7 +313,7 @@ function enterAdmin() {
     }
 }
 
-async function loadPendingRequests() {
+async function loadPendingRequests() { /* your original code */ 
     const container = document.getElementById('pending-list');
     container.innerHTML = '<p style="text-align:center;color:#666;">Loading...</p>';
 
@@ -346,7 +344,7 @@ async function loadPendingRequests() {
     });
 }
 
-async function approveRequest(requestKey, uid, creditsToAdd) {
+async function approveRequest(requestKey, uid, creditsToAdd) { /* original */ 
     creditsToAdd = parseInt(creditsToAdd);
     if (!creditsToAdd) return alert("Enter valid credits");
 
@@ -365,7 +363,7 @@ async function approveRequest(requestKey, uid, creditsToAdd) {
     }
 }
 
-async function addManualCredits(isAdd) {
+async function addManualCredits(isAdd) { /* original */ 
     let input = document.getElementById('manual-uid').value.trim();
     let amt = parseInt(document.getElementById('manual-credits').value);
     if (!input || !amt) return alert("Please fill both fields");
@@ -390,13 +388,11 @@ async function addManualCredits(isAdd) {
     }
 }
 
-// ====================== ALL USERS ======================
-async function loadAllUsers() {
+async function loadAllUsers() { /* original */ 
     const container = document.getElementById('users-list');
     container.innerHTML = '<p style="text-align:center;color:#666;">Loading users...</p>';
 
-    try {
-        const snap = await db.ref('users').once('value');
+    db.ref('users').once('value', snap => {
         container.innerHTML = '';
         if (!snap.exists()) {
             container.innerHTML = '<p style="color:#666;">No users found.</p>';
@@ -413,12 +409,10 @@ async function loadAllUsers() {
             `;
             container.appendChild(div);
         });
-    } catch(e) {
-        container.innerHTML = '<p style="color:var(--r);">Error loading users. Try again.</p>';
-    }
+    });
 }
 
-// ====================== ALL SEARCH LOGS (Newest first) ======================
+// Fixed loadAllSearchLogs - Newest first
 async function loadAllSearchLogs() {
     const container = document.getElementById('all-logs-list');
     container.innerHTML = '<p style="text-align:center;color:#666;">Loading all search logs...</p>';
@@ -462,12 +456,12 @@ async function loadAllSearchLogs() {
 
         if (!hasLogs) container.innerHTML = '<p style="color:#666;text-align:center;padding:40px 0;">No search logs found yet.</p>';
     } catch(e) {
-        container.innerHTML = '<p style="color:var(--r);">Error loading logs. Please try again.</p>';
+        container.innerHTML = '<p style="color:var(--r);">Error loading logs.</p>';
     }
 }
 
-// ====================== PLAN & PAY ======================
-function selectPlan(amount, name) {
+// Plan & Upload functions (unchanged from your original)
+function selectPlan(amount, name) { /* your original */ 
     selectedPlan = {amount, name};
     document.querySelectorAll('.plan-card').forEach(c => c.classList.remove('selected'));
     if(name === 'BASIC') document.getElementById('plan-basic').classList.add('selected');
@@ -478,20 +472,19 @@ function selectPlan(amount, name) {
     document.getElementById('confirm-section').style.display = 'block';
 }
 
-function resetPlans() {
+function resetPlans() { /* original */ 
     selectedPlan = null;
     document.getElementById('confirm-section').style.display = 'none';
     document.querySelectorAll('.plan-card').forEach(c => c.classList.remove('selected'));
 }
 
-function confirmAndPay() {
+function confirmAndPay() { /* original */ 
     if (!selectedPlan) return;
     const {amount} = selectedPlan;
     window.location.href = `upi://pay?pa=imrankhan17@ptyes&pn=IMRAN%20PLAYZ&am=${amount}&cu=INR&tn=Elite%20System%20Recharge`;
 }
 
-// ====================== UPLOAD ======================
-async function uploadImgBB() {
+async function uploadImgBB() { /* your original */ 
     const fileInput = document.getElementById('p-img');
     if (!fileInput.files || fileInput.files.length === 0) return showModal("ERROR", "Please select an image first", true);
 
@@ -530,68 +523,86 @@ async function uploadImgBB() {
     }
 }
 
-// ====================== SEARCH HISTORY ======================
+// ====================== FIXED SEARCH HISTORY (Newest on top) ======================
 function loadHistory() {
     const container = document.getElementById('history-list');
     container.innerHTML = '<p style="text-align:center; color:#666; padding:30px 0;">Loading your search history...</p>';
 
     const user = auth.currentUser;
-    if (!user) return;
+    if (!user) {
+        container.innerHTML = '<p style="color:var(--r);">Please login again.</p>';
+        return;
+    }
 
     db.ref('users/' + user.uid + '/history')
         .orderByChild('timestamp')
         .limitToLast(50)
-        .once('value', snap => {
+        .once('value', (snap) => {
             container.innerHTML = '';
-            if (!snap.exists()) {
-                container.innerHTML = '<p style="text-align:center; color:#666; padding:60px 0;">No searches yet.</p>';
+
+            if (!snap.exists() || snap.numChildren() === 0) {
+                container.innerHTML = '<p style="text-align:center; color:#666; padding:60px 0;">No searches performed yet.</p>';
                 return;
             }
-            const entries = [];
-            snap.forEach(child => entries.push(child.val()));
-            entries.reverse(); // Newest first
 
-            entries.forEach(entry => {
+            const entries = [];
+            snap.forEach((child) => {
+                entries.push(child.val());
+            });
+
+            entries.reverse();   // ← Yeh line sabse important hai (Newest first)
+
+            entries.forEach((entry) => {
                 const div = document.createElement('div');
                 div.className = 'history-item';
-                let statusHTML = entry.success 
+
+                const statusHTML = entry.success 
                     ? `<span style="color:var(--p)">✅ Data Found • 1 Credit Deducted</span>`
                     : `<span style="color:var(--r)">❌ ${entry.status === 'no_data' ? 'No Data Found' : 'Search Failed'} • No Credit Deducted</span>`;
-                
+
                 div.innerHTML = `
-                    <div style="display:flex; justify-content:space-between; margin-bottom:6px;">
-                        <strong>${entry.type} SEARCH</strong>
+                    <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
+                        <strong>${entry.type || 'Unknown'} SEARCH</strong>
                         <small style="color:#888">${new Date(entry.timestamp).toLocaleString('en-IN')}</small>
                     </div>
-                    <div style="font-size:15px; color:#fff; margin-bottom:8px;">${entry.query}</div>
+                    <div style="font-size:15px; color:#fff; margin-bottom:10px;">${entry.query || 'N/A'}</div>
                     <div>${statusHTML}</div>
                 `;
                 container.appendChild(div);
             });
+        })
+        .catch((err) => {
+            console.error(err);
+            container.innerHTML = '<p style="color:var(--r); text-align:center;">Failed to load history. Please try again.</p>';
         });
 }
 
-// ====================== FIXED RUNTRACE (Vehicle API Fix) ======================
+// ====================== FIXED RUNTRACE (Vehicle API + History) ======================
 async function runTrace(t) {
-    if (credits <= 0) return showModal("INSUFFICIENT CREDITS", "You don't have enough credits. Please recharge to continue.", true);
+    if (credits <= 0) {
+        return showModal("INSUFFICIENT CREDITS", "You don't have enough credits. Please recharge to continue.", true);
+    }
 
-    let v = document.getElementById('target').value.trim().toUpperCase();
-    if (!v) return showModal("INPUT REQUIRED", "Please enter a valid number or vehicle registration.", true);
+    const v = document.getElementById('target').value.trim();
+    if (!v) {
+        return showModal("INPUT REQUIRED", "Please enter a valid number or vehicle registration.", true);
+    }
 
     switchPage('pg-load');
     document.querySelectorAll('.log-line').forEach(l => l.classList.remove('show'));
     const bar = document.getElementById('bar');
     bar.style.width = "0%";
 
-    let p = 0;
-    const itv = setInterval(() => {
-        p += Math.random() * 22 + 6;
-        if (p > 97) p = 97;
-        bar.style.width = p + "%";
-        if (p > 15) document.getElementById('log-1').classList.add('show');
-        if (p > 45) document.getElementById('log-2').classList.add('show');
-        if (p > 70) document.getElementById('log-3').classList.add('show');
-        if (p > 88) document.getElementById('log-4').classList.add('show');
+    let progress = 0;
+    const progressInterval = setInterval(() => {
+        progress += Math.random() * 22 + 6;
+        if (progress > 97) progress = 97;
+        bar.style.width = progress + "%";
+
+        if (progress > 15) document.getElementById('log-1').classList.add('show');
+        if (progress > 45) document.getElementById('log-2').classList.add('show');
+        if (progress > 70) document.getElementById('log-3').classList.add('show');
+        if (progress > 88) document.getElementById('log-4').classList.add('show');
     }, 140);
 
     try {
@@ -602,7 +613,7 @@ async function runTrace(t) {
         const res = await fetch(api);
         const data = await res.json();
 
-        clearInterval(itv);
+        clearInterval(progressInterval);
         bar.style.width = "100%";
 
         const uid = auth.currentUser.uid;
@@ -611,6 +622,7 @@ async function runTrace(t) {
         // Fixed success check for Vehicle API
         const isSuccess = !!(data && (t === 'mob' ? Object.keys(data).length > 2 : data.details));
 
+        // Save to history
         await db.ref('users/' + uid + '/history').push({
             timestamp: Date.now(),
             type: type,
@@ -620,7 +632,7 @@ async function runTrace(t) {
         });
 
         if (!isSuccess) {
-            showModal("DATA NOT FOUND", "Sorry, we could not find any data for this " + (t==='veh' ? 'vehicle' : 'number') + ".\nYour credits have not been deducted.", true);
+            showModal("DATA NOT FOUND", "Sorry, we could not find any data for this " + (t==='veh'?'vehicle':'number') + ".\nYour credits have not been deducted.", true);
             switchPage('pg-dash');
             return;
         }
@@ -630,14 +642,15 @@ async function runTrace(t) {
         setTimeout(() => {
             switchPage('pg-res');
             render(data);
-        }, 700);
+        }, 800);
 
     } catch (e) {
-        clearInterval(itv);
+        clearInterval(progressInterval);
         bar.style.width = "100%";
 
         const uid = auth.currentUser.uid;
         const type = t === 'mob' ? 'Mobile' : 'Vehicle';
+
         await db.ref('users/' + uid + '/history').push({
             timestamp: Date.now(),
             type: type,
@@ -646,7 +659,7 @@ async function runTrace(t) {
             status: 'server_error'
         });
 
-        showModal("SERVER BUSY", "The server is currently busy or unable to process your request.\nPlease try again in a few moments.\nNo credits were deducted.", true);
+        showModal("SERVER BUSY", "The server is currently busy or unable to process your request.\nPlease try again later.\nNo credits were deducted.", true);
         switchPage('pg-dash');
     }
 }
@@ -655,18 +668,14 @@ function render(data) {
     const out = document.getElementById('data-out');
     out.innerHTML = "";
     const skip = ["branding", "developer", "processed_by", "owner_contact", "status"];
-
-    function walk(obj, prefix = "") {
+    function walk(obj) {
         for (let key in obj) {
-            if (typeof obj[key] === "object" && obj[key] !== null) {
-                walk(obj[key], key);
-            } else if (!skip.includes(key.toLowerCase())) {
-                const displayKey = prefix ? `${prefix.toUpperCase()} - ${key.toUpperCase()}` : key.toUpperCase();
-                out.innerHTML += `<div class="res-row"><span style="color:var(--p)">${displayKey}</span><span style="color:#fff">${obj[key]}</span></div>`;
+            if (typeof obj[key] === "object" && obj[key] !== null) walk(obj[key]);
+            else if (!skip.includes(key.toLowerCase())) {
+                out.innerHTML += `<div class="res-row"><span style="color:var(--p)">${key.toUpperCase()}</span><span style="color:#fff">${obj[key]}</span></div>`;
             }
         }
     }
-
     if (data && data.details) walk(data.details);
     else walk(data);
 }

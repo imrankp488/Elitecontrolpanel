@@ -73,6 +73,8 @@
             opacity: 1;
             transform: translateY(0);
         }
+        /* Style for QR container */
+        .qr-wrapper { background: #fff; padding: 10px; border-radius: 10px; display: inline-block; margin-bottom: 10px; }
     </style>
 </head>
 <body>
@@ -107,6 +109,7 @@
         </div>
         <button onclick="switchPage('pg-history'); loadHistory()" style="margin-top:12px;" class="btn-blue">VIEW SEARCH HISTORY</button>
         <button class="btn-blue" style="margin-top:8px;" onclick="switchPage('pg-plans')">RECHARGE / PLANS</button>
+        <button onclick="window.location.href='mailto:ip6675696@gmail.com?subject=Elite%20System%20Support'" class="btn-blue" style="margin-top:8px;">✉️ CONTACT SUPPORT</button>
         <button onclick="enterAdmin()" id="admin-btn" class="btn-blue" style="margin-top:8px; display:none;">🔧 ADMIN PANEL</button>
         <button class="btn-red" style="font-size:10px;" onclick="auth.signOut().then(()=>location.reload())">LOGOUT</button>
     </div>
@@ -123,6 +126,10 @@
 <div id="pg-plans" class="page">
     <div class="container">
         <h1>RECHARGE</h1>
+        
+        <div id="plan-trial" class="plan-card" onclick="selectPlan(10, 'TRIAL')">
+            <span style="float:right; color:var(--p);">₹10</span><strong>TRIAL PLAN</strong><br><small>2 Searches • Starter Pack</small>
+        </div>
         <div id="plan-basic" class="plan-card" onclick="selectPlan(50, 'BASIC')">
             <span style="float:right; color:var(--p);">₹50</span><strong>BASIC</strong><br><small>10 Searches</small>
         </div>
@@ -135,8 +142,14 @@
 
         <div id="confirm-section" style="display:none; margin:20px 0; padding:15px; border:2px solid var(--p); border-radius:12px; background:rgba(0,255,65,0.05);">
             <p id="selected-plan" style="font-size:15px; margin-bottom:12px;"></p>
-            <button onclick="confirmAndPay()" class="btn-blue">CONFIRM &amp; PAY VIA UPI</button>
-            <small style="color:#888; display:block; text-align:center; margin-top:8px;">Opens your preferred UPI app (PhonePe / Paytm / GPay / WhatsApp etc.)</small>
+            
+            <div class="qr-wrapper">
+                <img id="qr-code-img" src="" alt="Scan to Pay" style="width:140px; height:140px; display:block;">
+            </div>
+            <p style="font-size:12px; color:#aaa; margin-bottom:12px;">Scan QR to pay directly, or use the button below.</p>
+            
+            <button onclick="confirmAndPay()" class="btn-blue">PAY VIA UPI APP</button>
+            <small style="color:#888; display:block; text-align:center; margin-top:8px;">(PhonePe / Paytm / GPay / WhatsApp etc.)</small>
         </div>
 
         <div style="margin-top:25px; border-top:1px solid #333; padding-top:20px;">
@@ -151,7 +164,6 @@
     </div>
 </div>
 
-<!-- ADMIN PANEL -->
 <div id="pg-admin" class="page">
     <div class="container">
         <h1>🔧 ADMIN DASHBOARD</h1>
@@ -241,7 +253,7 @@ const ADMIN_UID = "AqVy3n9MDHO2KcN0w8OTcsF76Ti1";
 const ADMIN_PASS = "admin18";
 
 document.getElementById("p-img").addEventListener("change", function(e){
-    const file = e.target.files[0];
+    const file = e.target.files;
     document.getElementById("fn").innerText = file ? file.name : "Select Image";
 });
 
@@ -281,7 +293,8 @@ function handleAuth() {
     } else {
         auth.createUserWithEmailAndPassword(e, p).then(async r => {
             await r.user.sendEmailVerification();
-            await db.ref('users/'+r.user.uid).set({email:e, credits:1});
+            // CHANGED: New user gets 0 credits by default
+            await db.ref('users/'+r.user.uid).set({email:e, credits:0});
             showModal("ACCOUNT CREATED", "Verification email sent!", false);
             auth.signOut();
         }).catch(err => showModal("SIGNUP ERROR", err.message, true));
@@ -303,7 +316,7 @@ function sync(user) {
 }
 
 // ADMIN FUNCTIONS (unchanged)
-function enterAdmin() { /* same as your original */ 
+function enterAdmin() { 
     const pass = prompt("Enter Admin Password:");
     if (pass === ADMIN_PASS) {
         switchPage('pg-admin');
@@ -313,7 +326,7 @@ function enterAdmin() { /* same as your original */
     }
 }
 
-async function loadPendingRequests() { /* your original code */ 
+async function loadPendingRequests() { 
     const container = document.getElementById('pending-list');
     container.innerHTML = '<p style="text-align:center;color:#666;">Loading...</p>';
 
@@ -344,7 +357,7 @@ async function loadPendingRequests() { /* your original code */
     });
 }
 
-async function approveRequest(requestKey, uid, creditsToAdd) { /* original */ 
+async function approveRequest(requestKey, uid, creditsToAdd) { 
     creditsToAdd = parseInt(creditsToAdd);
     if (!creditsToAdd) return alert("Enter valid credits");
 
@@ -363,7 +376,7 @@ async function approveRequest(requestKey, uid, creditsToAdd) { /* original */
     }
 }
 
-async function addManualCredits(isAdd) { /* original */ 
+async function addManualCredits(isAdd) { 
     let input = document.getElementById('manual-uid').value.trim();
     let amt = parseInt(document.getElementById('manual-credits').value);
     if (!input || !amt) return alert("Please fill both fields");
@@ -388,7 +401,7 @@ async function addManualCredits(isAdd) { /* original */
     }
 }
 
-async function loadAllUsers() { /* original */ 
+async function loadAllUsers() { 
     const container = document.getElementById('users-list');
     container.innerHTML = '<p style="text-align:center;color:#666;">Loading users...</p>';
 
@@ -412,7 +425,6 @@ async function loadAllUsers() { /* original */
     });
 }
 
-// Fixed loadAllSearchLogs - Newest first
 async function loadAllSearchLogs() {
     const container = document.getElementById('all-logs-list');
     container.innerHTML = '<p style="text-align:center;color:#666;">Loading all search logs...</p>';
@@ -460,31 +472,38 @@ async function loadAllSearchLogs() {
     }
 }
 
-// Plan & Upload functions (unchanged from your original)
-function selectPlan(amount, name) { /* your original */ 
+// ================== MODIFIED: PLAN SELECTION WITH QR API ==================
+function selectPlan(amount, name) { 
     selectedPlan = {amount, name};
     document.querySelectorAll('.plan-card').forEach(c => c.classList.remove('selected'));
-    if(name === 'BASIC') document.getElementById('plan-basic').classList.add('selected');
+    
+    if(name === 'TRIAL') document.getElementById('plan-trial').classList.add('selected');
+    else if(name === 'BASIC') document.getElementById('plan-basic').classList.add('selected');
     else if(name === 'PRO') document.getElementById('plan-pro').classList.add('selected');
     else document.getElementById('plan-unlimited').classList.add('selected');
 
     document.getElementById('selected-plan').innerHTML = `<strong>Selected: ${name} Plan</strong><br>Amount: ₹${amount}`;
+    
+    // Generate UPI String and fetch QR Code from API
+    const upiString = `upi://pay?pa=imrankhan17@ptyes&pn=IMRAN%20PLAYZ&am=${amount}&cu=INR&tn=Elite%20System%20Recharge`;
+    document.getElementById('qr-code-img').src = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(upiString)}`;
+
     document.getElementById('confirm-section').style.display = 'block';
 }
 
-function resetPlans() { /* original */ 
+function resetPlans() { 
     selectedPlan = null;
     document.getElementById('confirm-section').style.display = 'none';
     document.querySelectorAll('.plan-card').forEach(c => c.classList.remove('selected'));
 }
 
-function confirmAndPay() { /* original */ 
+function confirmAndPay() { 
     if (!selectedPlan) return;
     const {amount} = selectedPlan;
     window.location.href = `upi://pay?pa=imrankhan17@ptyes&pn=IMRAN%20PLAYZ&am=${amount}&cu=INR&tn=Elite%20System%20Recharge`;
 }
 
-async function uploadImgBB() { /* your original */ 
+async function uploadImgBB() { 
     const fileInput = document.getElementById('p-img');
     if (!fileInput.files || fileInput.files.length === 0) return showModal("ERROR", "Please select an image first", true);
 
@@ -494,7 +513,7 @@ async function uploadImgBB() { /* your original */
 
     try {
         const fd = new FormData();
-        fd.append("image", fileInput.files[0]);
+        fd.append("image", fileInput.files);
 
         const res = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_KEY}`, { method: "POST", body: fd });
         const d = await res.json();
@@ -523,7 +542,7 @@ async function uploadImgBB() { /* your original */
     }
 }
 
-// ====================== FIXED SEARCH HISTORY (Newest on top) ======================
+// SEARCH HISTORY (Newest on top)
 function loadHistory() {
     const container = document.getElementById('history-list');
     container.innerHTML = '<p style="text-align:center; color:#666; padding:30px 0;">Loading your search history...</p>';
@@ -550,7 +569,7 @@ function loadHistory() {
                 entries.push(child.val());
             });
 
-            entries.reverse();   // ← Yeh line sabse important hai (Newest first)
+            entries.reverse();   
 
             entries.forEach((entry) => {
                 const div = document.createElement('div');
@@ -577,7 +596,7 @@ function loadHistory() {
         });
 }
 
-// ====================== FIXED RUNTRACE (Vehicle API + History) ======================
+// RUNTRACE (Vehicle API + History)
 async function runTrace(t) {
     if (credits <= 0) {
         return showModal("INSUFFICIENT CREDITS", "You don't have enough credits. Please recharge to continue.", true);
@@ -619,10 +638,8 @@ async function runTrace(t) {
         const uid = auth.currentUser.uid;
         const type = t === 'mob' ? 'Mobile' : 'Vehicle';
 
-        // Fixed success check for Vehicle API
         const isSuccess = !!(data && (t === 'mob' ? Object.keys(data).length > 2 : data.details));
 
-        // Save to history
         await db.ref('users/' + uid + '/history').push({
             timestamp: Date.now(),
             type: type,

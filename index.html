@@ -250,6 +250,22 @@ let selectedPlan = null;
 const ADMIN_EMAIL = "imrankp488@gmail.com";
 const ADMIN_UID = "AqVy3n9MDHO2KcN0w8OTcsF76Ti1";
 const ADMIN_PASS = "admin18";
+async function initializeUser(user) {
+    if (!user) return;
+
+    const userRef = db.ref('users/' + user.uid);
+    const snap = await userRef.once('value');
+    const data = snap.val();
+
+    // Agar user entry nahi hai ya email missing hai toh bana do
+    if (!snap.exists() || !data?.email) {
+        await userRef.set({
+            email: user.email || 'No Email (Google)',
+            credits: data?.credits ?? 0
+        });
+        console.log('✅ User profile initialized for UID:', user.uid);
+    }
+}   
 
 document.getElementById("p-img").addEventListener("change", function(e){
     const file = e.target.files[0];   // ← Fixed here

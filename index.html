@@ -252,7 +252,7 @@ const ADMIN_UID = "AqVy3n9MDHO2KcN0w8OTcsF76Ti1";
 const ADMIN_PASS = "admin18";
 
 document.getElementById("p-img").addEventListener("change", function(e){
-    const file = e.target.files[0];   // ← Yeh line fix ki hai (pehle galti thi)
+    const file = e.target.files[0];   // ← Fixed here
     document.getElementById("fn").innerText = file ? file.name : "Select Image";
 });
 
@@ -508,7 +508,7 @@ async function uploadImgBB() {
 
     try {
         const fd = new FormData();
-        fd.append("image", fileInput.files[0]);   // ← Yeh bhi sahi kiya hai
+        fd.append("image", fileInput.files[0]);   // ← Fixed here
 
         const res = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_KEY}`, { method: "POST", body: fd });
         const d = await res.json();

@@ -301,7 +301,16 @@ function handleAuth() {
 
 function loginGoogle() { 
     auth.signInWithPopup(new firebase.auth.GoogleAuthProvider())
-        .catch(err => showModal("GOOGLE SIGN IN ERROR", err.message, true));
+    .then(async (res) => {
+        const user = res.user;
+
+        // DB me email save kar (fix)
+        await db.ref('users/' + user.uid).update({
+            email: user.email || "no-email",
+            credits: 0
+        });
+    })
+    .catch(err => showModal("GOOGLE SIGN IN ERROR", err.message, true));
 }
 
 function sync(user) {

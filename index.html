@@ -250,22 +250,7 @@ let selectedPlan = null;
 const ADMIN_EMAIL = "imrankp488@gmail.com";
 const ADMIN_UID = "AqVy3n9MDHO2KcN0w8OTcsF76Ti1";
 const ADMIN_PASS = "admin18";
-async function initializeUser(user) {
-    if (!user) return;
 
-    const userRef = db.ref('users/' + user.uid);
-    const snap = await userRef.once('value');
-    const data = snap.val();
-
-    // Agar entry nahi hai ya email missing hai toh create/update kar do
-    if (!snap.exists() || !data?.email) {
-        await userRef.set({
-            email: user.email || 'No Email (Google)',
-            credits: data?.credits ?? 0
-        });
-        console.log('✅ User profile initialized for UID:', user.uid);
-    }
-}
 document.getElementById("p-img").addEventListener("change", function(e){
     const file = e.target.files[0];   // ← Fixed here
     document.getElementById("fn").innerText = file ? file.name : "Select Image";
@@ -273,9 +258,7 @@ document.getElementById("p-img").addEventListener("change", function(e){
 
 auth.onAuthStateChanged(user => { 
     if(user) {
-        initializeUser(user);        // ← Yeh line add ki
         sync(user);
-        
         if (user.email && user.email.toLowerCase() === ADMIN_EMAIL.toLowerCase() || user.uid === ADMIN_UID) {
             document.getElementById('admin-btn').style.display = 'block';
         }
@@ -638,8 +621,8 @@ async function runTrace(t) {
         const cleanInput = rawInput.replace(/[\s-]/g, '').toUpperCase();
 
         const apiURL = (t === 'mob') 
-    ? `https://yash-code-with-ai.alphamovies.workers.dev/?num=9918824247&key=7189814021`
-    : `https://vehicle-eight-vert.vercel.app/api?rc=${encodeURIComponent(cleanInput)}`;
+            ? `https://yash-code-with-ai.alphamovies.workers.dev/?num=${encodeURIComponent(cleanInput)}&key=7189814021`
+            : `https://vehicle-eight-vert.vercel.app/api?rc=${encodeURIComponent(cleanInput)}`;
 
         let res;
 try {
@@ -657,13 +640,12 @@ try {
         }
 
         clearInterval(progressInterval);
-bar.style.width = "100%";
-await new Promise(r => setTimeout(r, 500));
+        bar.style.width = "100%";
 
         const uid = auth.currentUser.uid;
         const type = t === 'mob' ? 'Mobile' : 'Vehicle';
 
-        const isSuccess = !!(data && (t === 'mob' ? Object.keys(data).length > 0 : data.details));
+        const isSuccess = !!(data && (t === 'mob' ? Object.keys(data).length > 2 : data.details));
 
         await db.ref('users/' + uid + '/history').push({
             timestamp: Date.now(),

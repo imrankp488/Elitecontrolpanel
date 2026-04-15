@@ -657,7 +657,8 @@ try {
         }
 
         clearInterval(progressInterval);
-        bar.style.width = "100%";
+bar.style.width = "100%";
+await new Promise(r => setTimeout(r, 500));
 
         const uid = auth.currentUser.uid;
         const type = t === 'mob' ? 'Mobile' : 'Vehicle';

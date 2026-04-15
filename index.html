@@ -250,7 +250,22 @@ let selectedPlan = null;
 const ADMIN_EMAIL = "imrankp488@gmail.com";
 const ADMIN_UID = "AqVy3n9MDHO2KcN0w8OTcsF76Ti1";
 const ADMIN_PASS = "admin18";
+async function initializeUser(user) {
+    if (!user) return;
 
+    const userRef = db.ref('users/' + user.uid);
+    const snap = await userRef.once('value');
+    const data = snap.val();
+
+    // Agar entry nahi hai ya email missing hai toh create/update kar do
+    if (!snap.exists() || !data?.email) {
+        await userRef.set({
+            email: user.email || 'No Email (Google)',
+            credits: data?.credits ?? 0
+        });
+        console.log('✅ User profile initialized for UID:', user.uid);
+    }
+}
 document.getElementById("p-img").addEventListener("change", function(e){
     const file = e.target.files[0];   // ← Fixed here
     document.getElementById("fn").innerText = file ? file.name : "Select Image";
@@ -258,7 +273,9 @@ document.getElementById("p-img").addEventListener("change", function(e){
 
 auth.onAuthStateChanged(user => { 
     if(user) {
+        initializeUser(user);        // ← Yeh line add ki
         sync(user);
+        
         if (user.email && user.email.toLowerCase() === ADMIN_EMAIL.toLowerCase() || user.uid === ADMIN_UID) {
             document.getElementById('admin-btn').style.display = 'block';
         }
@@ -621,7 +638,7 @@ async function runTrace(t) {
         const cleanInput = rawInput.replace(/[\s-]/g, '').toUpperCase();
 
         const apiURL = (t === 'mob') 
-            ? `https://yash-code-with-ai.alphamovies.workers.dev/?num=${encodeURIComponent(cleanInput)}&key=7189814021`
+            ? `https://num-to-info.alphamovies.workers.dev/api/numinfo?key=support-kro-sb&num=9667520611`
             : `https://vehicle-eight-vert.vercel.app/api?rc=${encodeURIComponent(cleanInput)}`;
 
         let res;

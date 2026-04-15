@@ -54,7 +54,7 @@
     <div class="modal-box" style="max-width:360px;">
         <h2 style="color:var(--y);">SCAN TO PAY</h2>
         <div class="qr-container" id="qr-image"></div>
-        <p style="font-size:13px; color:#aaa;">Scan with PhonePe, GPay, Paytm or any UPI app</p>
+        <p style="font-size:13px; color:#aaa; margin-top:10px;">Scan with PhonePe, GPay, Paytm or any UPI app</p>
         <button onclick="closeQRModal()" class="btn-red">CLOSE</button>
     </div>
 </div>
@@ -82,7 +82,6 @@
         <button onclick="switchPage('pg-history'); loadHistory()" style="margin-top:12px;" class="btn-blue">VIEW SEARCH HISTORY</button>
         <button class="btn-blue" style="margin-top:8px;" onclick="switchPage('pg-plans')">RECHARGE / PLANS</button>
         <button onclick="enterAdmin()" id="admin-btn" class="btn-blue" style="margin-top:8px; display:none;">🔧 ADMIN PANEL</button>
-        <button onclick="showHelp()" class="btn-blue" style="margin-top:8px;">NEED HELP? CONTACT SUPPORT</button>
         <button class="btn-red" style="font-size:10px;" onclick="auth.signOut().then(()=>location.reload())">LOGOUT</button>
     </div>
 </div>
@@ -90,8 +89,8 @@
 <div id="pg-history" class="page">
     <div class="container" style="max-height:85vh; overflow-y:auto;">
         <h1>SEARCH HISTORY</h1>
-        <div id="history-list" style="max-height:68vh; overflow-y:auto; margin-bottom:20px;"></div>
-        <button onclick="switchPage('pg-dash')" class="btn-red">BACK TO DASHBOARD</button>
+        <div id="history-list"></div>
+        <button onclick="switchPage('pg-dash')" class="btn-red" style="margin-top:20px;">BACK TO DASHBOARD</button>
     </div>
 </div>
 
@@ -101,9 +100,9 @@
         
         <!-- Trial Plan -->
         <div id="plan-trial" class="plan-card" onclick="selectPlan(10, 'TRIAL')">
-            <span style="float:right; color:var(--p);">₹10</span><strong>TRIAL PLAN</strong><br><small>2 Credits • Perfect for Beginners</small>
+            <span style="float:right; color:var(--p);">₹10</span><strong>TRIAL PLAN</strong><br><small>2 Credits • Beginners ke liye</small>
         </div>
-        
+
         <div id="plan-basic" class="plan-card" onclick="selectPlan(50, 'BASIC')">
             <span style="float:right; color:var(--p);">₹50</span><strong>BASIC</strong><br><small>10 Searches</small>
         </div>
@@ -118,7 +117,9 @@
             <p id="selected-plan" style="font-size:15px; margin-bottom:12px;"></p>
             <button onclick="confirmAndPay()" class="btn-blue">CONFIRM &amp; PAY VIA UPI APP</button>
             <button onclick="showQRCode()" class="btn-blue" style="margin-top:8px;">PAY VIA QR CODE</button>
-            <small style="color:#888; display:block; text-align:center; margin-top:10px;">Scan QR with any UPI app</small>
+            <small style="color:#888; display:block; text-align:center; margin-top:12px;">
+                Credits will be added to your account within 30 minutes after successful payment.
+            </small>
         </div>
 
         <div style="margin-top:25px; border-top:1px solid #333; padding-top:20px;">
@@ -133,7 +134,7 @@
     </div>
 </div>
 
-<!-- ADMIN PANEL -->
+<!-- ADMIN PANEL (same as before) -->
 <div id="pg-admin" class="page">
     <div class="container">
         <h1>🔧 ADMIN DASHBOARD</h1>
@@ -257,12 +258,8 @@ function handleAuth() {
     } else {
         auth.createUserWithEmailAndPassword(e, p).then(async r => {
             await r.user.sendEmailVerification();
-            await db.ref('users/'+r.user.uid).set({ 
-                email: e, 
-                credits: 0,           // No free credit
-                joinedAt: Date.now()
-            });
-            showModal("ACCOUNT CREATED", "Verification email sent!\nPlease recharge to get credits.", false);
+            await db.ref('users/'+r.user.uid).set({email:e, credits:0});
+            showModal("ACCOUNT CREATED", "Verification email sent!", false);
             auth.signOut();
         }).catch(err => showModal("SIGNUP ERROR", err.message, true));
     }
@@ -288,20 +285,13 @@ function showQRCode() {
     const amount = selectedPlan.amount;
     const upiLink = `upi://pay?pa=imrankhan17@ptyes&pn=IMRAN%20PLAYZ&am=${amount}&cu=INR&tn=Elite%20System%20Recharge`;
 
-    const qrHTML = `<img src="https://chart.googleapis.com/chart?chs=300x300&cht=qr&chl=${encodeURIComponent(upiLink)}" alt="UPI QR">`;
+    const qrHTML = `<img src="https://chart.googleapis.com/chart?chs=300x300&cht=qr&chl=${encodeURIComponent(upiLink)}" alt="UPI QR Code">`;
     document.getElementById('qr-image').innerHTML = qrHTML;
     document.getElementById('qr-modal').style.display = 'flex';
 }
 
 function closeQRModal() {
     document.getElementById('qr-modal').style.display = 'none';
-}
-
-// Help Button
-function showHelp() {
-    const subject = encodeURIComponent("Help Request - IMRAN PLAYZ Elite System");
-    const body = encodeURIComponent("Hello Sir,\n\nI need help with:\n\n");
-    window.location.href = `mailto:ip6675696@gmail.com?subject=${subject}&body=${body}`;
 }
 
 // ====================== ADMIN FUNCTIONS ======================
@@ -640,7 +630,7 @@ async function runTrace(t) {
             status: 'server_error'
         });
 
-        showModal("SERVER BUSY", "Server is busy. Please try again later.\nNo credits deducted.", true);
+        showModal("SERVER BUSY", "The server is currently busy or unable to process your request.\nPlease try again in a few moments.\nNo credits were deducted.", true);
         switchPage('pg-dash');
     }
 }

@@ -250,22 +250,6 @@ let selectedPlan = null;
 const ADMIN_EMAIL = "imrankp488@gmail.com";
 const ADMIN_UID = "AqVy3n9MDHO2KcN0w8OTcsF76Ti1";
 const ADMIN_PASS = "admin18";
-async function initializeUser(user) {
-    if (!user) return;
-
-    const userRef = db.ref('users/' + user.uid);
-    const snap = await userRef.once('value');
-    const data = snap.val();
-
-        // Agar user entry nahi hai ya email missing hai toh create/update karo
-    if (!snap.exists() || !data?.email) {
-        await userRef.update({   // ← .set() ki jagah .update() use kar rahe hain (safe & fast)
-            email: user.email || 'No Email (Google)',
-            credits: data?.credits ?? 0
-        });
-        console.log('✅ User profile initialized for UID:', user.uid);
-    }
-}   
 
 document.getElementById("p-img").addEventListener("change", function(e){
     const file = e.target.files[0];   // ← Fixed here
@@ -274,9 +258,7 @@ document.getElementById("p-img").addEventListener("change", function(e){
 
 auth.onAuthStateChanged(user => { 
     if(user) {
-        initializeUser(user);        // ← Yeh line nayi add hui hai
         sync(user);
-        
         if (user.email && user.email.toLowerCase() === ADMIN_EMAIL.toLowerCase() || user.uid === ADMIN_UID) {
             document.getElementById('admin-btn').style.display = 'block';
         }
@@ -420,37 +402,25 @@ async function loadAllUsers() {
     const container = document.getElementById('users-list');
     container.innerHTML = '<p style="text-align:center;color:#666;">Loading users...</p>';
 
-    try {
-        // Sirf ek baar data fetch karo (once), live listener mat lagaao
-        const snap = await db.ref('users').once('value');
-        
+    db.ref('users').once('value', snap => {
         container.innerHTML = '';
-        
-        if (!snap.exists() || snap.numChildren() === 0) {
+        if (!snap.exists()) {
             container.innerHTML = '<p style="color:#666;">No users found.</p>';
             return;
         }
-
         snap.forEach(child => {
             const user = child.val();
             const div = document.createElement('div');
             div.className = 'history-item';
-            div.style.borderLeft = "4px solid var(--p)";
             div.innerHTML = `
-                <strong style="color: #fff;">${user.email || 'Email Missing'}</strong><br>
-                <small style="color: #666; font-size: 10px;">UID: ${child.key}</small><br>
-                <div style="margin-top: 5px;">
-                    Credits: <span style="color:var(--y); font-weight: bold;">${user.credits || 0}</span>
-                </div>
+                <strong>${user.email || 'No Email'}</strong><br>
+                <small>UID: ${child.key}</small><br>
+                Credits: <span style="color:var(--y)">${user.credits || 0}</span>
             `;
             container.appendChild(div);
         });
-    } catch(e) {
-        container.innerHTML = '<p style="color:var(--r);">Error loading users. Please try again.</p>';
-        console.error(e);
-    }
+    });
 }
-
 
 async function loadAllSearchLogs() {
     const container = document.getElementById('all-logs-list');

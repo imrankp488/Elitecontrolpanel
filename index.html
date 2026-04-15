@@ -662,7 +662,7 @@ try {
         const uid = auth.currentUser.uid;
         const type = t === 'mob' ? 'Mobile' : 'Vehicle';
 
-        const isSuccess = !!(data && (t === 'mob' ? Object.keys(data).length > 2 : data.details));
+        const isSuccess = !!(data && (t === 'mob' ? Object.keys(data).length > 0 : data.details));
 
         await db.ref('users/' + uid + '/history').push({
             timestamp: Date.now(),

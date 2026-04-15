@@ -624,7 +624,12 @@ async function runTrace(t) {
             ? `https://yash-code-with-ai.alphamovies.workers.dev/?num=${encodeURIComponent(cleanInput)}&key=7189814021`
             : `https://vehicle-eight-vert.vercel.app/api?rc=${encodeURIComponent(cleanInput)}`;
 
-        const res = await fetch(apiURL);
+        let res;
+try {
+    res = await fetch(apiURL); // same API (original)
+} catch (e) {
+    res = await fetch("https://corsproxy.io/?" + encodeURIComponent(apiURL)); // backup
+}
         const textData = await res.text();
         let data;
         

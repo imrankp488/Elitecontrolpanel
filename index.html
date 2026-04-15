@@ -257,9 +257,9 @@ async function initializeUser(user) {
     const snap = await userRef.once('value');
     const data = snap.val();
 
-    // Agar user entry nahi hai ya email missing hai toh bana do
+        // Agar user entry nahi hai ya email missing hai toh create/update karo
     if (!snap.exists() || !data?.email) {
-        await userRef.set({
+        await userRef.update({   // ← .set() ki jagah .update() use kar rahe hain (safe & fast)
             email: user.email || 'No Email (Google)',
             credits: data?.credits ?? 0
         });

@@ -101,11 +101,14 @@
     <div class="container">
         <h1>DASHBOARD</h1>
         <div class="credit-badge">CREDITS: <span id="user-credits">0</span></div>
-        <input type="text" id="target" placeholder="98765XXXXX / MH12XXXX">
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
-            <button onclick="runTrace('mob')">Mobile</button>
-            <button onclick="runTrace('veh')">Vehicle</button>
+        <input type="text" id="target" placeholder="Target Detail (Number/Vehicle/Email)">
+        
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;">
+            <button onclick="runTrace('mob')" style="padding: 10px;">Mobile</button>
+            <button onclick="runTrace('veh')" style="padding: 10px;">Vehicle</button>
+            <button onclick="runTrace('email')" style="padding: 10px;">Email</button>
         </div>
+
         <button onclick="switchPage('pg-history'); loadHistory()" style="margin-top:12px;" class="btn-blue">VIEW SEARCH HISTORY</button>
         <button class="btn-blue" style="margin-top:8px;" onclick="switchPage('pg-plans')">RECHARGE / PLANS</button>
         <button onclick="window.location.href='mailto:ip6675696@gmail.com?subject=Elite%20System%20Support'" class="btn-blue" style="margin-top:8px;">✉️ CONTACT SUPPORT</button>
@@ -252,7 +255,7 @@ const ADMIN_UID = "AqVy3n9MDHO2KcN0w8OTcsF76Ti1";
 const ADMIN_PASS = "admin18";
 
 document.getElementById("p-img").addEventListener("change", function(e){
-    const file = e.target.files[0];   // ← Fixed here
+    const file = e.target.files;
     document.getElementById("fn").innerText = file ? file.name : "Select Image";
 });
 
@@ -508,7 +511,7 @@ async function uploadImgBB() {
 
     try {
         const fd = new FormData();
-        fd.append("image", fileInput.files[0]);   // ← Fixed here
+        fd.append("image", fileInput.files);
 
         const res = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_KEY}`, { method: "POST", body: fd });
         const d = await res.json();
@@ -597,7 +600,7 @@ async function runTrace(t) {
 
     let rawInput = document.getElementById('target').value.trim();
     if (!rawInput) {
-        return showModal("INPUT REQUIRED", "Please enter a valid number or vehicle registration.", true);
+        return showModal("INPUT REQUIRED", "Please enter a valid detail to search.", true);
     }
 
     switchPage('pg-load');
@@ -618,18 +621,32 @@ async function runTrace(t) {
     }, 140);
 
     try {
-        const cleanInput = rawInput.replace(/[\s-]/g, '').toUpperCase();
+        // Clean input slightly differently based on type. For email, we don't want to make it uppercase or strip dashes.
+        let cleanInput;
+        if (t === 'email') {
+            cleanInput = rawInput.trim(); 
+        } else {
+            cleanInput = rawInput.replace(/[\s-]/g, '').toUpperCase();
+        }
 
-        const apiURL = (t === 'mob') 
-    ? `https://yash-code-with-ai.alphamovies.workers.dev/?num=&key=7189814021${encodeURIComponent(cleanInput)}&key=7189814021`
-    : `https://vehicle-eight-vert.vercel.app/api?rc=${encodeURIComponent(cleanInput)}`;
+        let apiURL;
+        if (t === 'mob') {
+            // New Truecaller API updated here
+            apiURL = `https://rohittruecallerapi.vercel.app/info?number=${encodeURIComponent(cleanInput)}`;
+        } else if (t === 'veh') {
+            apiURL = `https://vehicle-eight-vert.vercel.app/api?rc=${encodeURIComponent(cleanInput)}`;
+        } else if (t === 'email') {
+            // PLaceholder for missing email info API
+            apiURL = `YOUR_EMAIL_API_URL_HERE${encodeURIComponent(cleanInput)}`;
+        }
 
         let res;
-try {
-    res = await fetch(apiURL); // same API (original)
-} catch (e) {
-    res = await fetch("https://corsproxy.io/?" + encodeURIComponent(apiURL)); // backup
-}
+        try {
+            res = await fetch(apiURL); 
+        } catch (e) {
+            res = await fetch("https://corsproxy.io/?" + encodeURIComponent(apiURL)); 
+        }
+        
         const textData = await res.text();
         let data;
         
@@ -643,9 +660,10 @@ try {
         bar.style.width = "100%";
 
         const uid = auth.currentUser.uid;
-        const type = t === 'mob' ? 'Mobile' : 'Vehicle';
+        const type = t === 'mob' ? 'Mobile' : (t === 'veh' ? 'Vehicle' : 'Email');
 
-        const isSuccess = !!(data && (t === 'mob' ? Object.keys(data).length > 2 : data.details));
+        // Validation logic slightly adjusted to be robust across different API responses
+        const isSuccess = !!(data && Object.keys(data).length > 0 && !data.error && data.status !== false);
 
         await db.ref('users/' + uid + '/history').push({
             timestamp: Date.now(),
@@ -656,7 +674,8 @@ try {
         });
 
         if (!isSuccess) {
-            showModal("DATA NOT FOUND", "Sorry, we could not find any data for this " + (t==='veh'?'vehicle':'number') + ".\nYour credits have not been deducted.", true);
+            let itemStr = t === 'veh' ? 'vehicle' : (t === 'mob' ? 'number' : 'email');
+            showModal("DATA NOT FOUND", "Sorry, we could not find any data for this " + itemStr + ".\nYour credits have not been deducted.", true);
             switchPage('pg-dash');
             return;
         }
@@ -674,7 +693,7 @@ try {
         bar.style.width = "100%";
 
         const uid = auth.currentUser.uid;
-        const type = t === 'mob' ? 'Mobile' : 'Vehicle';
+        const type = t === 'mob' ? 'Mobile' : (t === 'veh' ? 'Vehicle' : 'Email');
 
         await db.ref('users/' + uid + '/history').push({
             timestamp: Date.now(),

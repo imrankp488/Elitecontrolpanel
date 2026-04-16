@@ -621,7 +621,6 @@ async function runTrace(t) {
     }, 140);
 
     try {
-        // Clean input slightly differently based on type. For email, we don't want to make it uppercase or strip dashes.
         let cleanInput;
         if (t === 'email') {
             cleanInput = rawInput.trim(); 
@@ -631,13 +630,11 @@ async function runTrace(t) {
 
         let apiURL;
         if (t === 'mob') {
-            // New Truecaller API updated here
             apiURL = `https://rohittruecallerapi.vercel.app/info?number=${encodeURIComponent(cleanInput)}`;
         } else if (t === 'veh') {
             apiURL = `https://vehicle-eight-vert.vercel.app/api?rc=${encodeURIComponent(cleanInput)}`;
         } else if (t === 'email') {
-            // PLaceholder for missing email info API
-            apiURL = `https://rohitemailapi.vercel.app/info?mail=example@gmail.com${encodeURIComponent(cleanInput)}`;
+            apiURL = `https://rohitemailapi.vercel.app/info?mail=${encodeURIComponent(cleanInput)}`;
         }
 
         let res;
@@ -662,7 +659,6 @@ async function runTrace(t) {
         const uid = auth.currentUser.uid;
         const type = t === 'mob' ? 'Mobile' : (t === 'veh' ? 'Vehicle' : 'Email');
 
-        // Validation logic slightly adjusted to be robust across different API responses
         const isSuccess = !!(data && Object.keys(data).length > 0 && !data.error && data.status !== false);
 
         await db.ref('users/' + uid + '/history').push({

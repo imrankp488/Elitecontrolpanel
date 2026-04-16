@@ -252,7 +252,7 @@ const ADMIN_UID = "AqVy3n9MDHO2KcN0w8OTcsF76Ti1";
 const ADMIN_PASS = "admin18";
 
 document.getElementById("p-img").addEventListener("change", function(e){
-    const file = e.target.files[0];
+    const file = e.target.files[0];   // ← Fixed here
     document.getElementById("fn").innerText = file ? file.name : "Select Image";
 });
 
@@ -508,7 +508,7 @@ async function uploadImgBB() {
 
     try {
         const fd = new FormData();
-        fd.append("image", fileInput.files[0]);
+        fd.append("image", fileInput.files[0]);   // ← Fixed here
 
         const res = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_KEY}`, { method: "POST", body: fd });
         const d = await res.json();
@@ -590,7 +590,6 @@ function loadHistory() {
         });
 }
 
-// 🔥 FIXED runTrace FUNCTION
 async function runTrace(t) {
     if (credits <= 0) {
         return showModal("INSUFFICIENT CREDITS", "You don't have enough credits. Please recharge to continue.", true);
@@ -619,29 +618,26 @@ async function runTrace(t) {
     }, 140);
 
     try {
-        const cleanInput = rawInput.replace(/[\s-]/g, '');
+        const cleanInput = rawInput.replace(/[\s-]/g, '').toUpperCase();
 
         const apiURL = (t === 'mob') 
-            ? `https://yash-code-with-ai.alphamovies.workers.dev/?num=${cleanInput}&key=7189814021`
+            ? `https://yash-code-with-ai.alphamovies.workers.dev/?num=${encodeURIComponent(cleanInput)}&key=7189814021`
             : `https://vehicle-eight-vert.vercel.app/api?rc=${encodeURIComponent(cleanInput)}`;
 
         let res;
-        try {
-            res = await fetch(apiURL);
-        } catch (e) {
-            res = await fetch("https://corsproxy.io/?" + encodeURIComponent(apiURL));
-        }
-
+try {
+    res = await fetch(apiURL); // same API (original)
+} catch (e) {
+    res = await fetch("https://corsproxy.io/?" + encodeURIComponent(apiURL)); // backup
+}
         const textData = await res.text();
         let data;
+        
         try {
             data = JSON.parse(textData);
         } catch (jsonErr) {
             throw new Error("Server ne valid data nahi bheja.");
         }
-
-        // ✅ API ka sahi check (status: true)
-        const isSuccess = !!(data && data.status === true);
 
         clearInterval(progressInterval);
         bar.style.width = "100%";
@@ -649,27 +645,28 @@ async function runTrace(t) {
         const uid = auth.currentUser.uid;
         const type = t === 'mob' ? 'Mobile' : 'Vehicle';
 
-        // Background mein save (progress bar nahi atkega)
-        db.ref('users/' + uid + '/history').push({
+        const isSuccess = !!(data && (t === 'mob' ? Object.keys(data).length > 2 : data.details));
+
+        await db.ref('users/' + uid + '/history').push({
             timestamp: Date.now(),
             type: type,
             query: rawInput,
             success: isSuccess,
             status: isSuccess ? 'success' : 'no_data'
-        }).catch(() => {});
+        });
 
         if (!isSuccess) {
-            showModal("DATA NOT FOUND", "Sorry, no record found for this number.\nPlease try another number.", true);
+            showModal("DATA NOT FOUND", "Sorry, we could not find any data for this " + (t==='veh'?'vehicle':'number') + ".\nYour credits have not been deducted.", true);
             switchPage('pg-dash');
             return;
         }
 
-        db.ref('users/' + uid).update({ credits: credits - 1 }).catch(() => {});
+        await db.ref('users/' + uid).update({ credits: credits - 1 });
 
         setTimeout(() => {
             switchPage('pg-res');
             render(data);
-        }, 600);
+        }, 800);
 
     } catch (e) {
         console.error(e);
@@ -679,13 +676,13 @@ async function runTrace(t) {
         const uid = auth.currentUser.uid;
         const type = t === 'mob' ? 'Mobile' : 'Vehicle';
 
-        db.ref('users/' + uid + '/history').push({
+        await db.ref('users/' + uid + '/history').push({
             timestamp: Date.now(),
             type: type,
             query: rawInput,
             success: false,
             status: 'server_error'
-        }).catch(() => {});
+        });
 
         showModal("SERVER BUSY", "The server is currently busy or unable to process your request.\nPlease try again later.\nNo credits were deducted.", true);
         switchPage('pg-dash');

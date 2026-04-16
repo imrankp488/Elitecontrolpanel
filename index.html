@@ -637,7 +637,7 @@ async function runTrace(t) {
             apiURL = `https://vehicle-eight-vert.vercel.app/api?rc=${encodeURIComponent(cleanInput)}`;
         } else if (t === 'email') {
             // PLaceholder for missing email info API
-            apiURL = `YOUR_EMAIL_API_URL_HERE${encodeURIComponent(cleanInput)}`;
+            apiURL = `https://rohitemailapi.vercel.app/info?mail=example@gmail.com${encodeURIComponent(cleanInput)}`;
         }
 
         let res;

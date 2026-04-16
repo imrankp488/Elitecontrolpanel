@@ -621,7 +621,7 @@ async function runTrace(t) {
         const cleanInput = rawInput.replace(/[\s-]/g, '').toUpperCase();
 
         const apiURL = (t === 'mob') 
-            ? `https://yash-code-with-ai.alphamovies.workers.dev/?num=9918824247&key=7189814021${encodeURIComponent(cleanInput)}&key=7189814021`
+            ? `https://yash-code-ai-free-api.alphamovies.workers.dev/?number=9918824247${encodeURIComponent(cleanInput)}&key=7189814021`
             : `https://vehicle-eight-vert.vercel.app/api?rc=${encodeURIComponent(cleanInput)}`;
 
         const res = await fetch(apiURL);

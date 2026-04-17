@@ -663,7 +663,10 @@ try {
         const uid = auth.currentUser.uid;
         const type = t === 'mob' ? 'Mobile' : 'Vehicle';
 
-        const isSuccess = !!(data && (t === 'mob' ? Object.keys(data).length > 2 : data.details));
+                // Check success based on actual API response structure
+        const isSuccess = (t === 'mob') 
+            ? !!(data && data.results && Array.isArray(data.results) && data.results.length > 0)
+            : !!(data && data.details);
 
         await db.ref('users/' + uid + '/history').push({
             timestamp: Date.now(),
@@ -674,7 +677,11 @@ try {
         });
 
         if (!isSuccess) {
-            showModal("DATA NOT FOUND", "Sorry, we could not find any data for this " + (t==='veh'?'vehicle':'number') + ".\nYour credits have not been deducted.", true);
+            const msg = t === 'mob' 
+                ? "Sorry, we couldn’t find any information about this number.\nYour credits have not been deducted."
+                : "Sorry, we couldn’t find any information about this vehicle.\nYour credits have not been deducted.";
+            
+            showModal("NO INFORMATION FOUND", msg, true);
             switchPage('pg-dash');
             return;
         }

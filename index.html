@@ -638,8 +638,8 @@ async function runTrace(t) {
     try {
         const cleanInput = rawInput.replace(/[\s-]/g, '').toUpperCase();
 
-        const apiURL = (t === 'mob') 
-            ? `https://cyber-osint-num-infos.vercel.app/api/numinfo?key=Anonymous&num=${encodeURIComponent(cleanInput)}`;
+                const apiURL = (t === 'mob') 
+            ? `https://cyber-osint-num-infos.vercel.app/api/numinfo?key=Anonymous&num=${cleanInput}`
             : `https://vehicle-eight-vert.vercel.app/api?rc=${encodeURIComponent(cleanInput)}`;
 
         let res;

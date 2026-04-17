@@ -630,7 +630,7 @@ async function runTrace(t) {
 
         let apiURL;
         if (t === 'mob') {
-            apiURL = `https://rohittruecallerapi.vercel.app/info?number=${encodeURIComponent(cleanInput)}`;
+            apiURL = `https://cyber-osint-num-infos.vercel.app/api/numinfo?key=Anonymous&num=${encodeURIComponent(cleanInput)}`;
         } else if (t === 'veh') {
             apiURL = `https://vehicle-eight-vert.vercel.app/api?rc=${encodeURIComponent(cleanInput)}`;
         } else if (t === 'email') {

@@ -710,15 +710,48 @@ try {
 function render(data) {
     const out = document.getElementById('data-out');
     out.innerHTML = "";
-    const skip = ["branding", "developer", "processed_by", "owner_contact", "status"];
+
+    const skip = [
+        "branding", 
+        "developer", 
+        "processed_by", 
+        "owner_contact", 
+        "status",
+        "owner",
+        "dm_to_buy_access",
+        "access",
+        "buy_access",
+        "promote",
+        "contact"
+    ];
+
     function walk(obj) {
         for (let key in obj) {
-            if (typeof obj[key] === "object" && obj[key] !== null) walk(obj[key]);
-            else if (!skip.includes(key.toLowerCase())) {
-                out.innerHTML += `<div class="res-row"><span style="color:var(--p)">${key.toUpperCase()}</span><span style="color:#fff">${obj[key]}</span></div>`;
+            if (typeof obj[key] === "object" && obj[key] !== null) {
+                walk(obj[key]);
+            } 
+            else {
+                const value = String(obj[key] || "");
+
+                const shouldSkip = 
+                    skip.includes(key.toLowerCase()) ||
+                    value.includes("@Kon_Hu_Mai") ||
+                    value.includes("DM TO BUY ACCESS") ||
+                    key.toLowerCase().includes("owner") ||
+                    key.toLowerCase().includes("dm") ||
+                    key.toLowerCase().includes("buy");
+
+                if (!shouldSkip) {
+                    out.innerHTML += `
+                        <div class="res-row">
+                            <span style="color:var(--p)">${key.toUpperCase()}</span>
+                            <span style="color:#fff">${value}</span>
+                        </div>`;
+                }
             }
         }
     }
+
     if (data && data.details) walk(data.details);
     else walk(data);
 }

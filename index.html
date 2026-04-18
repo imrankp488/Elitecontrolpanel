@@ -633,7 +633,7 @@ async function uploadImgBB() {
 
     try {
         const fd = new FormData();
-        fd.append("image", fileInput.files);
+        fd.append("image", fileInput.files[0]);
 
         const res = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_KEY}`, { method: "POST", body: fd });
         const d = await res.json();
@@ -661,6 +661,7 @@ async function uploadImgBB() {
         btn.disabled = false;
     }
 }
+
 
 function loadHistory() {
     const container = document.getElementById('history-list');

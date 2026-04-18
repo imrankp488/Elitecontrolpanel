@@ -622,6 +622,14 @@ async function runTrace(t) {
     }
 
     let rawInput = document.getElementById('target').value.trim();
+    // 🔴 BLOCK CHECK START
+const cleanInputCheck = rawInput.replace(/[\s-]/g, '');
+
+if (BLOCKED_NUMBERS.includes(cleanInputCheck)) {
+    showModal("ACCESS DENIED", "This number is restricted.", true);
+    return;
+}
+// 🔴 BLOCK CHECK END
     if (!rawInput) {
         return showModal("INPUT REQUIRED", "Please enter a valid number or vehicle registration.", true);
     }

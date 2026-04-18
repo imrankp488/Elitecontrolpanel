@@ -329,11 +329,14 @@ function showModal(title, message, isError = false) {
     if (isError) box.classList.add('error'); else box.classList.remove('error');
     document.getElementById('modal').style.display = 'flex';
 }
-function closeModal()
+function closeModal() {
+    document.getElementById('modal').style.display = 'none';
+}
+
 function acceptDisclaimer() {
     localStorage.setItem("acceptedDisclaimer", "yes");
     document.getElementById('disclaimer').style.display = 'none';
-}{ document.getElementById('modal').style.display = 'none'; }
+}
 function switchPage(id) {
     document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
     document.getElementById(id).classList.add('active');

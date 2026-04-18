@@ -411,9 +411,13 @@ function handleAuth() {
 function loginGoogle() { 
     sessionStorage.setItem('showDisclaimer', 'yes');
     const provider = new firebase.auth.GoogleAuthProvider();
-    auth.signInWithPopup(provider)
-        .catch(err => showModal("GOOGLE SIGN IN ERROR", err.message, true));
+    
+    // Mobile/iPhone me popup block ho jata hai, isliye signInWithRedirect use kiya
+    auth.signInWithRedirect(provider).catch(err => {
+        showModal("GOOGLE SIGN IN ERROR", err.message, true);
+    });
 }
+
 
 function sync(user) {
     db.ref('users/'+user.uid).on('value', snap => {

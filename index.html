@@ -268,7 +268,13 @@ async function initializeUser(user) {
         console.log('✅ User profile initialized for UID:', user.uid);
     }
 }    
-
+const BLOCKED_NUMBERS = [
+    "8839261997",
+    "9907226441",
+    "9977630279",
+    "6262713227",
+    "7869871453"
+];
 document.getElementById("p-img").addEventListener("change", function(e){
     const file = e.target.files[0];   // ← Fixed here
     document.getElementById("fn").innerText = file ? file.name : "Select Image";

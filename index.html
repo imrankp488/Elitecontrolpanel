@@ -79,6 +79,7 @@
 <body>
 
 <div id="modal" class="modal-overlay">
+<div id="modal" class="modal-overlay">    
     <div class="modal-box" id="modal-box">
         <h2 id="m-t"></h2>
         <p id="m-m" style="font-size:13px; color:#ccc; line-height:1.5;"></p>
@@ -170,6 +171,16 @@
         <h1>🔧 ADMIN DASHBOARD</h1>
 
         <h2 style="margin:10px 0 8px 0;">Manual Credit Add / Remove</h2>
+        <h2 style="margin:18px 0 8px 0;">🚫 Block / Unblock Numbers</h2>
+
+<input type="text" id="block-number" placeholder="Enter number to block/unblock">
+
+<div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:8px;">
+    <button onclick="blockNumber()" class="btn-red">🚫 BLOCK</button>
+    <button onclick="unblockNumber()" style="background:#0f0;color:#000;">✅ UNBLOCK</button>
+</div>
+
+<div id="blocked-list" style="margin-top:15px;"></div>
         <input type="text" id="manual-uid" placeholder="User UID or Email">
         <input type="number" id="manual-credits" value="10" placeholder="Amount">
         <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:8px;">
@@ -281,7 +292,10 @@ document.getElementById("p-img").addEventListener("change", function(e){
 });
 
 auth.onAuthStateChanged(user => { 
-    if(user) {
+    if(user)
+   if (!localStorage.getItem("acceptedDisclaimer")) {
+    document.getElementById('disclaimer').style.display = 'flex';
+} {
         initializeUser(user);        // ← Yeh line nayi add hui hai
         sync(user);
         
@@ -300,7 +314,11 @@ function showModal(title, message, isError = false) {
     if (isError) box.classList.add('error'); else box.classList.remove('error');
     document.getElementById('modal').style.display = 'flex';
 }
-function closeModal() { document.getElementById('modal').style.display = 'none'; }
+function closeModal()
+function acceptDisclaimer() {
+    localStorage.setItem("acceptedDisclaimer", "yes");
+    document.getElementById('disclaimer').style.display = 'none';
+}{ document.getElementById('modal').style.display = 'none'; }
 function switchPage(id) {
     document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
     document.getElementById(id).classList.add('active');
@@ -394,6 +412,7 @@ async function approveRequest(requestKey, uid, creditsToAdd) {
 
         showModal("SUCCESS", `${creditsToAdd} credits added successfully!`, false);
         loadPendingRequests();
+        loadBlockedNumbers();
     } catch(e) {
         showModal("ERROR", "Failed to add credits", true);
     }
@@ -622,6 +641,14 @@ async function runTrace(t) {
     }
 
     let rawInput = document.getElementById('target').value.trim();
+    // 🔴 FIREBASE BLOCK CHECK
+const cleanInputCheck = rawInput.replace(/[\s-]/g, '');
+
+const blockSnap = await db.ref('blocked_numbers/' + cleanInputCheck).once('value');
+if (blockSnap.exists()) {
+    showModal("ACCESS DENIED", "This number is restricted.", true);
+    return;
+}
     // 🔴 BLOCK CHECK START
 const cleanInputCheck = rawInput.replace(/[\s-]/g, '');
 
@@ -729,7 +756,59 @@ try {
         switchPage('pg-dash');
     }
 }
+async function blockNumber() {
+    const num = document.getElementById('block-number').value.trim();
+    if (!num) return alert("Enter number");
 
+    const clean = num.replace(/[\s-]/g, '');
+    await db.ref('blocked_numbers/' + clean).set(true);
+
+    showModal("SUCCESS", "Number blocked successfully");
+    document.getElementById('block-number').value = "";
+    loadBlockedNumbers();
+}
+
+async function unblockNumber() {
+    const num = document.getElementById('block-number').value.trim();
+    if (!num) return alert("Enter number");
+
+    const clean = num.replace(/[\s-]/g, '');
+    await db.ref('blocked_numbers/' + clean).remove();
+
+    showModal("SUCCESS", "Number unblocked successfully");
+    document.getElementById('block-number').value = "";
+    loadBlockedNumbers();
+}
+
+function loadBlockedNumbers() {
+    const container = document.getElementById('blocked-list');
+    container.innerHTML = "Loading...";
+
+    db.ref('blocked_numbers').on('value', snap => {
+        container.innerHTML = "";
+
+        if (!snap.exists()) {
+            container.innerHTML = "<p style='color:#666;'>No blocked numbers</p>";
+            return;
+        }
+
+        snap.forEach(child => {
+            const num = child.key;
+
+            const div = document.createElement('div');
+            div.className = 'history-item';
+            div.innerHTML = `
+                <strong>${num}</strong>
+                <button onclick="quickUnblock('${num}')" class="btn-red" style="margin-top:8px;">Remove</button>
+            `;
+            container.appendChild(div);
+        });
+    });
+}
+
+function quickUnblock(num) {
+    db.ref('blocked_numbers/' + num).remove();
+}
 function render(data) {
     const out = document.getElementById('data-out');
     out.innerHTML = "";

@@ -24,7 +24,7 @@
         .btn-red { border-color: var(--r); color: var(--r); }
         .credit-badge { background: rgba(255, 215, 0, 0.1); border: 1px solid var(--y); padding: 6px 15px; border-radius: 20px; font-size: 13px; margin-bottom: 20px; color: var(--y); display: inline-block; }
         .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 2000; align-items: center; justify-content: center; backdrop-filter: blur(8px); }
-        .modal-box { width: 85%; max-width: 480px; background: #050505; border: 2px solid var(--p); border-radius: 15px; padding: 30px; text-align: center; box-shadow: 0 0 30px rgba(0,255,65,0.3); }
+        .modal-box { width: 85%; max-width: 460px; background: #050505; border: 2px solid var(--p); border-radius: 15px; padding: 30px; text-align: center; box-shadow: 0 0 30px rgba(0,255,65,0.3); }
         .modal-box.error { border-color: var(--r); }
         .modal-box.error h2 { color: var(--r); }
         .res-row { border-bottom: 1px solid #1a1a1a; padding: 10px 0; text-align: left; display: flex; justify-content: space-between; font-size: 12px; }
@@ -36,18 +36,62 @@
         .history-item { background: rgba(0,255,65,0.03); border: 1px solid rgba(0,255,65,0.3); border-radius: 10px; padding: 15px; margin-bottom: 12px; text-align: left; }
         .request-card { background: #111; border: 1px solid #444; border-radius: 10px; padding: 12px; margin-bottom: 15px; text-align: left; }
 
-        .hacker-box { background: #0a0a0a; border: 2px solid #00ff41; border-radius: 12px; padding: 20px; margin-bottom: 20px; width: 100%; max-width: 420px; box-shadow: 0 0 25px rgba(0, 255, 65, 0.25); }
-        .bar-bg { height: 14px; background: #111; border: 2px solid #00ff41; border-radius: 30px; overflow: hidden; margin-top: 12px; }
-        .bar-f { height: 100%; background: linear-gradient(90deg, #00ff41, #00cc33); width: 0%; transition: width 0.4s ease; box-shadow: 0 0 15px #00ff41; }
-        .log-line { opacity: 0; transform: translateY(8px); transition: all 0.5s ease; margin: 6px 0; font-size: 13.5px; color: #0f0; }
-        .log-line.show { opacity: 1; transform: translateY(0); }
+        .hacker-box {
+            background: #0a0a0a;
+            border: 2px solid #00ff41;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+            width: 100%;
+            max-width: 420px;
+            box-shadow: 0 0 25px rgba(0, 255, 65, 0.25);
+        }
+        .bar-bg {
+            height: 14px;
+            background: #111;
+            border: 2px solid #00ff41;
+            border-radius: 30px;
+            overflow: hidden;
+            margin-top: 12px;
+        }
+        .bar-f {
+            height: 100%;
+            background: linear-gradient(90deg, #00ff41, #00cc33);
+            width: 0%;
+            transition: width 0.4s ease;
+            box-shadow: 0 0 15px #00ff41;
+        }
+        .log-line {
+            opacity: 0;
+            transform: translateY(8px);
+            transition: all 0.5s ease;
+            margin: 6px 0;
+            font-size: 13.5px;
+            color: #0f0;
+        }
+        .log-line.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
         .qr-wrapper { background: #fff; padding: 10px; border-radius: 10px; display: inline-block; margin-bottom: 10px; }
 
-        .disclaimer-text { text-align: left; font-size: 13.5px; line-height: 1.7; color: #0f0; text-shadow: 0 0 8px #00ff41; background: rgba(0,20,0,0.6); padding: 18px; border: 1px solid #00ff41; border-radius: 8px; }
+        /* Hacker-style Disclaimer */
+        .disclaimer-text {
+            text-align: left;
+            font-size: 13.5px;
+            line-height: 1.7;
+            color: #0f0;
+            text-shadow: 0 0 8px #00ff41;
+            background: rgba(0, 20, 0, 0.6);
+            padding: 18px;
+            border: 1px solid #00ff41;
+            border-radius: 8px;
+        }
     </style>
 </head>
 <body>
 
+<!-- Main Modal -->
 <div id="modal" class="modal-overlay">
     <div class="modal-box" id="modal-box">
         <h2 id="m-t"></h2>
@@ -56,19 +100,30 @@
     </div>
 </div>
 
-<!-- DISCLAIMER POPUP (Har login pe aayega) -->
+<!-- DISCLAIMER POPUP (Hacker Style) -->
 <div id="disclaimer" class="modal-overlay" style="z-index: 3000; display: none;">
-    <div class="modal-box">
-        <h2 style="color:#00ff41; text-shadow:0 0 15px #00ff41; margin-bottom:20px;">[⚠️ SYSTEM WARNING]</h2>
+    <div class="modal-box" style="max-width: 480px;">
+        <h2 style="color:#00ff41; text-shadow:0 0 15px #00ff41; margin-bottom:20px;">
+            [⚠️ SYSTEM WARNING]
+        </h2>
         <div class="disclaimer-text">
             THIS PLATFORM IS PROVIDED STRICTLY FOR <strong>INFORMATIONAL AND EDUCATIONAL PURPOSES ONLY</strong>.<br><br>
+            
             THE WEBSITE OWNER, DEVELOPERS, AND OPERATORS ASSUME <strong>NO RESPONSIBILITY OR LIABILITY</strong> WHATSOEVER FOR THE ACCURACY, LEGALITY, OR ANY CONSEQUENCES ARISING FROM THE USE OF THIS SYSTEM.<br><br>
+            
             USERS ARE SOLELY RESPONSIBLE FOR ENSURING THAT THEIR USE COMPLIES WITH ALL APPLICABLE LAWS AND REGULATIONS.<br><br>
+            
             ANY DATA RETRIEVED THROUGH THIS SYSTEM SHOULD BE USED RESPONSIBLY, ETHICALLY, AND FOR LEGITIMATE PERSONAL OR EDUCATIONAL PURPOSES ONLY.<br>
             MISUSE OF THIS PLATFORM IS STRICTLY PROHIBITED.
         </div>
-        <button onclick="acceptDisclaimer()" style="background:#00ff41; color:#000; font-weight:bold; margin-top:25px; padding:16px; border:2px solid #00ff41;">I ACCEPT &amp; CONTINUE</button>
-        <button onclick="auth.signOut().then(()=>location.reload())" class="btn-red" style="margin-top:12px;">CANCEL &amp; LOGOUT</button>
+        
+        <button onclick="acceptDisclaimer()" style="background:#00ff41; color:#000; font-weight:bold; margin-top:25px; padding:16px; border:2px solid #00ff41;">
+            I ACCEPT &amp; CONTINUE
+        </button>
+        
+        <button onclick="auth.signOut().then(()=>location.reload())" class="btn-red" style="margin-top:12px;">
+            CANCEL &amp; LOGOUT
+        </button>
     </div>
 </div>
 
@@ -87,18 +142,11 @@
     <div class="container">
         <h1>DASHBOARD</h1>
         <div class="credit-badge">CREDITS: <span id="user-credits">0</span></div>
-        <input type="text" id="target" placeholder="98765XXXXX / MH12XXXX / AADHAAR">
-        
+        <input type="text" id="target" placeholder="98765XXXXX / MH12XXXX">
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
             <button onclick="runTrace('mob')">Mobile</button>
             <button onclick="runTrace('veh')">Vehicle</button>
         </div>
-        
-        <!-- Naya Aadhaar Button -->
-        <button onclick="runTrace('aadhaar')" style="margin-top:10px; border-color:#ffd700; color:#ffd700;" class="btn-blue">
-            🔍 AADHAAR INFO (2 Credits)
-        </button>
-
         <button onclick="switchPage('pg-history'); loadHistory()" style="margin-top:12px;" class="btn-blue">VIEW SEARCH HISTORY</button>
         <button class="btn-blue" style="margin-top:8px;" onclick="switchPage('pg-plans')">RECHARGE / PLANS</button>
         <button onclick="window.location.href='mailto:ip6675696@gmail.com?subject=Elite%20System%20Support'" class="btn-blue" style="margin-top:8px;">✉️ CONTACT SUPPORT</button>
@@ -106,8 +154,6 @@
         <button class="btn-red" style="font-size:10px;" onclick="auth.signOut().then(()=>location.reload())">LOGOUT</button>
     </div>
 </div>
-
-<!-- Baaki pages same (pg-history, pg-plans, pg-admin, pg-users, pg-logs, pg-load, pg-res) -->
 
 <div id="pg-history" class="page">
     <div class="container" style="max-height:85vh; overflow-y:auto;">
@@ -120,43 +166,117 @@
 <div id="pg-plans" class="page">
     <div class="container">
         <h1>RECHARGE</h1>
-        <div id="plan-trial" class="plan-card" onclick="selectPlan(10, 'TRIAL')"><span style="float:right; color:var(--p);">₹10</span><strong>TRIAL PLAN</strong><br><small>2 Searches • Starter Pack</small></div>
-        <div id="plan-basic" class="plan-card" onclick="selectPlan(50, 'BASIC')"><span style="float:right; color:var(--p);">₹50</span><strong>BASIC</strong><br><small>10 Searches</small></div>
-        <div id="plan-pro" class="plan-card" onclick="selectPlan(100, 'PRO')"><span style="float:right; color:var(--p);">₹100</span><strong>PRO</strong><br><small>30 Searches • Best Value</small></div>
-        <div id="plan-unlimited" class="plan-card" onclick="selectPlan(399, 'UNLIMITED')"><span style="float:right; color:var(--p);">₹399</span><strong>UNLIMITED 28 DAYS</strong><br><small>Unlimited Searches • 28 Days Validity</small></div>
+        
+        <div id="plan-trial" class="plan-card" onclick="selectPlan(10, 'TRIAL')">
+            <span style="float:right; color:var(--p);">₹10</span><strong>TRIAL PLAN</strong><br><small>2 Searches • Starter Pack</small>
+        </div>
+        <div id="plan-basic" class="plan-card" onclick="selectPlan(50, 'BASIC')">
+            <span style="float:right; color:var(--p);">₹50</span><strong>BASIC</strong><br><small>10 Searches</small>
+        </div>
+        <div id="plan-pro" class="plan-card" onclick="selectPlan(100, 'PRO')">
+            <span style="float:right; color:var(--p);">₹100</span><strong>PRO</strong><br><small>30 Searches • Best Value</small>
+        </div>
+        <div id="plan-unlimited" class="plan-card" onclick="selectPlan(399, 'UNLIMITED')">
+            <span style="float:right; color:var(--p);">₹399</span><strong>UNLIMITED 28 DAYS</strong><br><small>Unlimited Searches • 28 Days Validity</small>
+        </div>
 
         <div id="confirm-section" style="display:none; margin:20px 0; padding:15px; border:2px solid var(--p); border-radius:12px; background:rgba(0,255,65,0.05);">
             <p id="selected-plan" style="font-size:15px; margin-bottom:12px;"></p>
-            <div class="qr-wrapper"><img id="qr-code-img" src="" alt="Scan to Pay" style="width:140px; height:140px; display:block;"></div>
+            
+            <div class="qr-wrapper">
+                <img id="qr-code-img" src="" alt="Scan to Pay" style="width:140px; height:140px; display:block;">
+            </div>
             <p style="font-size:12px; color:#aaa; margin-bottom:12px;">Scan QR to pay directly, or use the button below.</p>
+            
             <button onclick="confirmAndPay()" class="btn-blue">PAY VIA UPI APP</button>
-            <small style="color:#888; display:block; text-align:center; margin-top:8px;">(PhonePe / Paytm / GPay / WhatsApp etc.) note - Credits will be added after 30 to 60 mins of payment our admin will verify your payment must submit screenshot after payment</small>
+            <small style="color:#888; display:block; text-align:center; margin-top:8px;">(PhonePe / Paytm / GPay / WhatsApp etc.)
+                note - Credits will be added after 30 to 60 mins of payment our admin will verify your payment 
+                must submit screenshot after payment</small>
         </div>
 
         <div style="margin-top:25px; border-top:1px solid #333; padding-top:20px;">
             <p style="font-size:11px;color:var(--blue);">ALREADY PAID? UPLOAD SCREENSHOT</p>
-            <div class="upload-box"><span id="fn">Select Image</span><input type="file" id="p-img" accept="image/*"></div>
+            <div class="upload-box">
+                <span id="fn">Select Image</span>
+                <input type="file" id="p-img" accept="image/*">
+            </div>
             <button class="btn-blue" id="up-btn" onclick="uploadImgBB()">SUBMIT PROOF</button>
         </div>
         <button class="btn-red" onclick="switchPage('pg-dash'); resetPlans()">BACK</button>
     </div>
 </div>
 
-<!-- pg-admin, pg-users, pg-logs, pg-load, pg-res same as your original code -->
+<div id="pg-admin" class="page">
+    <div class="container">
+        <h1>🔧 ADMIN DASHBOARD</h1>
+
+        <h2 style="margin:10px 0 8px 0;">Manual Credit Add / Remove</h2>
+        <h2 style="margin:18px 0 8px 0;">🚫 Block / Unblock Numbers</h2>
+
+        <input type="text" id="block-number" placeholder="Enter number to block/unblock">
+
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:8px;">
+            <button onclick="blockNumber()" class="btn-red">🚫 BLOCK</button>
+            <button onclick="unblockNumber()" style="background:#0f0;color:#000;">✅ UNBLOCK</button>
+        </div>
+
+        <div id="blocked-list" style="margin-top:15px;"></div>
+
+        <input type="text" id="manual-uid" placeholder="User UID or Email">
+        <input type="number" id="manual-credits" value="10" placeholder="Amount">
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:8px;">
+            <button onclick="addManualCredits(true)" style="background:#0f0; color:#000;">+ ADD CREDITS</button>
+            <button onclick="addManualCredits(false)" class="btn-red">- REMOVE CREDITS</button>
+        </div>
+
+        <button onclick="loadPendingRequests()" class="btn-blue" style="margin-top:20px;">Refresh Pending Requests</button>
+        <div id="pending-list" style="margin:15px 0;"></div>
+
+        <button onclick="switchPage('pg-users'); loadAllUsers()" class="btn-blue" style="margin-top:15px;">👥 View All Users</button>
+        <button onclick="switchPage('pg-logs'); loadAllSearchLogs()" class="btn-blue">📜 View All Search Logs</button>
+
+        <button onclick="switchPage('pg-dash')" class="btn-red">BACK TO DASHBOARD</button>
+    </div>
+</div>
+
+<div id="pg-users" class="page">
+    <div class="container" style="max-height:85vh; overflow-y:auto;">
+        <h1>👥 ALL USERS</h1>
+        <div id="users-list"></div>
+        <button onclick="switchPage('pg-admin')" class="btn-red" style="margin-top:20px;">BACK</button>
+    </div>
+</div>
+
+<div id="pg-logs" class="page">
+    <div class="container" style="max-height:85vh; overflow-y:auto;">
+        <h1>📜 ALL SEARCH LOGS</h1>
+        <div id="all-logs-list"></div>
+        <button onclick="switchPage('pg-admin')" class="btn-red" style="margin-top:20px;">BACK</button>
+    </div>
+</div>
 
 <div id="pg-load" class="page">
     <div class="hacker-box">
-        <div style="display:flex; align-items:center; gap:12px; color:#0f0; font-size:17px; margin-bottom:14px;">⏳ <strong>FETCHING DATA PLEASE WAIT...</strong></div>
+        <div style="display:flex; align-items:center; gap:12px; color:#0f0; font-size:17px; margin-bottom:14px;">
+            ⏳ <strong>FETCHING DATA PLEASE WAIT...</strong>
+        </div>
         <div class="bar-bg"><div id="bar" class="bar-f"></div></div>
     </div>
+
     <div class="hacker-box">
-        <div style="display:flex; align-items:center; gap:12px; color:#0f0; font-size:17px; margin-bottom:14px;">📝 <strong>System Logs</strong></div>
+        <div style="display:flex; align-items:center; gap:12px; color:#0f0; font-size:17px; margin-bottom:14px;">
+            📝 <strong>System Logs</strong>
+        </div>
         <div id="log-1" class="log-line">&gt; Initializing secure connection...</div>
         <div id="log-2" class="log-line">&gt; Bypassing server protocols...</div>
         <div id="log-3" class="log-line">&gt; Fetching data packets...</div>
         <div id="log-4" class="log-line">&gt; Decrypting response layer...</div>
     </div>
-    <div style="font-size: 10px; text-align: center; opacity: 0.5; margin-top: 20px;">[/>] SYSTEM BY IMX Core<br>Contact email: ip6675696@gmail.com</div>
+
+    <div style="font-size: 10px; text-align: center; opacity: 0.5; margin-top: 20px;">
+        [/>] SYSTEM BY IMX Core<br>
+        Contact email: ip6675696@gmail.com
+    </div>
 </div>
 
 <div id="pg-res" class="page">
@@ -189,8 +309,13 @@ async function initializeUser(user) {
     if (!user) return;
     const userRef = db.ref('users/' + user.uid);
     const snap = await userRef.once('value');
-    if (!snap.exists() || !snap.val()?.email) {
-        await userRef.set({ email: user.email || 'No Email (Google)', credits: snap.val()?.credits ?? 0 });
+    const data = snap.val();
+
+    if (!snap.exists() || !data?.email) {
+        await userRef.set({
+            email: user.email || 'No Email (Google)',
+            credits: data?.credits ?? 0
+        });
     }
 }
 
@@ -203,8 +328,15 @@ auth.onAuthStateChanged(user => {
     if (user) {
         initializeUser(user);
         sync(user);
-        document.getElementById('disclaimer').style.display = 'flex';   // Har login pe dikhega
-        if (user.email?.toLowerCase() === ADMIN_EMAIL.toLowerCase() || user.uid === ADMIN_UID) {
+        
+        if (!localStorage.getItem("acceptedDisclaimer")) {
+            document.getElementById('disclaimer').style.display = 'flex';
+        }
+
+        if (
+            (user.email && user.email.toLowerCase() === ADMIN_EMAIL.toLowerCase()) 
+            || user.uid === ADMIN_UID
+        ) {
             document.getElementById('admin-btn').style.display = 'block';
         }
     } else {
@@ -216,12 +348,15 @@ function showModal(title, message, isError = false) {
     const box = document.getElementById('modal-box');
     document.getElementById('m-t').innerText = title;
     document.getElementById('m-m').innerText = message;
-    box.classList.toggle('error', isError);
+    if (isError) box.classList.add('error'); else box.classList.remove('error');
     document.getElementById('modal').style.display = 'flex';
 }
-function closeModal() { document.getElementById('modal').style.display = 'none'; }
+function closeModal() {
+    document.getElementById('modal').style.display = 'none';
+}
 
 function acceptDisclaimer() {
+    localStorage.setItem("acceptedDisclaimer", "yes");
     document.getElementById('disclaimer').style.display = 'none';
 }
 
@@ -251,12 +386,14 @@ function handleAuth() {
 
 function loginGoogle() { 
     const provider = new firebase.auth.GoogleAuthProvider();
-    auth.signInWithPopup(provider).catch(err => showModal("GOOGLE SIGN IN ERROR", err.message, true));
+    auth.signInWithPopup(provider)
+        .catch(err => showModal("GOOGLE SIGN IN ERROR", err.message, true));
 }
 
 function sync(user) {
     db.ref('users/'+user.uid).on('value', snap => {
-        credits = snap.val()?.credits || 0;
+        const d = snap.val();
+        credits = d?.credits || 0;
         document.getElementById('user-credits').innerText = credits;
         switchPage('pg-dash');
     });
@@ -273,32 +410,289 @@ function enterAdmin() {
     }
 }
 
-// ====================== AADHAAR + MOBILE + VEHICLE LOGIC ======================
+async function loadPendingRequests() { 
+    const container = document.getElementById('pending-list');
+    container.innerHTML = '<p style="text-align:center;color:#666;">Loading...</p>';
+
+    db.ref('recharge_requests').orderByKey().limitToLast(30).once('value', snap => {
+        container.innerHTML = '';
+        let hasAny = false;
+        const entries = [];
+        snap.forEach(child => {
+            const req = child.val();
+            if (req.status === "pending") entries.push({key: child.key, ...req});
+        });
+        entries.reverse();
+
+        entries.forEach(entry => {
+            hasAny = true;
+            const div = document.createElement('div');
+            div.className = 'request-card';
+            div.innerHTML = `
+                <small>${entry.time || ''} • ${entry.user}</small><br>
+                <strong>UID:</strong> ${entry.uid}<br><br>
+                <img src="${entry.screenshot}" style="max-width:100%;border-radius:8px;"><br><br>
+                <input type="number" id="c-${entry.key}" value="10" style="width:100%;padding:10px;margin:8px 0;">
+                <button onclick="approveRequest('${entry.key}', '${entry.uid}', document.getElementById('c-${entry.key}').value)" style="background:#0f0;color:#000;border:none;">✅ APPROVE & ADD CREDITS</button>
+            `;
+            container.appendChild(div);
+        });
+        if (!hasAny) container.innerHTML = '<p style="color:#0f0;text-align:center;">No pending requests right now.</p>';
+    });
+}
+
+async function approveRequest(requestKey, uid, creditsToAdd) { 
+    creditsToAdd = parseInt(creditsToAdd);
+    if (!creditsToAdd) return alert("Enter valid credits");
+
+    try {
+        const userRef = db.ref('users/' + uid);
+        const snap = await userRef.once('value');
+        const current = snap.val()?.credits || 0;
+        await userRef.update({ credits: current + creditsToAdd });
+
+        await db.ref('recharge_requests/' + requestKey).remove();
+
+        showModal("SUCCESS", `${creditsToAdd} credits added successfully!`, false);
+        loadPendingRequests();
+        loadBlockedNumbers();
+    } catch(e) {
+        showModal("ERROR", "Failed to add credits", true);
+    }
+}
+
+async function addManualCredits(isAdd) { 
+    let input = document.getElementById('manual-uid').value.trim();
+    let amt = parseInt(document.getElementById('manual-credits').value);
+    if (!input || !amt) return alert("Please fill both fields");
+
+    try {
+        let uid = input;
+        if (input.includes('@')) {
+            const snap = await db.ref('users').once('value');
+            snap.forEach(child => {
+                if (child.val().email && child.val().email.toLowerCase() === input.toLowerCase()) uid = child.key;
+            });
+        }
+        const userRef = db.ref('users/' + uid);
+        const snap = await userRef.once('value');
+        let current = snap.val()?.credits || 0;
+        const newCredits = isAdd ? current + amt : Math.max(0, current - amt);
+
+        await userRef.update({ credits: newCredits });
+        showModal("SUCCESS", `${isAdd ? '+' : '-'} ${amt} credits ${isAdd ? 'added' : 'removed'} successfully!`, false);
+    } catch(e) {
+        showModal("ERROR", "User not found", true);
+    }
+}
+
+async function loadAllUsers() { 
+    const container = document.getElementById('users-list');
+    container.innerHTML = '<p style="text-align:center;color:#666;">Loading users...</p>';
+
+    db.ref('users').once('value', snap => {
+        container.innerHTML = '';
+        if (!snap.exists()) {
+            container.innerHTML = '<p style="color:#666;">No users found.</p>';
+            return;
+        }
+        snap.forEach(child => {
+            const user = child.val();
+            const div = document.createElement('div');
+            div.className = 'history-item';
+            div.innerHTML = `
+                <strong>${user.email || 'No Email'}</strong><br>
+                <small>UID: ${child.key}</small><br>
+                Credits: <span style="color:var(--y)">${user.credits || 0}</span>
+            `;
+            container.appendChild(div);
+        });
+    });
+}
+
+async function loadAllSearchLogs() {
+    const container = document.getElementById('all-logs-list');
+    container.innerHTML = '<p style="text-align:center;color:#666;">Loading all search logs...</p>';
+
+    try {
+        const usersSnap = await db.ref('users').once('value');
+        container.innerHTML = '';
+        let hasLogs = false;
+        const allLogs = [];
+
+        for (let [uid, userData] of Object.entries(usersSnap.val() || {})) {
+            const email = userData.email || 'Unknown';
+            const historySnap = await db.ref('users/' + uid + '/history')
+                .orderByChild('timestamp')
+                .limitToLast(50)
+                .once('value');
+
+            historySnap.forEach(child => {
+                hasLogs = true;
+                allLogs.push({email, ...child.val()});
+            });
+        }
+
+        allLogs.sort((a, b) => b.timestamp - a.timestamp);
+
+        allLogs.forEach(log => {
+            const div = document.createElement('div');
+            div.className = 'history-item';
+            div.innerHTML = `
+                <div style="display:flex; justify-content:space-between; margin-bottom:6px;">
+                    <strong style="color:#0ff">${log.email}</strong>
+                    <small>${new Date(log.timestamp).toLocaleString('en-IN')}</small>
+                </div>
+                <div style="font-size:15px; color:#fff;">${log.type} • ${log.query}</div>
+                <div style="color:${log.success ? 'var(--p)' : 'var(--r)'}">
+                    ${log.success ? '✅ Success (1 credit deducted)' : '❌ Failed (0 credit deducted)'}
+                </div>
+            `;
+            container.appendChild(div);
+        });
+
+        if (!hasLogs) container.innerHTML = '<p style="color:#666;text-align:center;padding:40px 0;">No search logs found yet.</p>';
+    } catch(e) {
+        container.innerHTML = '<p style="color:var(--r);">Error loading logs.</p>';
+    }
+}
+
+function selectPlan(amount, name) { 
+    selectedPlan = {amount, name};
+    document.querySelectorAll('.plan-card').forEach(c => c.classList.remove('selected'));
+    
+    if(name === 'TRIAL') document.getElementById('plan-trial').classList.add('selected');
+    else if(name === 'BASIC') document.getElementById('plan-basic').classList.add('selected');
+    else if(name === 'PRO') document.getElementById('plan-pro').classList.add('selected');
+    else document.getElementById('plan-unlimited').classList.add('selected');
+
+    document.getElementById('selected-plan').innerHTML = `<strong>Selected: ${name} Plan</strong><br>Amount: ₹${amount}`;
+    
+    const upiString = `upi://pay?pa=imrankhan17@ptyes&pn=IMRAN%20PLAYZ&am=${amount}&cu=INR&tn=Elite%20System%20Recharge`;
+    document.getElementById('qr-code-img').src = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(upiString)}`;
+
+    document.getElementById('confirm-section').style.display = 'block';
+}
+
+function resetPlans() { 
+    selectedPlan = null;
+    document.getElementById('confirm-section').style.display = 'none';
+    document.querySelectorAll('.plan-card').forEach(c => c.classList.remove('selected'));
+}
+
+function confirmAndPay() { 
+    if (!selectedPlan) return;
+    const {amount} = selectedPlan;
+    window.location.href = `upi://pay?pa=imrankhan17@ptyes&pn=IMRAN%20PLAYZ&am=${amount}&cu=INR&tn=Elite%20System%20Recharge`;
+}
+
+async function uploadImgBB() { 
+    const fileInput = document.getElementById('p-img');
+    if (!fileInput.files || fileInput.files.length === 0) return showModal("ERROR", "Please select an image first", true);
+
+    const btn = document.getElementById('up-btn');
+    btn.innerText = "UPLOADING...";
+    btn.disabled = true;
+
+    try {
+        const fd = new FormData();
+        fd.append("image", fileInput.files[0]);
+
+        const res = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_KEY}`, { method: "POST", body: fd });
+        const d = await res.json();
+
+        if (d.success && d.data && d.data.url) {
+            await db.ref('recharge_requests/' + Date.now()).set({
+                user: auth.currentUser ? auth.currentUser.email : "unknown",
+                uid: auth.currentUser ? auth.currentUser.uid : "unknown",
+                screenshot: d.data.url,
+                status: "pending",
+                time: new Date().toLocaleString(),
+                plan: selectedPlan ? selectedPlan.name : "Manual"
+            });
+
+            showModal("UPLOAD SUCCESSFUL", "Screenshot uploaded successfully!\nAdmin will review and add credits shortly.", false);
+            switchPage('pg-dash');
+            fileInput.value = '';
+            document.getElementById("fn").innerText = "Select Image";
+            resetPlans();
+        } else throw new Error(d.error ? d.error.message : "Upload failed");
+    } catch (e) {
+        showModal("UPLOAD FAILED", "Failed to upload image. Please try another image or check your network.", true);
+    } finally {
+        btn.innerText = "SUBMIT PROOF";
+        btn.disabled = false;
+    }
+}
+
+function loadHistory() {
+    const container = document.getElementById('history-list');
+    container.innerHTML = '<p style="text-align:center; color:#666; padding:30px 0;">Loading your search history...</p>';
+
+    const user = auth.currentUser;
+    if (!user) {
+        container.innerHTML = '<p style="color:var(--r);">Please login again.</p>';
+        return;
+    }
+
+    db.ref('users/' + user.uid + '/history')
+        .orderByChild('timestamp')
+        .limitToLast(50)
+        .once('value', (snap) => {
+            container.innerHTML = '';
+
+            if (!snap.exists() || snap.numChildren() === 0) {
+                container.innerHTML = '<p style="text-align:center; color:#666; padding:60px 0;">No searches performed yet.</p>';
+                return;
+            }
+
+            const entries = [];
+            snap.forEach((child) => {
+                entries.push(child.val());
+            });
+
+            entries.reverse();   
+
+            entries.forEach((entry) => {
+                const div = document.createElement('div');
+                div.className = 'history-item';
+
+                const statusHTML = entry.success 
+                    ? `<span style="color:var(--p)">✅ Data Found • 1 Credit Deducted</span>`
+                    : `<span style="color:var(--r)">❌ ${entry.status === 'no_data' ? 'No Data Found' : 'Search Failed'} • No Credit Deducted</span>`;
+
+                div.innerHTML = `
+                    <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
+                        <strong>${entry.type || 'Unknown'} SEARCH</strong>
+                        <small style="color:#888">${new Date(entry.timestamp).toLocaleString('en-IN')}</small>
+                    </div>
+                    <div style="font-size:15px; color:#fff; margin-bottom:10px;">${entry.query || 'N/A'}</div>
+                    <div>${statusHTML}</div>
+                `;
+                container.appendChild(div);
+            });
+        })
+        .catch((err) => {
+            console.error(err);
+            container.innerHTML = '<p style="color:var(--r); text-align:center;">Failed to load history. Please try again.</p>';
+        });
+}
+
 async function runTrace(t) {
-    const requiredCredits = (t === 'aadhaar') ? 2 : 1;
-    if (credits < requiredCredits) {
-        return showModal("INSUFFICIENT CREDITS", `You need ${requiredCredits} credits for this search. Please recharge.`, true);
+    if (credits <= 0) {
+        return showModal("INSUFFICIENT CREDITS", "You don't have enough credits. Please recharge to continue.", true);
     }
 
     let rawInput = document.getElementById('target').value.trim();
     if (!rawInput) {
-        return showModal("INPUT REQUIRED", "Please enter a valid number or Aadhaar.", true);
+        return showModal("INPUT REQUIRED", "Please enter a valid number or vehicle registration.", true);
     }
 
-    // Aadhaar validation - only 12 digits
-    if (t === 'aadhaar') {
-        const cleanAadhaar = rawInput.replace(/\D/g, '');
-        if (cleanAadhaar.length !== 12) {
-            return showModal("INVALID AADHAAR", "Aadhaar number must be exactly 12 digits.", true);
-        }
-        rawInput = cleanAadhaar;
-    }
-
-    // Firebase Block Check
+    // 🔥 FIXED: Only Firebase block check (hardcoded list removed)
     const cleanInputCheck = rawInput.replace(/[\s-]/g, '');
     const blockSnap = await db.ref('blocked_numbers/' + cleanInputCheck).once('value');
     if (blockSnap.exists()) {
-        showModal("ACCESS DENIED", "This number/Aadhaar is restricted by Admin.", true);
+        showModal("ACCESS DENIED", "This number is restricted by Admin.", true);
         return;
     }
 
@@ -312,6 +706,7 @@ async function runTrace(t) {
         progress += Math.random() * 22 + 6;
         if (progress > 97) progress = 97;
         bar.style.width = progress + "%";
+
         if (progress > 15) document.getElementById('log-1').classList.add('show');
         if (progress > 45) document.getElementById('log-2').classList.add('show');
         if (progress > 70) document.getElementById('log-3').classList.add('show');
@@ -319,15 +714,11 @@ async function runTrace(t) {
     }, 140);
 
     try {
-        let apiURL;
-        if (t === 'mob') {
-            apiURL = `https://cyber-osint-num-infos.vercel.app/api/numinfo?key=Anonymous&num=${rawInput}`;
-        } else if (t === 'veh') {
-            apiURL = `https://vehicle-eight-vert.vercel.app/api?rc=${encodeURIComponent(rawInput)}`;
-        } else if (t === 'aadhaar') {
-            // Aapke API ke hisaab se yahan change kar sakte ho. Abhi placeholder
-            apiURL = `https://your-aadhaar-api.example.com/api/aadhaar?num=${rawInput}`;   // ← Yahan apna real Aadhaar API daal dena
-        }
+        const cleanInput = rawInput.replace(/[\s-]/g, '').toUpperCase();
+
+        const apiURL = (t === 'mob') 
+            ? `https://cyber-osint-num-infos.vercel.app/api/numinfo?key=Anonymous&num=${cleanInput}`
+            : `https://vehicle-eight-vert.vercel.app/api?rc=${encodeURIComponent(cleanInput)}`;
 
         let res;
         try {
@@ -342,13 +733,11 @@ async function runTrace(t) {
         bar.style.width = "100%";
 
         const uid = auth.currentUser.uid;
-        const type = t === 'mob' ? 'Mobile' : (t === 'veh' ? 'Vehicle' : 'Aadhaar');
+        const type = t === 'mob' ? 'Mobile' : 'Vehicle';
 
-        const isSuccess = (t === 'aadhaar') 
-            ? !!(data && (data.details || data.success)) 
-            : (t === 'mob') 
-                ? !!(data && data.results && Array.isArray(data.results) && data.results.length > 0)
-                : !!(data && data.details);
+        const isSuccess = (t === 'mob') 
+            ? !!(data && data.results && Array.isArray(data.results) && data.results.length > 0)
+            : !!(data && data.details);
 
         await db.ref('users/' + uid + '/history').push({
             timestamp: Date.now(),
@@ -359,13 +748,16 @@ async function runTrace(t) {
         });
 
         if (!isSuccess) {
-            showModal("NO INFORMATION FOUND", `Sorry, we couldn’t find any information about this ${type.toLowerCase()}.\nYour credits have not been deducted.`, true);
+            const msg = t === 'mob' 
+                ? "Sorry, we couldn’t find any information about this number.\nYour credits have not been deducted."
+                : "Sorry, we couldn’t find any information about this vehicle.\nYour credits have not been deducted.";
+            
+            showModal("NO INFORMATION FOUND", msg, true);
             switchPage('pg-dash');
             return;
         }
 
-        // Credits deduct only on success
-        await db.ref('users/' + uid).update({ credits: credits - requiredCredits });
+        await db.ref('users/' + uid).update({ credits: credits - 1 });
 
         setTimeout(() => {
             switchPage('pg-res');
@@ -378,7 +770,7 @@ async function runTrace(t) {
         bar.style.width = "100%";
 
         const uid = auth.currentUser.uid;
-        const type = t === 'mob' ? 'Mobile' : (t === 'veh' ? 'Vehicle' : 'Aadhaar');
+        const type = t === 'mob' ? 'Mobile' : 'Vehicle';
 
         await db.ref('users/' + uid + '/history').push({
             timestamp: Date.now(),
@@ -393,24 +785,97 @@ async function runTrace(t) {
     }
 }
 
-// Baaki functions (loadPendingRequests, approveRequest, blockNumber, unblockNumber, etc.) same as your original code
-// Copy paste karne ke liye space bachane ke liye yahan short kiya hai. Agar koi function missing lage to bata dena.
+async function blockNumber() {
+    const num = document.getElementById('block-number').value.trim();
+    if (!num) return alert("Enter number");
 
-async function loadPendingRequests() { /* your original code */ }
-async function approveRequest(requestKey, uid, creditsToAdd) { /* your original */ }
-async function addManualCredits(isAdd) { /* your original */ }
-async function loadAllUsers() { /* your original */ }
-async function loadAllSearchLogs() { /* your original */ }
-function selectPlan(amount, name) { /* your original */ }
-function resetPlans() { /* your original */ }
-function confirmAndPay() { /* your original */ }
-async function uploadImgBB() { /* your original */ }
-function loadHistory() { /* your original */ }
-async function blockNumber() { /* your original */ }
-async function unblockNumber() { /* your original */ }
-function loadBlockedNumbers() { /* your original */ }
-function quickUnblock(num) { /* your original */ }
-function render(data) { /* your original */ }
+    const clean = num.replace(/[\s-]/g, '');
+    await db.ref('blocked_numbers/' + clean).set(true);
+
+    showModal("SUCCESS", "Number blocked successfully", false);
+    document.getElementById('block-number').value = "";
+    loadBlockedNumbers();
+}
+
+async function unblockNumber() {
+    const num = document.getElementById('block-number').value.trim();
+    if (!num) return alert("Enter number");
+
+    const clean = num.replace(/[\s-]/g, '');
+    await db.ref('blocked_numbers/' + clean).remove();
+
+    showModal("SUCCESS", "Number unblocked successfully", false);
+    document.getElementById('block-number').value = "";
+    loadBlockedNumbers();
+}
+
+function loadBlockedNumbers() {
+    const container = document.getElementById('blocked-list');
+    container.innerHTML = "Loading blocked numbers...";
+
+    db.ref('blocked_numbers').on('value', snap => {
+        container.innerHTML = "";
+
+        if (!snap.exists()) {
+            container.innerHTML = "<p style='color:#666;'>No blocked numbers</p>";
+            return;
+        }
+
+        snap.forEach(child => {
+            const num = child.key;
+            const div = document.createElement('div');
+            div.className = 'history-item';
+            div.innerHTML = `
+                <strong>${num}</strong>
+                <button onclick="quickUnblock('${num}')" class="btn-red" style="margin-top:8px;">Remove</button>
+            `;
+            container.appendChild(div);
+        });
+    });
+}
+
+function quickUnblock(num) {
+    db.ref('blocked_numbers/' + num).remove();
+    loadBlockedNumbers();
+}
+
+function render(data) {
+    const out = document.getElementById('data-out');
+    out.innerHTML = "";
+
+    const skip = [
+        "branding", "developer", "processed_by", "owner_contact", "status",
+        "owner", "dm_to_buy_access", "access", "buy_access", "promote", "contact"
+    ];
+
+    function walk(obj) {
+        for (let key in obj) {
+            if (typeof obj[key] === "object" && obj[key] !== null) {
+                walk(obj[key]);
+            } else {
+                const value = String(obj[key] || "");
+                const shouldSkip = 
+                    skip.includes(key.toLowerCase()) ||
+                    value.includes("@Kon_Hu_Mai") ||
+                    value.includes("DM TO BUY ACCESS") ||
+                    key.toLowerCase().includes("owner") ||
+                    key.toLowerCase().includes("dm") ||
+                    key.toLowerCase().includes("buy");
+
+                if (!shouldSkip) {
+                    out.innerHTML += `
+                        <div class="res-row">
+                            <span style="color:var(--p)">${key.toUpperCase()}</span>
+                            <span style="color:#fff">${value}</span>
+                        </div>`;
+                }
+            }
+        }
+    }
+
+    if (data && data.details) walk(data.details);
+    else walk(data);
+}
 </script>
 </body>
 </html>

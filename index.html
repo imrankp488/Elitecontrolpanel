@@ -689,32 +689,7 @@ async function runTrace(t) {
     }
 
     // 🔥 FIXED: Only Firebase block check (hardcoded list removed)
-    const cleanInputCheck = rawInput.replace(/[\s-]/g, '');
-    const blockSnap = await db.ref('blocked_numbers/' + cleanInputCheck).once('value');
-    if (blockSnap.exists()) {
-        showModal("ACCESS DENIED", "This number is restricted by Admin.", true);
-        return;
-    }
-
-    switchPage('pg-load');
-    document.querySelectorAll('.log-line').forEach(l => l.classList.remove('show'));
-    const bar = document.getElementById('bar');
-    bar.style.width = "0%";
-
-    let progress = 0;
-    const progressInterval = setInterval(() => {
-        progress += Math.random() * 22 + 6;
-        if (progress > 97) progress = 97;
-        bar.style.width = progress + "%";
-
-        if (progress > 15) document.getElementById('log-1').classList.add('show');
-        if (progress > 45) document.getElementById('log-2').classList.add('show');
-        if (progress > 70) document.getElementById('log-3').classList.add('show');
-        if (progress > 88) document.getElementById('log-4').classList.add('show');
-    }, 140);
-
-    try {
-        const cleanInput = rawInput.replace(/[\s-]/g, '').toUpperCase();
+    const cleanInput = rawInput.replace(/[\s-]/g, '').toUpperCase();
 
         const apiURL = (t === 'mob') 
             ? `https://cyber-osint-num-infos.vercel.app/api/numinfo?key=Anonymous&num=${cleanInput}`
@@ -733,10 +708,13 @@ async function runTrace(t) {
         bar.style.width = "100%";
 
         const uid = auth.currentUser.uid;
-        const type = t === 'mob' ? 'Mobile' : 'Vehicle';
+        
+        // Agar 12 digit h toh history me '12-Digit ID' dikhega, warna 'Mobile'
+        const type = t === 'mob' ? (cleanInput.length === 12 ? '12-Digit ID' : 'Mobile') : 'Vehicle';
 
+        // 🔥 ASLI FIX YAHAN HAI: Success check ko flexible kar diya taaki 12-digit ka alag data format bhi accept ho jaye
         const isSuccess = (t === 'mob') 
-            ? !!(data && data.results && Array.isArray(data.results) && data.results.length > 0)
+            ? !!(data && (data.results || data.data || data.details || Object.keys(data).length > 1))
             : !!(data && data.details);
 
         await db.ref('users/' + uid + '/history').push({

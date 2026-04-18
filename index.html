@@ -91,6 +91,7 @@
 </head>
 <body>
 
+<!-- Main Modal -->
 <div id="modal" class="modal-overlay">
     <div class="modal-box" id="modal-box">
         <h2 id="m-t"></h2>
@@ -99,18 +100,7 @@
     </div>
 </div>
 
-<div id="admin-modal" class="modal-overlay" style="z-index: 2500; display: none;">
-    <div class="modal-box" style="border-color: #00ff41; max-width: 380px; box-shadow: 0 0 40px rgba(0,255,65,0.4);">
-        <h2 style="color: #00ff41; text-shadow: 0 0 15px #00ff41; font-family: 'Orbitron', sans-serif;">[ ADMIN AUTH ]</h2>
-        <p style="color:#0f0; font-size:13px; margin-bottom:18px; text-transform: uppercase;">Awaiting Security Clearance</p>
-        <input type="password" id="admin-pass-input" placeholder="ENTER ACCESS KEY" style="text-align:center; border: 1px solid #00ff41; color: #00ff41; background: #001a00; font-size: 16px; letter-spacing: 2px;">
-        <div style="display:flex; gap:10px; margin-top:15px;">
-            <button onclick="verifyAdminPass()" style="background:#00ff41; color:#000; text-shadow: none;">AUTHORIZE</button>
-            <button onclick="closeAdminModal()" class="btn-red">CANCEL</button>
-        </div>
-    </div>
-</div>
-
+<!-- DISCLAIMER POPUP (Hacker Style) -->
 <div id="disclaimer" class="modal-overlay" style="z-index: 3000; display: none;">
     <div class="modal-box" style="max-width: 480px;">
         <h2 style="color:#00ff41; text-shadow:0 0 15px #00ff41; margin-bottom:20px;">
@@ -221,6 +211,16 @@
         <h1>🔧 ADMIN DASHBOARD</h1>
 
         <h2 style="margin:10px 0 8px 0;">Manual Credit Add / Remove</h2>
+        <h2 style="margin:18px 0 8px 0;">🚫 Block / Unblock Numbers</h2>
+
+        <input type="text" id="block-number" placeholder="Enter number to block/unblock">
+
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:8px;">
+            <button onclick="blockNumber()" class="btn-red">🚫 BLOCK</button>
+            <button onclick="unblockNumber()" style="background:#0f0;color:#000;">✅ UNBLOCK</button>
+        </div>
+
+        <div id="blocked-list" style="margin-top:15px;"></div>
 
         <input type="text" id="manual-uid" placeholder="User UID or Email">
         <input type="number" id="manual-credits" value="10" placeholder="Amount">
@@ -232,27 +232,10 @@
         <button onclick="loadPendingRequests()" class="btn-blue" style="margin-top:20px;">Refresh Pending Requests</button>
         <div id="pending-list" style="margin:15px 0;"></div>
 
-        <button onclick="switchPage('pg-users'); loadAllUsers()" class="btn-blue" style="margin-top:15px;">👥 VIEW ALL USERS</button>
-        <button onclick="switchPage('pg-logs'); loadAllSearchLogs()" class="btn-blue">📜 VIEW ALL SEARCH LOGS</button>
-        <button onclick="switchPage('pg-blocked'); loadBlockedNumbers()" class="btn-blue">🚫 MANAGE BLOCKED NUMBERS</button>
+        <button onclick="switchPage('pg-users'); loadAllUsers()" class="btn-blue" style="margin-top:15px;">👥 View All Users</button>
+        <button onclick="switchPage('pg-logs'); loadAllSearchLogs()" class="btn-blue">📜 View All Search Logs</button>
 
-        <button onclick="switchPage('pg-dash')" class="btn-red" style="margin-top:15px;">BACK TO DASHBOARD</button>
-    </div>
-</div>
-
-<div id="pg-blocked" class="page">
-    <div class="container" style="max-height:85vh; overflow-y:auto;">
-        <h1>🚫 BLOCKED NUMBERS</h1>
-        
-        <input type="text" id="block-number" placeholder="Enter number to block/unblock">
-        <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:8px;">
-            <button onclick="blockNumber()" class="btn-red">🚫 BLOCK</button>
-            <button onclick="unblockNumber()" style="background:#0f0;color:#000;">✅ UNBLOCK</button>
-        </div>
-
-        <div id="blocked-list" style="margin-top:20px; max-height:45vh; overflow-y:auto;"></div>
-
-        <button onclick="switchPage('pg-admin')" class="btn-red" style="margin-top:20px;">BACK TO ADMIN</button>
+        <button onclick="switchPage('pg-dash')" class="btn-red">BACK TO DASHBOARD</button>
     </div>
 </div>
 
@@ -337,18 +320,17 @@ async function initializeUser(user) {
 }
 
 document.getElementById("p-img").addEventListener("change", function(e){
-    const file = e.target.files;
+    const file = e.target.files[0];
     document.getElementById("fn").innerText = file ? file.name : "Select Image";
 });
 
 auth.onAuthStateChanged(user => { 
     if (user) {
         initializeUser(user);
+        sync(user);
         
-        if (sessionStorage.getItem('showDisclaimer') === 'yes') {
+        if (!localStorage.getItem("acceptedDisclaimer")) {
             document.getElementById('disclaimer').style.display = 'flex';
-        } else {
-            sync(user);
         }
 
         if (
@@ -374,11 +356,8 @@ function closeModal() {
 }
 
 function acceptDisclaimer() {
-    sessionStorage.removeItem("showDisclaimer");
+    localStorage.setItem("acceptedDisclaimer", "yes");
     document.getElementById('disclaimer').style.display = 'none';
-    if(auth.currentUser) {
-        sync(auth.currentUser);
-    }
 }
 
 function switchPage(id) {
@@ -393,9 +372,6 @@ function toggleMode() {
 function handleAuth() {
     const e = document.getElementById('email').value.trim();
     const p = document.getElementById('pass').value;
-    
-    sessionStorage.setItem('showDisclaimer', 'yes');
-    
     if(isLogin) {
         auth.signInWithEmailAndPassword(e, p).catch(err => showModal("LOGIN ERROR", err.message, true));
     } else {
@@ -409,7 +385,6 @@ function handleAuth() {
 }
 
 function loginGoogle() { 
-    sessionStorage.setItem('showDisclaimer', 'yes');
     const provider = new firebase.auth.GoogleAuthProvider();
     auth.signInWithPopup(provider)
         .catch(err => showModal("GOOGLE SIGN IN ERROR", err.message, true));
@@ -420,31 +395,18 @@ function sync(user) {
         const d = snap.val();
         credits = d?.credits || 0;
         document.getElementById('user-credits').innerText = credits;
-        
-        if (document.getElementById('disclaimer').style.display !== 'flex') {
-            switchPage('pg-dash');
-        }
+        switchPage('pg-dash');
     });
 }
 
-// Custom Green Admin Popup Logic
 function enterAdmin() { 
-    document.getElementById('admin-pass-input').value = '';
-    document.getElementById('admin-modal').style.display = 'flex';
-}
-
-function closeAdminModal() {
-    document.getElementById('admin-modal').style.display = 'none';
-}
-
-function verifyAdminPass() {
-    const pass = document.getElementById('admin-pass-input').value;
+    const pass = prompt("Enter Admin Password:");
     if (pass === ADMIN_PASS) {
-        closeAdminModal();
         switchPage('pg-admin');
         loadPendingRequests();
+        loadBlockedNumbers();
     } else {
-        showModal("ACCESS DENIED", "Incorrect Access Key!", true);
+        alert("Wrong Password!");
     }
 }
 
@@ -493,6 +455,7 @@ async function approveRequest(requestKey, uid, creditsToAdd) {
 
         showModal("SUCCESS", `${creditsToAdd} credits added successfully!`, false);
         loadPendingRequests();
+        loadBlockedNumbers();
     } catch(e) {
         showModal("ERROR", "Failed to add credits", true);
     }
@@ -662,7 +625,6 @@ async function uploadImgBB() {
     }
 }
 
-
 function loadHistory() {
     const container = document.getElementById('history-list');
     container.innerHTML = '<p style="text-align:center; color:#666; padding:30px 0;">Loading your search history...</p>';
@@ -726,6 +688,7 @@ async function runTrace(t) {
         return showModal("INPUT REQUIRED", "Please enter a valid number or vehicle registration.", true);
     }
 
+    // 🔥 FIXED: Only Firebase block check (hardcoded list removed)
     const cleanInputCheck = rawInput.replace(/[\s-]/g, '');
     const blockSnap = await db.ref('blocked_numbers/' + cleanInputCheck).once('value');
     if (blockSnap.exists()) {
@@ -864,7 +827,7 @@ function loadBlockedNumbers() {
             div.className = 'history-item';
             div.innerHTML = `
                 <strong>${num}</strong>
-                <button onclick="quickUnblock('${num}')" class="btn-red" style="margin-top:8px;">REMOVE BLOCK</button>
+                <button onclick="quickUnblock('${num}')" class="btn-red" style="margin-top:8px;">Remove</button>
             `;
             container.appendChild(div);
         });

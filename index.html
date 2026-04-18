@@ -1,4 +1,4 @@
-<<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -24,7 +24,7 @@
         .btn-red { border-color: var(--r); color: var(--r); }
         .credit-badge { background: rgba(255, 215, 0, 0.1); border: 1px solid var(--y); padding: 6px 15px; border-radius: 20px; font-size: 13px; margin-bottom: 20px; color: var(--y); display: inline-block; }
         .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 2000; align-items: center; justify-content: center; backdrop-filter: blur(8px); }
-        .modal-box { width: 85%; max-width: 380px; background: #050505; border: 2px solid var(--p); border-radius: 15px; padding: 25px; text-align: center; }
+        .modal-box { width: 85%; max-width: 460px; background: #050505; border: 2px solid var(--p); border-radius: 15px; padding: 30px; text-align: center; box-shadow: 0 0 30px rgba(0,255,65,0.3); }
         .modal-box.error { border-color: var(--r); }
         .modal-box.error h2 { color: var(--r); }
         .res-row { border-bottom: 1px solid #1a1a1a; padding: 10px 0; text-align: left; display: flex; justify-content: space-between; font-size: 12px; }
@@ -74,15 +74,56 @@
             transform: translateY(0);
         }
         .qr-wrapper { background: #fff; padding: 10px; border-radius: 10px; display: inline-block; margin-bottom: 10px; }
+
+        /* Hacker-style Disclaimer */
+        .disclaimer-text {
+            text-align: left;
+            font-size: 13.5px;
+            line-height: 1.7;
+            color: #0f0;
+            text-shadow: 0 0 8px #00ff41;
+            background: rgba(0, 20, 0, 0.6);
+            padding: 18px;
+            border: 1px solid #00ff41;
+            border-radius: 8px;
+        }
     </style>
 </head>
 <body>
 
+<!-- Main Modal -->
 <div id="modal" class="modal-overlay">
     <div class="modal-box" id="modal-box">
         <h2 id="m-t"></h2>
         <p id="m-m" style="font-size:13px; color:#ccc; line-height:1.5;"></p>
         <button onclick="closeModal()">OKAY</button>
+    </div>
+</div>
+
+<!-- DISCLAIMER POPUP (Hacker Style) -->
+<div id="disclaimer" class="modal-overlay" style="z-index: 3000; display: none;">
+    <div class="modal-box" style="max-width: 480px;">
+        <h2 style="color:#00ff41; text-shadow:0 0 15px #00ff41; margin-bottom:20px;">
+            [⚠️ SYSTEM WARNING]
+        </h2>
+        <div class="disclaimer-text">
+            THIS PLATFORM IS PROVIDED STRICTLY FOR <strong>INFORMATIONAL AND EDUCATIONAL PURPOSES ONLY</strong>.<br><br>
+            
+            THE WEBSITE OWNER, DEVELOPERS, AND OPERATORS ASSUME <strong>NO RESPONSIBILITY OR LIABILITY</strong> WHATSOEVER FOR THE ACCURACY, LEGALITY, OR ANY CONSEQUENCES ARISING FROM THE USE OF THIS SYSTEM.<br><br>
+            
+            USERS ARE SOLELY RESPONSIBLE FOR ENSURING THAT THEIR USE COMPLIES WITH ALL APPLICABLE LAWS AND REGULATIONS.<br><br>
+            
+            ANY DATA RETRIEVED THROUGH THIS SYSTEM SHOULD BE USED RESPONSIBLY, ETHICALLY, AND FOR LEGITIMATE PERSONAL OR EDUCATIONAL PURPOSES ONLY.<br>
+            MISUSE OF THIS PLATFORM IS STRICTLY PROHIBITED.
+        </div>
+        
+        <button onclick="acceptDisclaimer()" style="background:#00ff41; color:#000; font-weight:bold; margin-top:25px; padding:16px; border:2px solid #00ff41;">
+            I ACCEPT &amp; CONTINUE
+        </button>
+        
+        <button onclick="auth.signOut().then(()=>location.reload())" class="btn-red" style="margin-top:12px;">
+            CANCEL &amp; LOGOUT
+        </button>
     </div>
 </div>
 
@@ -172,14 +213,15 @@
         <h2 style="margin:10px 0 8px 0;">Manual Credit Add / Remove</h2>
         <h2 style="margin:18px 0 8px 0;">🚫 Block / Unblock Numbers</h2>
 
-<input type="text" id="block-number" placeholder="Enter number to block/unblock">
+        <input type="text" id="block-number" placeholder="Enter number to block/unblock">
 
-<div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:8px;">
-    <button onclick="blockNumber()" class="btn-red">🚫 BLOCK</button>
-    <button onclick="unblockNumber()" style="background:#0f0;color:#000;">✅ UNBLOCK</button>
-</div>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:8px;">
+            <button onclick="blockNumber()" class="btn-red">🚫 BLOCK</button>
+            <button onclick="unblockNumber()" style="background:#0f0;color:#000;">✅ UNBLOCK</button>
+        </div>
 
-<div id="blocked-list" style="margin-top:15px;"></div>
+        <div id="blocked-list" style="margin-top:15px;"></div>
+
         <input type="text" id="manual-uid" placeholder="User UID or Email">
         <input type="number" id="manual-credits" value="10" placeholder="Amount">
         <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:8px;">
@@ -277,11 +319,6 @@ async function initializeUser(user) {
     }
 }
 
-const BLOCKED_NUMBERS = [
-    "8839261997", "9907226441", "9977630279",
-    "6262713227", "7869871453"
-];
-
 document.getElementById("p-img").addEventListener("change", function(e){
     const file = e.target.files[0];
     document.getElementById("fn").innerText = file ? file.name : "Select Image";
@@ -292,6 +329,10 @@ auth.onAuthStateChanged(user => {
         initializeUser(user);
         sync(user);
         
+        if (!localStorage.getItem("acceptedDisclaimer")) {
+            document.getElementById('disclaimer').style.display = 'flex';
+        }
+
         if (
             (user.email && user.email.toLowerCase() === ADMIN_EMAIL.toLowerCase()) 
             || user.uid === ADMIN_UID
@@ -312,6 +353,11 @@ function showModal(title, message, isError = false) {
 }
 function closeModal() {
     document.getElementById('modal').style.display = 'none';
+}
+
+function acceptDisclaimer() {
+    localStorage.setItem("acceptedDisclaimer", "yes");
+    document.getElementById('disclaimer').style.display = 'none';
 }
 
 function switchPage(id) {
@@ -358,6 +404,7 @@ function enterAdmin() {
     if (pass === ADMIN_PASS) {
         switchPage('pg-admin');
         loadPendingRequests();
+        loadBlockedNumbers();
     } else {
         alert("Wrong Password!");
     }
@@ -637,23 +684,16 @@ async function runTrace(t) {
     }
 
     let rawInput = document.getElementById('target').value.trim();
-    
-    // Firebase Block Check
+    if (!rawInput) {
+        return showModal("INPUT REQUIRED", "Please enter a valid number or vehicle registration.", true);
+    }
+
+    // 🔥 FIXED: Only Firebase block check (hardcoded list removed)
     const cleanInputCheck = rawInput.replace(/[\s-]/g, '');
     const blockSnap = await db.ref('blocked_numbers/' + cleanInputCheck).once('value');
     if (blockSnap.exists()) {
-        showModal("ACCESS DENIED", "This number is restricted.", true);
+        showModal("ACCESS DENIED", "This number is restricted by Admin.", true);
         return;
-    }
-
-    // Hardcoded Block Check
-    if (BLOCKED_NUMBERS.includes(cleanInputCheck)) {
-        showModal("ACCESS DENIED", "This number is restricted.", true);
-        return;
-    }
-
-    if (!rawInput) {
-        return showModal("INPUT REQUIRED", "Please enter a valid number or vehicle registration.", true);
     }
 
     switchPage('pg-load');
@@ -752,7 +792,7 @@ async function blockNumber() {
     const clean = num.replace(/[\s-]/g, '');
     await db.ref('blocked_numbers/' + clean).set(true);
 
-    showModal("SUCCESS", "Number blocked successfully");
+    showModal("SUCCESS", "Number blocked successfully", false);
     document.getElementById('block-number').value = "";
     loadBlockedNumbers();
 }
@@ -764,14 +804,14 @@ async function unblockNumber() {
     const clean = num.replace(/[\s-]/g, '');
     await db.ref('blocked_numbers/' + clean).remove();
 
-    showModal("SUCCESS", "Number unblocked successfully");
+    showModal("SUCCESS", "Number unblocked successfully", false);
     document.getElementById('block-number').value = "";
     loadBlockedNumbers();
 }
 
 function loadBlockedNumbers() {
     const container = document.getElementById('blocked-list');
-    container.innerHTML = "Loading...";
+    container.innerHTML = "Loading blocked numbers...";
 
     db.ref('blocked_numbers').on('value', snap => {
         container.innerHTML = "";
@@ -796,6 +836,7 @@ function loadBlockedNumbers() {
 
 function quickUnblock(num) {
     db.ref('blocked_numbers/' + num).remove();
+    loadBlockedNumbers();
 }
 
 function render(data) {

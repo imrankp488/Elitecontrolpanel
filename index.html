@@ -291,10 +291,26 @@ document.getElementById("p-img").addEventListener("change", function(e){
 });
 
 auth.onAuthStateChanged(user => { 
-    if(user)
-   if (!localStorage.getItem("acceptedDisclaimer")) {
-    document.getElementById('disclaimer').style.display = 'flex';
-} {
+    if (user) {
+
+        if (!localStorage.getItem("acceptedDisclaimer")) {
+            document.getElementById('disclaimer').style.display = 'flex';
+        }
+
+        initializeUser(user);
+        sync(user);
+        
+        if (
+            (user.email && user.email.toLowerCase() === ADMIN_EMAIL.toLowerCase()) 
+            || user.uid === ADMIN_UID
+        ) {
+            document.getElementById('admin-btn').style.display = 'block';
+        }
+
+    } else {
+        switchPage('pg-auth');
+    }
+});
         initializeUser(user);        // ← Yeh line nayi add hui hai
         sync(user);
         

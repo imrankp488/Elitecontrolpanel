@@ -75,7 +75,6 @@
         }
         .qr-wrapper { background: #fff; padding: 10px; border-radius: 10px; display: inline-block; margin-bottom: 10px; }
 
-        /* Hacker-style Disclaimer */
         .disclaimer-text {
             text-align: left;
             font-size: 13.5px;
@@ -100,7 +99,7 @@
     </div>
 </div>
 
-<!-- DISCLAIMER POPUP (Hacker Style) -->
+<!-- DISCLAIMER POPUP -->
 <div id="disclaimer" class="modal-overlay" style="z-index: 3000; display: none;">
     <div class="modal-box" style="max-width: 480px;">
         <h2 style="color:#00ff41; text-shadow:0 0 15px #00ff41; margin-bottom:20px;">
@@ -127,6 +126,7 @@
     </div>
 </div>
 
+<!-- AUTH PAGE -->
 <div id="pg-auth" class="page active">
     <div class="container">
         <h1>SYSTEM LOGIN</h1>
@@ -138,15 +138,19 @@
     </div>
 </div>
 
+<!-- DASHBOARD -->
 <div id="pg-dash" class="page">
     <div class="container">
         <h1>DASHBOARD</h1>
         <div class="credit-badge">CREDITS: <span id="user-credits">0</span></div>
-        <input type="text" id="target" placeholder="98765XXXXX / MH12XXXX">
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
-            <button onclick="runTrace('mob')">Mobile</button>
-            <button onclick="runTrace('veh')">Vehicle</button>
+        <input type="text" id="target" placeholder="Mobile / Vehicle / 12-Digit Aadhaar">
+
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;">
+            <button onclick="runTrace('mob')">📱 Mobile</button>
+            <button onclick="runTrace('veh')">🚗 Vehicle</button>
+            <button onclick="runTrace('aadhaar')" style="border-color:#ffd700;color:#ffd700;">🪪 Aadhaar Info</button>
         </div>
+
         <button onclick="switchPage('pg-history'); loadHistory()" style="margin-top:12px;" class="btn-blue">VIEW SEARCH HISTORY</button>
         <button class="btn-blue" style="margin-top:8px;" onclick="switchPage('pg-plans')">RECHARGE / PLANS</button>
         <button onclick="window.location.href='mailto:ip6675696@gmail.com?subject=Elite%20System%20Support'" class="btn-blue" style="margin-top:8px;">✉️ CONTACT SUPPORT</button>
@@ -155,6 +159,7 @@
     </div>
 </div>
 
+<!-- HISTORY PAGE -->
 <div id="pg-history" class="page">
     <div class="container" style="max-height:85vh; overflow-y:auto;">
         <h1>SEARCH HISTORY</h1>
@@ -163,6 +168,7 @@
     </div>
 </div>
 
+<!-- PLANS PAGE -->
 <div id="pg-plans" class="page">
     <div class="container">
         <h1>RECHARGE</h1>
@@ -206,6 +212,7 @@
     </div>
 </div>
 
+<!-- ADMIN PAGE -->
 <div id="pg-admin" class="page">
     <div class="container">
         <h1>🔧 ADMIN DASHBOARD</h1>
@@ -239,6 +246,7 @@
     </div>
 </div>
 
+<!-- USERS PAGE -->
 <div id="pg-users" class="page">
     <div class="container" style="max-height:85vh; overflow-y:auto;">
         <h1>👥 ALL USERS</h1>
@@ -247,6 +255,7 @@
     </div>
 </div>
 
+<!-- LOGS PAGE -->
 <div id="pg-logs" class="page">
     <div class="container" style="max-height:85vh; overflow-y:auto;">
         <h1>📜 ALL SEARCH LOGS</h1>
@@ -255,6 +264,7 @@
     </div>
 </div>
 
+<!-- LOADING PAGE -->
 <div id="pg-load" class="page">
     <div class="hacker-box">
         <div style="display:flex; align-items:center; gap:12px; color:#0f0; font-size:17px; margin-bottom:14px;">
@@ -279,6 +289,7 @@
     </div>
 </div>
 
+<!-- RESULT PAGE -->
 <div id="pg-res" class="page">
     <div class="container" style="max-height:85vh; overflow-y:auto;">
         <h1>DECRYPTED DATA</h1>
@@ -299,11 +310,18 @@ const IMGBB_KEY = "47d4ddf5133629b43bb606ec944137f9";
 firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth(), db = firebase.database();
 let credits = 0, isLogin = true;
-let selectedPlan = null;
 
 const ADMIN_EMAIL = "imrankp488@gmail.com";
 const ADMIN_UID = "AqVy3n9MDHO2KcN0w8OTcsF76Ti1";
 const ADMIN_PASS = "admin18";
+
+// TWO NUMBER APIs (Primary + Secondary)
+function getNumAPIUrls(num) {
+    return [
+        `https://yash-code-with-ai.alphamovies.workers.dev/?num=${num}&key=7189814021`,
+        `https://cyber-osint-num-infos.vercel.app/api/numinfo?key=Anonymous&num=${num}`
+    ];
+}
 
 async function initializeUser(user) {
     if (!user) return;
@@ -455,7 +473,6 @@ async function approveRequest(requestKey, uid, creditsToAdd) {
 
         showModal("SUCCESS", `${creditsToAdd} credits added successfully!`, false);
         loadPendingRequests();
-        loadBlockedNumbers();
     } catch(e) {
         showModal("ERROR", "Failed to add credits", true);
     }
@@ -574,6 +591,7 @@ function selectPlan(amount, name) {
     document.getElementById('confirm-section').style.display = 'block';
 }
 
+let selectedPlan = null;
 function resetPlans() { 
     selectedPlan = null;
     document.getElementById('confirm-section').style.display = 'none';
@@ -658,7 +676,7 @@ function loadHistory() {
                 div.className = 'history-item';
 
                 const statusHTML = entry.success 
-                    ? `<span style="color:var(--p)">✅ Data Found • 1 Credit Deducted</span>`
+                    ? `<span style="color:var(--p)">✅ Data Found • ${entry.type === 'Aadhaar' ? '2' : '1'} Credit Deducted</span>`
                     : `<span style="color:var(--r)">❌ ${entry.status === 'no_data' ? 'No Data Found' : 'Search Failed'} • No Credit Deducted</span>`;
 
                 div.innerHTML = `
@@ -679,7 +697,7 @@ function loadHistory() {
 }
 
 async function runTrace(t) {
-    if (credits <= 0) {
+    if (credits <= 0 && t !== 'aadhaar') {
         return showModal("INSUFFICIENT CREDITS", "You don't have enough credits. Please recharge to continue.", true);
     }
 
@@ -688,9 +706,35 @@ async function runTrace(t) {
         return showModal("INPUT REQUIRED", "Please enter a valid number or vehicle registration.", true);
     }
 
-    // 🔥 FIXED: Only Firebase block check (hardcoded list removed)
-    const cleanInputCheck = rawInput.replace(/[\s-]/g, '');
-    const blockSnap = await db.ref('blocked_numbers/' + cleanInputCheck).once('value');
+    let cleanInput = '';
+    let requiredCredits = 1;
+    let searchType = '';
+
+    if (t === 'mob' || t === 'aadhaar') {
+        cleanInput = rawInput.replace(/[^0-9]/g, '');
+        if (cleanInput.length === 0) return showModal("INVALID", "Please enter valid number", true);
+
+        if (t === 'mob' && cleanInput.length === 12) {
+            return showModal("BLOCKED", "12-digit Aadhaar numbers are not allowed in Mobile Search.\nUse Aadhaar Info button instead.", true);
+        }
+        if (t === 'aadhaar' && cleanInput.length !== 12) {
+            return showModal("INVALID", "Aadhaar Info requires exactly 12-digit number.", true);
+        }
+
+        requiredCredits = (t === 'aadhaar') ? 2 : 1;
+        searchType = t === 'aadhaar' ? 'Aadhaar' : 'Mobile';
+    } 
+    else if (t === 'veh') {
+        cleanInput = rawInput.replace(/[\s-]/g, '').toUpperCase();
+        searchType = 'Vehicle';
+    }
+
+    if (credits < requiredCredits) {
+        return showModal("INSUFFICIENT CREDITS", `You need ${requiredCredits} credit${requiredCredits > 1 ? 's' : ''} for this search.`, true);
+    }
+
+    // Block check
+    const blockSnap = await db.ref('blocked_numbers/' + cleanInput).once('value');
     if (blockSnap.exists()) {
         showModal("ACCESS DENIED", "This number is restricted by Admin.", true);
         return;
@@ -714,50 +758,73 @@ async function runTrace(t) {
     }, 140);
 
     try {
-        const cleanInput = rawInput.replace(/[\s-]/g, '').toUpperCase();
+        let data = null;
 
-        const apiURL = (t === 'mob') 
-            ? `https://yash-code-with-ai.alphamovies.workers.dev/?num=9918824247&key=7189814021${cleanInput}`
-            : `https://vehicle-eight-vert.vercel.app/api?rc=${encodeURIComponent(cleanInput)}`;
+        if (t === 'mob' || t === 'aadhaar') {
+            // TWO API SYSTEM
+            const apiUrls = getNumAPIUrls(cleanInput);
+            for (let url of apiUrls) {
+                try {
+                    let res;
+                    try { res = await fetch(url); }
+                    catch (e) { res = await fetch("https://corsproxy.io/?" + encodeURIComponent(url)); }
 
-        let res;
-        try {
-            res = await fetch(apiURL);
-        } catch (e) {
-            res = await fetch("https://corsproxy.io/?" + encodeURIComponent(apiURL));
+                    const textData = await res.text();
+                    const parsed = JSON.parse(textData);
+
+                    const hasData = !!(parsed && (
+                        (parsed.results && Array.isArray(parsed.results) && parsed.results.length > 0) ||
+                        parsed.details ||
+                        Object.keys(parsed).length > 5
+                    ));
+
+                    if (hasData) {
+                        data = parsed;
+                        break;
+                    }
+                } catch (e) {
+                    console.log("API failed, trying next...", url);
+                    continue;
+                }
+            }
+        } 
+        else if (t === 'veh') {
+            const apiURL = `https://vehicle-eight-vert.vercel.app/api?rc=${encodeURIComponent(cleanInput)}`;
+            let res;
+            try { res = await fetch(apiURL); }
+            catch (e) { res = await fetch("https://corsproxy.io/?" + encodeURIComponent(apiURL)); }
+            const textData = await res.text();
+            data = JSON.parse(textData);
         }
-        const textData = await res.text();
-        let data = JSON.parse(textData);
 
         clearInterval(progressInterval);
         bar.style.width = "100%";
 
         const uid = auth.currentUser.uid;
-        const type = t === 'mob' ? 'Mobile' : 'Vehicle';
-
-        const isSuccess = (t === 'mob') 
-            ? !!(data && data.results && Array.isArray(data.results) && data.results.length > 0)
-            : !!(data && data.details);
+        const isSuccess = !!data && (
+            (t === 'veh' && data.details) ||
+            (t !== 'veh' && data)
+        );
 
         await db.ref('users/' + uid + '/history').push({
             timestamp: Date.now(),
-            type: type,
+            type: searchType,
             query: rawInput,
             success: isSuccess,
             status: isSuccess ? 'success' : 'no_data'
         });
 
         if (!isSuccess) {
-            const msg = t === 'mob' 
-                ? "Sorry, we couldn’t find any information about this number.\nYour credits have not been deducted."
-                : "Sorry, we couldn’t find any information about this vehicle.\nYour credits have not been deducted.";
+            const msg = t === 'veh' 
+                ? "Sorry, we couldn’t find any information about this vehicle.\nYour credits have not been deducted."
+                : `Sorry, we couldn’t find any information about this ${t==='aadhaar'?'Aadhaar':'number'}.\nYour credits have not been deducted.`;
             
             showModal("NO INFORMATION FOUND", msg, true);
             switchPage('pg-dash');
             return;
         }
 
-        await db.ref('users/' + uid).update({ credits: credits - 1 });
+        await db.ref('users/' + uid).update({ credits: credits - requiredCredits });
 
         setTimeout(() => {
             switchPage('pg-res');
@@ -770,11 +837,9 @@ async function runTrace(t) {
         bar.style.width = "100%";
 
         const uid = auth.currentUser.uid;
-        const type = t === 'mob' ? 'Mobile' : 'Vehicle';
-
         await db.ref('users/' + uid + '/history').push({
             timestamp: Date.now(),
-            type: type,
+            type: searchType,
             query: rawInput,
             success: false,
             status: 'server_error'

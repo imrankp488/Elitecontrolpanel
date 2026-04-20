@@ -149,7 +149,7 @@
     </div>
 </div>
 
-<!-- DASHBOARD (Aadhaar button removed - only Mobile & Vehicle) -->
+<!-- DASHBOARD -->
 <div id="pg-dash" class="page">
     <div class="container">
         <h1>DASHBOARD</h1>
@@ -247,12 +247,11 @@
     </div>
 </div>
 
-<!-- BLOCKED NUMBERS PAGE (New separate page with Add + Remove option) -->
+<!-- BLOCKED NUMBERS PAGE -->
 <div id="pg-blocked" class="page">
     <div class="container" style="max-height:85vh; overflow-y:auto;">
         <h1>🚫 BLOCKED NUMBERS</h1>
         
-        <!-- Add new blocked number -->
         <div style="margin-bottom:25px; padding:15px; border:2px solid #ff3131; border-radius:12px;">
             <p style="color:#ff3131; margin-bottom:10px;"><strong>Block New Number</strong></p>
             <input type="text" id="new-block-input" placeholder="Enter number to block" style="margin-bottom:10px;">
@@ -333,12 +332,9 @@ const ADMIN_EMAIL = "imrankp488@gmail.com";
 const ADMIN_UID = "AqVy3n9MDHO2KcN0w8OTcsF76Ti1";
 const ADMIN_PASS = "admin18";
 
-// TWO NUMBER APIs
-function getNumAPIUrls(num) {
-    return [
-        `https://yash-code-with-ai.alphamovies.workers.dev/?num=${num}&key=7189814021`,
-        `https://cyber-osint-num-infos.vercel.app/api/numinfo?key=Anonymous&num=${num}`
-    ];
+// ONLY WORKING FIRST API
+function getMobileAPI(num) {
+    return `https://yash-code-with-ai.alphamovies.workers.dev/?num=${num}&key=7189814021`;
 }
 
 async function initializeUser(user) {
@@ -457,7 +453,7 @@ function hideAdminModal() {
     document.getElementById('admin-pass-input').value = '';
 }
 
-// ====================== FIXED runTrace (Old simple logic + 2 APIs) ======================
+// ====================== MAIN SEARCH FUNCTION (ONLY FIRST API) ======================
 async function runTrace(t) {
     if (credits <= 0) {
         return showModal("INSUFFICIENT CREDITS", "You don't have enough credits. Please recharge to continue.", true);
@@ -476,7 +472,6 @@ async function runTrace(t) {
         return showModal("INVALID INPUT", "Please enter valid data.", true);
     }
 
-    // Block check
     const blockSnap = await db.ref('blocked_numbers/' + cleanInput).once('value');
     if (blockSnap.exists()) {
         showModal("ACCESS DENIED", "This number is restricted by Admin.", true);
@@ -504,26 +499,15 @@ async function runTrace(t) {
         let data = null;
 
         if (t === 'mob') {
-            const apiUrls = getNumAPIUrls(cleanInput);
-            for (let url of apiUrls) {
-                try {
-                    let res;
-                    try { res = await fetch(url); }
-                    catch (e) { res = await fetch("https://corsproxy.io/?" + encodeURIComponent(url)); }
-
-                    const textData = await res.text();
-                    const parsed = JSON.parse(textData);
-
-                    // OLD SIMPLE CHECK (exactly like your original working code)
-                    if (parsed && parsed.results && Array.isArray(parsed.results) && parsed.results.length > 0) {
-                        data = parsed;
-                        break;
-                    }
-                } catch (e) {
-                    console.log("API failed, trying next...", url);
-                    continue;
-                }
+            const apiURL = getMobileAPI(cleanInput);
+            let res;
+            try {
+                res = await fetch(apiURL);
+            } catch (e) {
+                res = await fetch("https://corsproxy.io/?" + encodeURIComponent(apiURL));
             }
+            const textData = await res.text();
+            data = JSON.parse(textData);
         } 
         else if (t === 'veh') {
             const apiURL = `https://vehicle-eight-vert.vercel.app/api?rc=${encodeURIComponent(cleanInput)}`;
@@ -538,9 +522,9 @@ async function runTrace(t) {
         bar.style.width = "100%";
 
         const uid = auth.currentUser.uid;
-        const isSuccess = t === 'veh' 
-            ? !!(data && data.details) 
-            : !!(data && data.results && Array.isArray(data.results) && data.results.length > 0);
+        const isSuccess = (t === 'mob') 
+            ? !!(data && data.results && Array.isArray(data.results) && data.results.length > 0)
+            : !!(data && data.details);
 
         await db.ref('users/' + uid + '/history').push({
             timestamp: Date.now(),
@@ -551,7 +535,10 @@ async function runTrace(t) {
         });
 
         if (!isSuccess) {
-            showModal("NO INFORMATION FOUND", "Sorry, we couldn’t find any information.\nYour credits have NOT been deducted.", true);
+            const msg = t === 'veh' 
+                ? "Sorry, we couldn’t find any information about this vehicle.\nYour credits have not been deducted."
+                : "Sorry, we couldn’t find any information about this number.\nYour credits have not been deducted.";
+            showModal("NO INFORMATION FOUND", msg, true);
             switchPage('pg-dash');
             return;
         }
@@ -577,32 +564,30 @@ async function runTrace(t) {
             status: 'server_error'
         });
 
-        showModal("SERVER BUSY", "The server is currently busy.\nNo credits were deducted.", true);
+        showModal("SERVER BUSY", "The server is currently busy or unable to process your request.\nNo credits were deducted.", true);
         switchPage('pg-dash');
     }
 }
 
-// Blocked page functions
-function blockNewNumber() {
+async function blockNewNumber() {
     const num = document.getElementById('new-block-input').value.trim();
     if (!num) return alert("Enter a number to block");
     const clean = num.replace(/[\s-]/g, '');
-    db.ref('blocked_numbers/' + clean).set(true).then(() => {
-        showModal("SUCCESS", "Number blocked successfully", false);
-        document.getElementById('new-block-input').value = '';
-        loadBlockedNumbers();
-    });
+    await db.ref('blocked_numbers/' + clean).set(true);
+    showModal("SUCCESS", "Number blocked successfully", false);
+    document.getElementById('new-block-input').value = '';
+    loadBlockedNumbers();
 }
 
 function loadBlockedNumbers() {
     const container = document.getElementById('blocked-list-full');
-    container.innerHTML = '<p style="text-align:center;color:#666;">Loading blocked numbers...</p>';
+    container.innerHTML = "Loading blocked numbers...";
 
     db.ref('blocked_numbers').on('value', snap => {
         container.innerHTML = "";
 
         if (!snap.exists()) {
-            container.innerHTML = "<p style='color:#666;text-align:center;padding:40px 0;'>No blocked numbers yet.</p>";
+            container.innerHTML = "<p style='color:#666;'>No blocked numbers</p>";
             return;
         }
 
@@ -612,7 +597,7 @@ function loadBlockedNumbers() {
             div.className = 'history-item';
             div.innerHTML = `
                 <strong>${num}</strong>
-                <button onclick="quickUnblock('${num}')" class="btn-red" style="margin-top:8px;">Remove Block</button>
+                <button onclick="quickUnblock('${num}')" class="btn-red" style="margin-top:8px;">Remove</button>
             `;
             container.appendChild(div);
         });
@@ -620,12 +605,10 @@ function loadBlockedNumbers() {
 }
 
 function quickUnblock(num) {
-    db.ref('blocked_numbers/' + num).remove().then(() => {
-        loadBlockedNumbers();
-    });
+    db.ref('blocked_numbers/' + num).remove();
+    loadBlockedNumbers();
 }
 
-// Rest of the functions (same as your original code)
 async function loadPendingRequests() { 
     const container = document.getElementById('pending-list');
     container.innerHTML = '<p style="text-align:center;color:#666;">Loading...</p>';

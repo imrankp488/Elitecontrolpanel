@@ -472,9 +472,11 @@ async function runTrace(t) {
         bar.style.width = "100%";
 
         const uid = auth.currentUser.uid;
+        // ==================== FIXED LINE ====================
         const isSuccess = (t === 'mob') 
-            ? !!(data && data.results && Array.isArray(data.results) && data.results.length > 0)
+            ? !!(data && data.data && Array.isArray(data.data) && data.data.length > 0)
             : !!(data && data.details);
+        // ====================================================
 
         await db.ref('users/' + uid + '/history').push({
             timestamp: Date.now(),

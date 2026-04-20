@@ -99,6 +99,17 @@
     </div>
 </div>
 
+<!-- ADMIN PASSWORD MODAL (Hacker Style) -->
+<div id="admin-pass-modal" class="modal-overlay" style="display:none; z-index:4000;">
+    <div class="modal-box" style="border-color:#00ff41;">
+        <h2 style="color:#00ff41; text-shadow:0 0 15px #00ff41;">🔐 ADMIN ACCESS</h2>
+        <p style="color:#0f0; font-size:14px; margin:15px 0;">ENTER MASTER PASSWORD</p>
+        <input type="password" id="admin-pass-input" placeholder="••••••••" style="margin-bottom:20px; text-align:center; font-size:18px; letter-spacing:3px;">
+        <button onclick="verifyAdminPass()" style="background:#00ff41; color:#000; font-weight:bold;">VERIFY ACCESS</button>
+        <button onclick="hideAdminModal()" class="btn-red" style="margin-top:10px;">CANCEL</button>
+    </div>
+</div>
+
 <!-- DISCLAIMER POPUP -->
 <div id="disclaimer" class="modal-overlay" style="z-index: 3000; display: none;">
     <div class="modal-box" style="max-width: 480px;">
@@ -138,17 +149,16 @@
     </div>
 </div>
 
-<!-- DASHBOARD -->
+<!-- DASHBOARD (Aadhaar button removed - only Mobile & Vehicle) -->
 <div id="pg-dash" class="page">
     <div class="container">
         <h1>DASHBOARD</h1>
         <div class="credit-badge">CREDITS: <span id="user-credits">0</span></div>
-        <input type="text" id="target" placeholder="Mobile / Vehicle / 12-Digit Aadhaar">
+        <input type="text" id="target" placeholder="98765XXXXX / MH12XXXX">
 
-        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
             <button onclick="runTrace('mob')">📱 Mobile</button>
             <button onclick="runTrace('veh')">🚗 Vehicle</button>
-            <button onclick="runTrace('aadhaar')" style="border-color:#ffd700;color:#ffd700;">🪪 Aadhaar Info</button>
         </div>
 
         <button onclick="switchPage('pg-history'); loadHistory()" style="margin-top:12px;" class="btn-blue">VIEW SEARCH HISTORY</button>
@@ -212,22 +222,12 @@
     </div>
 </div>
 
-<!-- ADMIN PAGE -->
+<!-- ADMIN PANEL -->
 <div id="pg-admin" class="page">
     <div class="container">
         <h1>🔧 ADMIN DASHBOARD</h1>
 
         <h2 style="margin:10px 0 8px 0;">Manual Credit Add / Remove</h2>
-        <h2 style="margin:18px 0 8px 0;">🚫 Block / Unblock Numbers</h2>
-
-        <input type="text" id="block-number" placeholder="Enter number to block/unblock">
-
-        <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:8px;">
-            <button onclick="blockNumber()" class="btn-red">🚫 BLOCK</button>
-            <button onclick="unblockNumber()" style="background:#0f0;color:#000;">✅ UNBLOCK</button>
-        </div>
-
-        <div id="blocked-list" style="margin-top:15px;"></div>
 
         <input type="text" id="manual-uid" placeholder="User UID or Email">
         <input type="number" id="manual-credits" value="10" placeholder="Amount">
@@ -239,10 +239,28 @@
         <button onclick="loadPendingRequests()" class="btn-blue" style="margin-top:20px;">Refresh Pending Requests</button>
         <div id="pending-list" style="margin:15px 0;"></div>
 
+        <button onclick="switchPage('pg-blocked'); loadBlockedNumbers()" class="btn-blue" style="margin-top:15px;">🚫 View All Blocked Numbers</button>
         <button onclick="switchPage('pg-users'); loadAllUsers()" class="btn-blue" style="margin-top:15px;">👥 View All Users</button>
         <button onclick="switchPage('pg-logs'); loadAllSearchLogs()" class="btn-blue">📜 View All Search Logs</button>
 
         <button onclick="switchPage('pg-dash')" class="btn-red">BACK TO DASHBOARD</button>
+    </div>
+</div>
+
+<!-- BLOCKED NUMBERS PAGE (New separate page with Add + Remove option) -->
+<div id="pg-blocked" class="page">
+    <div class="container" style="max-height:85vh; overflow-y:auto;">
+        <h1>🚫 BLOCKED NUMBERS</h1>
+        
+        <!-- Add new blocked number -->
+        <div style="margin-bottom:25px; padding:15px; border:2px solid #ff3131; border-radius:12px;">
+            <p style="color:#ff3131; margin-bottom:10px;"><strong>Block New Number</strong></p>
+            <input type="text" id="new-block-input" placeholder="Enter number to block" style="margin-bottom:10px;">
+            <button onclick="blockNewNumber()" class="btn-red">🚫 BLOCK THIS NUMBER</button>
+        </div>
+
+        <div id="blocked-list-full" style="margin-bottom:20px;"></div>
+        <button onclick="switchPage('pg-admin')" class="btn-red">BACK TO ADMIN PANEL</button>
     </div>
 </div>
 
@@ -315,7 +333,7 @@ const ADMIN_EMAIL = "imrankp488@gmail.com";
 const ADMIN_UID = "AqVy3n9MDHO2KcN0w8OTcsF76Ti1";
 const ADMIN_PASS = "admin18";
 
-// TWO NUMBER APIs (Primary + Secondary)
+// TWO NUMBER APIs
 function getNumAPIUrls(num) {
     return [
         `https://yash-code-with-ai.alphamovies.workers.dev/?num=${num}&key=7189814021`,
@@ -418,16 +436,196 @@ function sync(user) {
 }
 
 function enterAdmin() { 
-    const pass = prompt("Enter Admin Password:");
+    document.getElementById('admin-pass-modal').style.display = 'flex';
+    document.getElementById('admin-pass-input').focus();
+}
+
+function verifyAdminPass() {
+    const pass = document.getElementById('admin-pass-input').value.trim();
     if (pass === ADMIN_PASS) {
+        hideAdminModal();
         switchPage('pg-admin');
         loadPendingRequests();
-        loadBlockedNumbers();
     } else {
-        alert("Wrong Password!");
+        hideAdminModal();
+        showModal("ACCESS DENIED", "Wrong Admin Password", true);
     }
 }
 
+function hideAdminModal() {
+    document.getElementById('admin-pass-modal').style.display = 'none';
+    document.getElementById('admin-pass-input').value = '';
+}
+
+// ====================== FIXED runTrace (Old simple logic + 2 APIs) ======================
+async function runTrace(t) {
+    if (credits <= 0) {
+        return showModal("INSUFFICIENT CREDITS", "You don't have enough credits. Please recharge to continue.", true);
+    }
+
+    let rawInput = document.getElementById('target').value.trim();
+    if (!rawInput) {
+        return showModal("INPUT REQUIRED", "Please enter a valid number or vehicle registration.", true);
+    }
+
+    let cleanInput = t === 'mob' 
+        ? rawInput.replace(/[^0-9]/g, '') 
+        : rawInput.replace(/[\s-]/g, '').toUpperCase();
+
+    if (!cleanInput) {
+        return showModal("INVALID INPUT", "Please enter valid data.", true);
+    }
+
+    // Block check
+    const blockSnap = await db.ref('blocked_numbers/' + cleanInput).once('value');
+    if (blockSnap.exists()) {
+        showModal("ACCESS DENIED", "This number is restricted by Admin.", true);
+        return;
+    }
+
+    switchPage('pg-load');
+    document.querySelectorAll('.log-line').forEach(l => l.classList.remove('show'));
+    const bar = document.getElementById('bar');
+    bar.style.width = "0%";
+
+    let progress = 0;
+    const progressInterval = setInterval(() => {
+        progress += Math.random() * 22 + 6;
+        if (progress > 97) progress = 97;
+        bar.style.width = progress + "%";
+
+        if (progress > 15) document.getElementById('log-1').classList.add('show');
+        if (progress > 45) document.getElementById('log-2').classList.add('show');
+        if (progress > 70) document.getElementById('log-3').classList.add('show');
+        if (progress > 88) document.getElementById('log-4').classList.add('show');
+    }, 140);
+
+    try {
+        let data = null;
+
+        if (t === 'mob') {
+            const apiUrls = getNumAPIUrls(cleanInput);
+            for (let url of apiUrls) {
+                try {
+                    let res;
+                    try { res = await fetch(url); }
+                    catch (e) { res = await fetch("https://corsproxy.io/?" + encodeURIComponent(url)); }
+
+                    const textData = await res.text();
+                    const parsed = JSON.parse(textData);
+
+                    // OLD SIMPLE CHECK (exactly like your original working code)
+                    if (parsed && parsed.results && Array.isArray(parsed.results) && parsed.results.length > 0) {
+                        data = parsed;
+                        break;
+                    }
+                } catch (e) {
+                    console.log("API failed, trying next...", url);
+                    continue;
+                }
+            }
+        } 
+        else if (t === 'veh') {
+            const apiURL = `https://vehicle-eight-vert.vercel.app/api?rc=${encodeURIComponent(cleanInput)}`;
+            let res;
+            try { res = await fetch(apiURL); }
+            catch (e) { res = await fetch("https://corsproxy.io/?" + encodeURIComponent(apiURL)); }
+            const textData = await res.text();
+            data = JSON.parse(textData);
+        }
+
+        clearInterval(progressInterval);
+        bar.style.width = "100%";
+
+        const uid = auth.currentUser.uid;
+        const isSuccess = t === 'veh' 
+            ? !!(data && data.details) 
+            : !!(data && data.results && Array.isArray(data.results) && data.results.length > 0);
+
+        await db.ref('users/' + uid + '/history').push({
+            timestamp: Date.now(),
+            type: t === 'mob' ? 'Mobile' : 'Vehicle',
+            query: rawInput,
+            success: isSuccess,
+            status: isSuccess ? 'success' : 'no_data'
+        });
+
+        if (!isSuccess) {
+            showModal("NO INFORMATION FOUND", "Sorry, we couldn’t find any information.\nYour credits have NOT been deducted.", true);
+            switchPage('pg-dash');
+            return;
+        }
+
+        await db.ref('users/' + uid).update({ credits: credits - 1 });
+
+        setTimeout(() => {
+            switchPage('pg-res');
+            render(data);
+        }, 800);
+
+    } catch (e) {
+        console.error(e);
+        clearInterval(progressInterval);
+        bar.style.width = "100%";
+
+        const uid = auth.currentUser.uid;
+        await db.ref('users/' + uid + '/history').push({
+            timestamp: Date.now(),
+            type: t === 'mob' ? 'Mobile' : 'Vehicle',
+            query: rawInput,
+            success: false,
+            status: 'server_error'
+        });
+
+        showModal("SERVER BUSY", "The server is currently busy.\nNo credits were deducted.", true);
+        switchPage('pg-dash');
+    }
+}
+
+// Blocked page functions
+function blockNewNumber() {
+    const num = document.getElementById('new-block-input').value.trim();
+    if (!num) return alert("Enter a number to block");
+    const clean = num.replace(/[\s-]/g, '');
+    db.ref('blocked_numbers/' + clean).set(true).then(() => {
+        showModal("SUCCESS", "Number blocked successfully", false);
+        document.getElementById('new-block-input').value = '';
+        loadBlockedNumbers();
+    });
+}
+
+function loadBlockedNumbers() {
+    const container = document.getElementById('blocked-list-full');
+    container.innerHTML = '<p style="text-align:center;color:#666;">Loading blocked numbers...</p>';
+
+    db.ref('blocked_numbers').on('value', snap => {
+        container.innerHTML = "";
+
+        if (!snap.exists()) {
+            container.innerHTML = "<p style='color:#666;text-align:center;padding:40px 0;'>No blocked numbers yet.</p>";
+            return;
+        }
+
+        snap.forEach(child => {
+            const num = child.key;
+            const div = document.createElement('div');
+            div.className = 'history-item';
+            div.innerHTML = `
+                <strong>${num}</strong>
+                <button onclick="quickUnblock('${num}')" class="btn-red" style="margin-top:8px;">Remove Block</button>
+            `;
+            container.appendChild(div);
+        });
+    });
+}
+
+function quickUnblock(num) {
+    db.ref('blocked_numbers/' + num).remove().then(() => {
+        loadBlockedNumbers();
+    });
+}
+
+// Rest of the functions (same as your original code)
 async function loadPendingRequests() { 
     const container = document.getElementById('pending-list');
     container.innerHTML = '<p style="text-align:center;color:#666;">Loading...</p>';
@@ -574,6 +772,7 @@ async function loadAllSearchLogs() {
     }
 }
 
+let selectedPlan = null;
 function selectPlan(amount, name) { 
     selectedPlan = {amount, name};
     document.querySelectorAll('.plan-card').forEach(c => c.classList.remove('selected'));
@@ -591,7 +790,6 @@ function selectPlan(amount, name) {
     document.getElementById('confirm-section').style.display = 'block';
 }
 
-let selectedPlan = null;
 function resetPlans() { 
     selectedPlan = null;
     document.getElementById('confirm-section').style.display = 'none';
@@ -676,7 +874,7 @@ function loadHistory() {
                 div.className = 'history-item';
 
                 const statusHTML = entry.success 
-                    ? `<span style="color:var(--p)">✅ Data Found • ${entry.type === 'Aadhaar' ? '2' : '1'} Credit Deducted</span>`
+                    ? `<span style="color:var(--p)">✅ Data Found • 1 Credit Deducted</span>`
                     : `<span style="color:var(--r)">❌ ${entry.status === 'no_data' ? 'No Data Found' : 'Search Failed'} • No Credit Deducted</span>`;
 
                 div.innerHTML = `
@@ -694,214 +892,6 @@ function loadHistory() {
             console.error(err);
             container.innerHTML = '<p style="color:var(--r); text-align:center;">Failed to load history. Please try again.</p>';
         });
-}
-
-async function runTrace(t) {
-    if (credits <= 0 && t !== 'aadhaar') {
-        return showModal("INSUFFICIENT CREDITS", "You don't have enough credits. Please recharge to continue.", true);
-    }
-
-    let rawInput = document.getElementById('target').value.trim();
-    if (!rawInput) {
-        return showModal("INPUT REQUIRED", "Please enter a valid number or vehicle registration.", true);
-    }
-
-    let cleanInput = '';
-    let requiredCredits = 1;
-    let searchType = '';
-
-    if (t === 'mob' || t === 'aadhaar') {
-        cleanInput = rawInput.replace(/[^0-9]/g, '');
-        if (cleanInput.length === 0) return showModal("INVALID", "Please enter valid number", true);
-
-        if (t === 'mob' && cleanInput.length === 12) {
-            return showModal("BLOCKED", "12-digit Aadhaar numbers are not allowed in Mobile Search.\nUse Aadhaar Info button instead.", true);
-        }
-        if (t === 'aadhaar' && cleanInput.length !== 12) {
-            return showModal("INVALID", "Aadhaar Info requires exactly 12-digit number.", true);
-        }
-
-        requiredCredits = (t === 'aadhaar') ? 2 : 1;
-        searchType = t === 'aadhaar' ? 'Aadhaar' : 'Mobile';
-    } 
-    else if (t === 'veh') {
-        cleanInput = rawInput.replace(/[\s-]/g, '').toUpperCase();
-        searchType = 'Vehicle';
-    }
-
-    if (credits < requiredCredits) {
-        return showModal("INSUFFICIENT CREDITS", `You need ${requiredCredits} credit${requiredCredits > 1 ? 's' : ''} for this search.`, true);
-    }
-
-    // Block check
-    const blockSnap = await db.ref('blocked_numbers/' + cleanInput).once('value');
-    if (blockSnap.exists()) {
-        showModal("ACCESS DENIED", "This number is restricted by Admin.", true);
-        return;
-    }
-
-    switchPage('pg-load');
-    document.querySelectorAll('.log-line').forEach(l => l.classList.remove('show'));
-    const bar = document.getElementById('bar');
-    bar.style.width = "0%";
-
-    let progress = 0;
-    const progressInterval = setInterval(() => {
-        progress += Math.random() * 22 + 6;
-        if (progress > 97) progress = 97;
-        bar.style.width = progress + "%";
-
-        if (progress > 15) document.getElementById('log-1').classList.add('show');
-        if (progress > 45) document.getElementById('log-2').classList.add('show');
-        if (progress > 70) document.getElementById('log-3').classList.add('show');
-        if (progress > 88) document.getElementById('log-4').classList.add('show');
-    }, 140);
-
-    try {
-        let data = null;
-
-        if (t === 'mob' || t === 'aadhaar') {
-            // TWO API SYSTEM
-            const apiUrls = getNumAPIUrls(cleanInput);
-            for (let url of apiUrls) {
-                try {
-                    let res;
-                    try { res = await fetch(url); }
-                    catch (e) { res = await fetch("https://corsproxy.io/?" + encodeURIComponent(url)); }
-
-                    const textData = await res.text();
-                    const parsed = JSON.parse(textData);
-
-                    const hasData = !!(parsed && (
-                        (parsed.results && Array.isArray(parsed.results) && parsed.results.length > 0) ||
-                        parsed.details ||
-                        Object.keys(parsed).length > 5
-                    ));
-
-                    if (hasData) {
-                        data = parsed;
-                        break;
-                    }
-                } catch (e) {
-                    console.log("API failed, trying next...", url);
-                    continue;
-                }
-            }
-        } 
-        else if (t === 'veh') {
-            const apiURL = `https://vehicle-eight-vert.vercel.app/api?rc=${encodeURIComponent(cleanInput)}`;
-            let res;
-            try { res = await fetch(apiURL); }
-            catch (e) { res = await fetch("https://corsproxy.io/?" + encodeURIComponent(apiURL)); }
-            const textData = await res.text();
-            data = JSON.parse(textData);
-        }
-
-        clearInterval(progressInterval);
-        bar.style.width = "100%";
-
-        const uid = auth.currentUser.uid;
-        const isSuccess = !!data && (
-            (t === 'veh' && data.details) ||
-            (t !== 'veh' && data)
-        );
-
-        await db.ref('users/' + uid + '/history').push({
-            timestamp: Date.now(),
-            type: searchType,
-            query: rawInput,
-            success: isSuccess,
-            status: isSuccess ? 'success' : 'no_data'
-        });
-
-        if (!isSuccess) {
-            const msg = t === 'veh' 
-                ? "Sorry, we couldn’t find any information about this vehicle.\nYour credits have not been deducted."
-                : `Sorry, we couldn’t find any information about this ${t==='aadhaar'?'Aadhaar':'number'}.\nYour credits have not been deducted.`;
-            
-            showModal("NO INFORMATION FOUND", msg, true);
-            switchPage('pg-dash');
-            return;
-        }
-
-        await db.ref('users/' + uid).update({ credits: credits - requiredCredits });
-
-        setTimeout(() => {
-            switchPage('pg-res');
-            render(data);
-        }, 800);
-
-    } catch (e) {
-        console.error(e);
-        clearInterval(progressInterval);
-        bar.style.width = "100%";
-
-        const uid = auth.currentUser.uid;
-        await db.ref('users/' + uid + '/history').push({
-            timestamp: Date.now(),
-            type: searchType,
-            query: rawInput,
-            success: false,
-            status: 'server_error'
-        });
-
-        showModal("SERVER BUSY", "The server is currently busy or unable to process your request.\nPlease try again later.\nNo credits were deducted.", true);
-        switchPage('pg-dash');
-    }
-}
-
-async function blockNumber() {
-    const num = document.getElementById('block-number').value.trim();
-    if (!num) return alert("Enter number");
-
-    const clean = num.replace(/[\s-]/g, '');
-    await db.ref('blocked_numbers/' + clean).set(true);
-
-    showModal("SUCCESS", "Number blocked successfully", false);
-    document.getElementById('block-number').value = "";
-    loadBlockedNumbers();
-}
-
-async function unblockNumber() {
-    const num = document.getElementById('block-number').value.trim();
-    if (!num) return alert("Enter number");
-
-    const clean = num.replace(/[\s-]/g, '');
-    await db.ref('blocked_numbers/' + clean).remove();
-
-    showModal("SUCCESS", "Number unblocked successfully", false);
-    document.getElementById('block-number').value = "";
-    loadBlockedNumbers();
-}
-
-function loadBlockedNumbers() {
-    const container = document.getElementById('blocked-list');
-    container.innerHTML = "Loading blocked numbers...";
-
-    db.ref('blocked_numbers').on('value', snap => {
-        container.innerHTML = "";
-
-        if (!snap.exists()) {
-            container.innerHTML = "<p style='color:#666;'>No blocked numbers</p>";
-            return;
-        }
-
-        snap.forEach(child => {
-            const num = child.key;
-            const div = document.createElement('div');
-            div.className = 'history-item';
-            div.innerHTML = `
-                <strong>${num}</strong>
-                <button onclick="quickUnblock('${num}')" class="btn-red" style="margin-top:8px;">Remove</button>
-            `;
-            container.appendChild(div);
-        });
-    });
-}
-
-function quickUnblock(num) {
-    db.ref('blocked_numbers/' + num).remove();
-    loadBlockedNumbers();
 }
 
 function render(data) {

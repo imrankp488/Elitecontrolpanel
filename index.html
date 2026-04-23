@@ -143,12 +143,11 @@
     <div class="container">
         <h1>DASHBOARD</h1>
         <div class="credit-badge">CREDITS: <span id="user-credits">0</span></div>
-        <input type="text" id="target" placeholder="98765XXXXX / MH12XXXX / Celebrity Name">
+        <input type="text" id="target" placeholder="98765XXXXX / MH12XXXX">
 
-        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
             <button onclick="runTrace('mob')">📱 Mobile</button>
             <button onclick="runTrace('veh')">🚗 Vehicle</button>
-            <button onclick="runTrace('celeb')">👤 Celebrity Info</button>
         </div>
 
         <button onclick="switchPage('pg-history'); loadHistory()" style="margin-top:12px;" class="btn-blue">VIEW SEARCH HISTORY</button>
@@ -193,8 +192,57 @@
     </div>
 </div>
 
-<!-- ADMIN PANEL + BLOCKED + USERS + LOGS + LOADING + RESULT pages same as before (no change) -->
-<!-- (Poora code lamba na ho isliye maine yahan skip kiya hai, lekin actual file mein sab same hai) -->
+<!-- ADMIN PANEL -->
+<div id="pg-admin" class="page">
+    <div class="container">
+        <h1>🔧 ADMIN DASHBOARD</h1>
+        <h2 style="margin:10px 0 8px 0;">Manual Credit Add / Remove</h2>
+        <input type="text" id="manual-uid" placeholder="User UID or Email">
+        <input type="number" id="manual-credits" value="10" placeholder="Amount">
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:8px;">
+            <button onclick="addManualCredits(true)" style="background:#0f0; color:#000;">+ ADD CREDITS</button>
+            <button onclick="addManualCredits(false)" class="btn-red">- REMOVE CREDITS</button>
+        </div>
+        <button onclick="loadPendingRequests()" class="btn-blue" style="margin-top:20px;">Refresh Pending Requests</button>
+        <div id="pending-list" style="margin:15px 0;"></div>
+        <button onclick="switchPage('pg-blocked'); loadBlockedNumbers()" class="btn-blue" style="margin-top:15px;">🚫 View All Blocked Numbers</button>
+        <button onclick="switchPage('pg-users'); loadAllUsers()" class="btn-blue" style="margin-top:15px;">👥 View All Users</button>
+        <button onclick="switchPage('pg-logs'); loadAllSearchLogs()" class="btn-blue">📜 View All Search Logs</button>
+        <button onclick="switchPage('pg-dash')" class="btn-red">BACK TO DASHBOARD</button>
+    </div>
+</div>
+
+<!-- BLOCKED NUMBERS PAGE -->
+<div id="pg-blocked" class="page">
+    <div class="container" style="max-height:85vh; overflow-y:auto;">
+        <h1>🚫 BLOCKED NUMBERS</h1>
+        <div style="margin-bottom:25px; padding:15px; border:2px solid #ff3131; border-radius:12px;">
+            <p style="color:#ff3131; margin-bottom:10px;"><strong>Block New Number</strong></p>
+            <input type="text" id="new-block-input" placeholder="Enter number to block" style="margin-bottom:10px;">
+            <button onclick="blockNewNumber()" class="btn-red">🚫 BLOCK THIS NUMBER</button>
+        </div>
+        <div id="blocked-list-full" style="margin-bottom:20px;"></div>
+        <button onclick="switchPage('pg-admin')" class="btn-red">BACK TO ADMIN PANEL</button>
+    </div>
+</div>
+
+<!-- USERS PAGE -->
+<div id="pg-users" class="page">
+    <div class="container" style="max-height:85vh; overflow-y:auto;">
+        <h1>👥 ALL USERS</h1>
+        <div id="users-list"></div>
+        <button onclick="switchPage('pg-admin')" class="btn-red" style="margin-top:20px;">BACK</button>
+    </div>
+</div>
+
+<!-- LOGS PAGE -->
+<div id="pg-logs" class="page">
+    <div class="container" style="max-height:85vh; overflow-y:auto;">
+        <h1>📜 ALL SEARCH LOGS</h1>
+        <div id="all-logs-list"></div>
+        <button onclick="switchPage('pg-admin')" class="btn-red" style="margin-top:20px;">BACK</button>
+    </div>
+</div>
 
 <!-- LOADING PAGE -->
 <div id="pg-load" class="page">
@@ -247,6 +295,7 @@ const ADMIN_EMAIL = "imrankp488@gmail.com";
 const ADMIN_UID = "AqVy3n9MDHO2KcN0w8OTcsF76Ti1";
 const ADMIN_PASS = "admin18";
 
+// ONLY FIRST API (working one)
 function getMobileAPI(num) {
     return `https://yash-code-with-ai.alphamovies.workers.dev/?num=${num}&key=7189814021`;
 }
@@ -361,7 +410,7 @@ function hideAdminModal() {
     document.getElementById('admin-pass-input').value = '';
 }
 
-// ====================== MAIN SEARCH ======================
+// ====================== MAIN SEARCH - ONLY FIRST API ======================
 async function runTrace(t) {
     if (credits <= 0) {
         return showModal("INSUFFICIENT CREDITS", "You don't have enough credits. Please recharge to continue.", true);
@@ -369,13 +418,10 @@ async function runTrace(t) {
 
     let rawInput = document.getElementById('target').value.trim();
     if (!rawInput) {
-        return showModal("INPUT REQUIRED", "Please enter a valid number, vehicle registration or celebrity name.", true);
+        return showModal("INPUT REQUIRED", "Please enter a valid number or vehicle registration.", true);
     }
 
-    let cleanInput = t === 'mob' ? rawInput.replace(/[^0-9]/g, '') : 
-                     t === 'veh' ? rawInput.replace(/[\s-]/g, '').toUpperCase() : 
-                     rawInput.trim();
-
+    let cleanInput = t === 'mob' ? rawInput.replace(/[^0-9]/g, '') : rawInput.replace(/[\s-]/g, '').toUpperCase();
     if (!cleanInput) {
         return showModal("INVALID INPUT", "Please enter valid data.", true);
     }
@@ -421,28 +467,20 @@ async function runTrace(t) {
             const textData = await res.text();
             data = JSON.parse(textData);
         }
-        else if (t === 'celeb') {
-            const apiURL = `https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(cleanInput)}`;
-            let res;
-            try { res = await fetch(apiURL); }
-            catch (e) { res = await fetch("https://corsproxy.io/?" + encodeURIComponent(apiURL)); }
-            if (!res.ok) throw new Error("Not found");
-            data = await res.json();
-        }
 
         clearInterval(progressInterval);
         bar.style.width = "100%";
 
         const uid = auth.currentUser.uid;
+        // ==================== FIXED LINE ====================
         const isSuccess = (t === 'mob') 
             ? !!(data && data.data && Array.isArray(data.data) && data.data.length > 0)
-            : (t === 'veh') 
-            ? !!(data && data.details)
-            : !!(data && data.extract);   // Celebrity success check
+            : !!(data && data.details);
+        // ====================================================
 
         await db.ref('users/' + uid + '/history').push({
             timestamp: Date.now(),
-            type: t === 'mob' ? 'Mobile' : t === 'veh' ? 'Vehicle' : 'Celebrity',
+            type: t === 'mob' ? 'Mobile' : 'Vehicle',
             query: rawInput,
             success: isSuccess,
             status: isSuccess ? 'success' : 'no_data'
@@ -451,8 +489,6 @@ async function runTrace(t) {
         if (!isSuccess) {
             const msg = t === 'veh' 
                 ? "Sorry, we couldn’t find any information about this vehicle.\nYour credits have not been deducted."
-                : t === 'celeb'
-                ? "Sorry, we couldn’t find any information about this celebrity.\nYour credits have not been deducted."
                 : "Sorry, we couldn’t find any information about this number.\nYour credits have not been deducted.";
             showModal("NO INFORMATION FOUND", msg, true);
             switchPage('pg-dash');
@@ -474,7 +510,7 @@ async function runTrace(t) {
         const uid = auth.currentUser.uid;
         await db.ref('users/' + uid + '/history').push({
             timestamp: Date.now(),
-            type: t === 'mob' ? 'Mobile' : t === 'veh' ? 'Vehicle' : 'Celebrity',
+            type: t === 'mob' ? 'Mobile' : 'Vehicle',
             query: rawInput,
             success: false,
             status: 'server_error'
@@ -485,8 +521,7 @@ async function runTrace(t) {
     }
 }
 
-// Baaki sab functions (blockNewNumber, loadBlockedNumbers, loadPendingRequests, approveRequest, addManualCredits, loadAllUsers, loadAllSearchLogs, selectPlan, resetPlans, confirmAndPay, uploadImgBB, loadHistory, render) bilkul same hain jaise pehle the.
-
+// Blocked Numbers Functions
 async function blockNewNumber() {
     const num = document.getElementById('new-block-input').value.trim();
     if (!num) return alert("Enter a number to block");
@@ -521,6 +556,8 @@ function quickUnblock(num) {
     db.ref('blocked_numbers/' + num).remove();
     loadBlockedNumbers();
 }
+
+// Remaining functions (loadPendingRequests, approveRequest, addManualCredits, loadAllUsers, loadAllSearchLogs, selectPlan, resetPlans, confirmAndPay, uploadImgBB, loadHistory, render) are exactly same as your original code.
 
 async function loadPendingRequests() { 
     const container = document.getElementById('pending-list');
